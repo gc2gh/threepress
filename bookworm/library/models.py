@@ -33,14 +33,14 @@ def unsafe_name(name):
     unquote = unquote_plus(name.encode(ENC))
     return unicode(unquote, ENC)
 
-def encode_content(self, c):
+def encode_content(c):
     return base64.b64encode(c)
-def decode_content(self, c):
+def decode_content(c):
     return base64.b64decode(c)
 
 class BookwormModel(models.Model):
     '''Base class for all models'''
-    created_time = models.DateTimeField('date created')
+    created_time = models.DateTimeField('date created', default=datetime.datetime.now())
     class Meta:
         abstract = True
 
@@ -58,23 +58,27 @@ class EpubArchive(BookwormModel):
     authors = models.ManyToManyField('BookAuthor')
 
     title = models.CharField(max_length=5000)
-    content = models.TextField()  # will have to base64-encode this; Django has no blob field, wtf
+    _content = models.TextField()  # will have to base64-encode this; Django has no blob field, wtf
     opf = models.TextField()
     toc = models.TextField()
     has_stylesheets = models.BooleanField(default=False)
 
-
+    def get_content(self):
+        return decode_content(self._content)
+    def set_content(self, c):
+        self._content = encode_content(c)
 
     def author(self):
         '''This method returns the author, if only one, or the first author in
         the list with ellipses for additional authors.'''
         if not self.authors:
             return None
-        if len(self.authors) == 0:
+        a = self.authors.all()
+        if len(a) == 0:
             return ''
-        if len(self.authors) == 1:
-            return self.authors[0]
-        return self.authors[0] + '...'
+        if len(a) == 1:
+            return a[0].name
+        return a[0].name + '...'
 
     def _get_metadata(self, metadata_tag, opf):
         '''Returns a metdata item's text content by tag name, or a list if mulitple names match'''
@@ -112,7 +116,7 @@ class EpubArchive(BookwormModel):
         
     def explode(self):
         '''Explodes an epub archive'''
-        e = StringIO(self.content)
+        e = StringIO(self.get_content())
         z = ZipFile(e)
 
         logging.debug(z.namelist())
@@ -179,11 +183,13 @@ class EpubArchive(BookwormModel):
         raise Exception("Could not find toc filename")
 
     def _get_authors(self, opf):
-        authors = [unicode(a.text.strip(), ENC) for a in opf.findall('.//{%s}%s' % (NS['dc'], constants.DC_CREATOR_TAG))]
+        authors = [BookAuthor(name=unicode(a.text.strip(), ENC)) for a in opf.findall('.//{%s}%s' % (NS['dc'], constants.DC_CREATOR_TAG))]
         if len(authors) == 0:
             logging.warn('Got empty authors string for book %s' % self.name)
         else:
             logging.info('Got authors as %s' % (authors))
+        for a in authors:
+            a.save()
         return authors
 
     def _get_title(self, xml):
@@ -222,7 +228,7 @@ class EpubArchive(BookwormModel):
 
     def _create_images(self, images):
         for i in images:
-            image = ImageFile(parent=self,
+            image = ImageFile(
                               idref=i['idref'],
                               data=i['data'],
                               file=i['file'],
@@ -256,7 +262,7 @@ class EpubArchive(BookwormModel):
 
     def _create_stylesheets(self, stylesheets):
         for s in stylesheets:
-            css = StylesheetFile(parent=self,
+            css = StylesheetFile(
                                  idref=s['idref'],
                                  file=s['file'],
                                  archive=self)
@@ -325,7 +331,7 @@ class EpubArchive(BookwormModel):
 
     def _create_page(self, title, idref, f, archive, order):
         '''Create an HTML page and associate it with the archive'''
-        html = HTMLFile(parent=self, 
+        html = HTMLFile(
                         title=title, 
                         idref=unicode(idref, ENC),
                         file=unicode(f, ENC),
@@ -434,8 +440,13 @@ class StylesheetFile(BookwormFile):
 class ImageFile(BookwormFile):
     '''An image file associated with a given book.  Mime-type will vary.'''
     content_type = models.CharField(max_length=100)
-    data = models.TextField() # really base64
+    _data = models.TextField() # really base64
 
+    def get_data(self):
+        return decode_content(self._data)
+    def set_data(self, d):
+        self._data = encode_content(d)
+ 
 
 def get_system_info():
     '''This can now be computed at runtime (and cached)'''

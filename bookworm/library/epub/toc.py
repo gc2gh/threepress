@@ -76,8 +76,8 @@ class NavPoint():
         self.tree = tree
         self.label = get_label(self.element)
 
-        logging.debug('Created navpoint for book "%s" with title "%s", parent label "%s" and depth %d' 
-                      % (self.doc_title, self.title(), get_label(self.parent), self.depth))
+        #logging.debug('Created navpoint for book "%s" with title "%s", parent label "%s" and depth %d' 
+        #              % (self.doc_title, self.title(), get_label(self.parent), self.depth))
 
     def find_children(self):
         '''Returns all the children of this NavPoint'''

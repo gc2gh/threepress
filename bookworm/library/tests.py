@@ -10,6 +10,7 @@ from os.path import isfile, isdir
 
 # Could we get this with the relative imports in 2.5 __future__?
 # Tried this but relative imports do not work in 2.5 if the script is run as '__main__' -ld 
+from django.contrib.auth.models import User
 
 from models import *
 from testmodels import *
@@ -32,8 +33,13 @@ class TestModels(unittest.TestCase):
 
         if isdir(PRIVATE_DATA_DIR):
             self.documents += [d for d in os.listdir(PRIVATE_DATA_DIR) if '.epub' in d and isfile('%s/%s' % (PRIVATE_DATA_DIR, d))] 
-        
 
+        
+        self.user = User(username='testuser')
+        self.user.save()
+
+    def tearDown(self):
+        self.user.delete()
 
     def testGetAllDocuments(self):
         '''Run through all the documents at a high level'''
@@ -67,7 +73,7 @@ class TestModels(unittest.TestCase):
         opf_file = 'two-authors.opf'
         document = MockEpubArchive(name=opf_file)
         opf = document.xml_from_string(open('%s/%s' % (DATA_DIR, opf_file)).read())
-        authors = document.get_authors(opf)
+        authors = [a.name for a in document.get_authors(opf)]
         self.assertEquals(expected_authors, authors)
 
     def testGetMultipleAuthorsAsAuthor(self):
@@ -75,6 +81,8 @@ class TestModels(unittest.TestCase):
         opf_file = 'two-authors.opf'
         expected_authors = [u'First Author', u'Second Author']
         document = MockEpubArchive(name=opf_file)
+        document.owner = self.user
+        document.save()
         opf = document.xml_from_string(open('%s/%s' % (DATA_DIR, opf_file)).read())
         
         fuzz = 4
@@ -87,6 +95,9 @@ class TestModels(unittest.TestCase):
         '''An OPF document with no authors should return None.'''
         no_author_opf_file = 'no-author.opf'
         no_author_document = MockEpubArchive(name=no_author_opf_file)
+        no_author_document.owner = self.user
+        no_author_document.save()
+
         opf = no_author_document.xml_from_string(open('%s/%s' % (DATA_DIR, no_author_opf_file)).read())
 
         author = no_author_document.get_author(opf)
@@ -105,9 +116,7 @@ class TestModels(unittest.TestCase):
         document = self.create_document(filename)
         document.explode()
         document.save()
-        logging.info(users.get_current_user())
-        key = document.key()
-        d = _get_document(title, key)
+        d = _get_document(title, document.id)
         self.failUnless(d)
 
     def testBadEpubFails(self):
@@ -134,8 +143,7 @@ class TestModels(unittest.TestCase):
         toc = TOC(document.toc)
         self.failUnless(toc)
 
-        chapters = HTMLFile.gql('WHERE archive = :parent',
-                                parent=document).fetch(100)
+        chapters = HTMLFile.objects.filter(archive=document)
         self.assertEquals(len(chapters), len(toc.find_points(1)))
 
     def testCountDeepTOC(self):
@@ -201,8 +209,7 @@ class TestModels(unittest.TestCase):
         document = self.create_document('invalid-xhtml.epub')
         document.explode()
         document.save()
-        chapters = HTMLFile.gql('WHERE archive = :parent', 
-                                   parent=document).fetch(100)
+        chapters = HTMLFile.objects.filter(archive=document)
         for c in chapters:
             c.render()
 
@@ -211,8 +218,7 @@ class TestModels(unittest.TestCase):
         document = self.create_document('html-entities.epub')
         document.explode()
         document.save()
-        chapters = HTMLFile.gql('WHERE archive = :parent', 
-                                   parent=document).fetch(100)
+        chapters = HTMLFile.objects.filter(archive=document)
         for c in chapters:
             c.render()        
 
@@ -222,26 +228,25 @@ class TestModels(unittest.TestCase):
         document = self.create_document(filename)
         document.explode()
         document.save()
-        chapters = HTMLFile.gql('WHERE archive = :parent', 
-                                   parent=document).fetch(100)
+        chapters = HTMLFile.objects.filter(archive=document)
         for c in chapters:
             self.assert_('<body' not in c.render())
             self.assert_('<div id="bw-book-content"' in c.render())
 
     def create_document(self, document):
         epub = MockEpubArchive(name=document)
+        epub.owner = self.user
         try:
-            epub.content = open('%s/%s' % (DATA_DIR, document)).read()
+            epub.set_content(open('%s/%s' % (DATA_DIR, document)).read())
         except IOError:
-            epub.content = open('%s/%s' % (PRIVATE_DATA_DIR, document)).read()        
-        epub.owner = users.get_current_user()
+            epub.set_content(open('%s/%s' % (PRIVATE_DATA_DIR, document)).read())
         epub.save()
         return epub
 
 
-def _get_document(title, key):
+def _get_document(title, id):
     '''@todo Mock this out better instead of overwriting the real view'''
-    return MockEpubArchive.get(key)
+    return MockEpubArchive(id=id)
 
 
 if __name__ == '__main__':
