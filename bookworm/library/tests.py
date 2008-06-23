@@ -3,26 +3,21 @@
 
 import os
 import re
-import sys
-import time
 import unittest
 import logging
 
-from django.conf import settings
 from os.path import isfile, isdir
 
 # Could we get this with the relative imports in 2.5 __future__?
 # Tried this but relative imports do not work in 2.5 if the script is run as '__main__' -ld 
-dir_path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..'))
-sys.path.append(dir_path)
 
-from library.models import *
-from library.testmodels import *
-from library.epub.toc import TOC
-from library.epub.constants import *
+from models import *
+from testmodels import *
+from epub.toc import TOC
+from epub.constants import *
 
 # Data for public epub documents
-DATA_DIR = os.path.abspath('./data')
+DATA_DIR = os.path.abspath('./library/test-data/data')
 
 # Local documents should be added here and will be included in tests,
 # but not in the svn repository
@@ -109,7 +104,7 @@ class TestModels(unittest.TestCase):
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
         document = self.create_document(filename)
         document.explode()
-        document.put()
+        document.save()
         logging.info(users.get_current_user())
         key = document.key()
         d = _get_document(title, key)
@@ -134,7 +129,7 @@ class TestModels(unittest.TestCase):
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
         document = self.create_document(filename)
         document.explode()
-        document.put()
+        document.save()
 
         toc = TOC(document.toc)
         self.failUnless(toc)
@@ -205,7 +200,7 @@ class TestModels(unittest.TestCase):
         '''Documents with non-XML content should be renderable'''
         document = self.create_document('invalid-xhtml.epub')
         document.explode()
-        document.put()
+        document.save()
         chapters = HTMLFile.gql('WHERE archive = :parent', 
                                    parent=document).fetch(100)
         for c in chapters:
@@ -215,7 +210,7 @@ class TestModels(unittest.TestCase):
         '''Documents which are valid XML except for HTML entities should convert'''
         document = self.create_document('html-entities.epub')
         document.explode()
-        document.put()
+        document.save()
         chapters = HTMLFile.gql('WHERE archive = :parent', 
                                    parent=document).fetch(100)
         for c in chapters:
@@ -226,7 +221,7 @@ class TestModels(unittest.TestCase):
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
         document = self.create_document(filename)
         document.explode()
-        document.put()
+        document.save()
         chapters = HTMLFile.gql('WHERE archive = :parent', 
                                    parent=document).fetch(100)
         for c in chapters:
@@ -240,7 +235,7 @@ class TestModels(unittest.TestCase):
         except IOError:
             epub.content = open('%s/%s' % (PRIVATE_DATA_DIR, document)).read()        
         epub.owner = users.get_current_user()
-        epub.put()
+        epub.save()
         return epub
 
 
@@ -250,5 +245,4 @@ def _get_document(title, key):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    unittest.main() 
+    logging.error('Invoke this using "manage.py test"')
