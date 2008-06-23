@@ -8,19 +8,8 @@ import time
 import unittest
 import logging
 
+from django.conf import settings
 from os.path import isfile, isdir
-
-sys.path.append('/usr/local/google_appengine')
-sys.path.append('/usr/local/google_appengine/lib/yaml/lib')
-
-from google.appengine.api import apiproxy_stub_map
-from google.appengine.api import datastore_file_stub
-from google.appengine.api import mail_stub
-from google.appengine.api import urlfetch_stub
-from google.appengine.api import user_service_stub
-from google.appengine.api import users
-
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 # Could we get this with the relative imports in 2.5 __future__?
 # Tried this but relative imports do not work in 2.5 if the script is run as '__main__' -ld 
@@ -28,13 +17,9 @@ dir_path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file_
 sys.path.append(dir_path)
 
 from library.models import *
-import library.views as views
+from library.testmodels import *
 from library.epub.toc import TOC
 from library.epub.constants import *
-
-APP_ID = u'test'
-AUTH_DOMAIN = 'gmail.com'
-LOGGED_IN_USER = 'test@example.com'
 
 # Data for public epub documents
 DATA_DIR = os.path.abspath('./data')
@@ -46,29 +31,6 @@ PRIVATE_DATA_DIR = '%s/private' % DATA_DIR
 class TestModels(unittest.TestCase):
 
     def setUp(self):
-        # Ensure we're in UTC.
-        os.environ['TZ'] = 'UTC'
-        time.tzset()
-        
-        # Start with a fresh api proxy.
-        apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()
-        
-        # Use a fresh stub datastore.
-        stub = datastore_file_stub.DatastoreFileStub(APP_ID, '/dev/null', '/dev/null')
-        apiproxy_stub_map.apiproxy.RegisterStub('datastore_v3', stub)
-
-        # Use a fresh stub UserService.
-        apiproxy_stub_map.apiproxy.RegisterStub(
-            'user', user_service_stub.UserServiceStub())
-        os.environ['AUTH_DOMAIN'] = AUTH_DOMAIN
-        os.environ['USER_EMAIL'] = LOGGED_IN_USER
-        
-        # Use a fresh urlfetch stub.
-        apiproxy_stub_map.apiproxy.RegisterStub(
-            'urlfetch', urlfetch_stub.URLFetchServiceStub())
-        
-        # Use a fresh mail stub.
-        apiproxy_stub_map.apiproxy.RegisterStub('mail', mail_stub.MailServiceStub())
 
         # Add all our test data
         self.documents = [d for d in os.listdir(DATA_DIR) if '.epub' in d and isfile('%s/%s' % (DATA_DIR, d))]
@@ -286,22 +248,6 @@ def _get_document(title, key):
     '''@todo Mock this out better instead of overwriting the real view'''
     return MockEpubArchive.get(key)
 
-
-class MockEpubArchive(EpubArchive): 
-    '''Mock object to expose some protected methods for testing purposes.'''
-
-    def xml_from_string(self, string):
-        return self._xml_from_string(string)
-
-    def get_author(self, opf):
-        self.authors = self._get_authors(opf)
-        return self.author()
-
-    def get_authors(self, opf):
-        return self._get_authors(opf)
-
-    def get_metadata(self, tag, opf):
-        return self._get_metadata(tag, opf)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

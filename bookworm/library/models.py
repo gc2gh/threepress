@@ -6,14 +6,20 @@ import logging, datetime, sys
 from urllib import unquote_plus
 from xml.parsers.expat import ExpatError
 import htmlentitydefs
+import cssutils
+import base64
 
 from django.utils.http import urlquote_plus
-from google.appengine.ext import db
+from django.db import models
+from django.db.models import permalink
+from django.contrib.auth.models import User
+from django.utils.encoding import smart_str
 
 from epub import constants, InvalidEpubException
-from epub.constants import ENC
+from epub.constants import ENC, BW_BOOK_CLASS
 from epub.constants import NAMESPACES as NS
 from epub.toc import NavPoint, TOC
+
 
 # Functions
 def safe_name(name):
@@ -27,9 +33,16 @@ def unsafe_name(name):
     unquote = unquote_plus(name.encode(ENC))
     return unicode(unquote, ENC)
 
-class BookwormModel(db.Model):
+def encode_content(self, c):
+    return base64.b64encode(c)
+def decode_content(self, c):
+    return base64.b64decode(c)
+
+class BookwormModel(models.Model):
     '''Base class for all models'''
-    created_time = db.DateTimeProperty(default=datetime.datetime.now())
+    created_time = models.DateTimeField('date created')
+    class Meta:
+        abstract = True
 
 class EpubArchive(BookwormModel):
     '''Represents an entire epub container'''
@@ -40,14 +53,17 @@ class EpubArchive(BookwormModel):
     _parsed_metadata = None
     _parsed_toc = None
 
-    name = db.StringProperty(str, required=True)
-    owner = db.UserProperty()
-    title = db.StringProperty(unicode)
-    authors = db.ListProperty(unicode)
-    content = db.BlobProperty() 
-    opf = db.TextProperty()
-    toc = db.TextProperty()
-    has_stylesheets = db.BooleanProperty(default=False)
+    name = models.CharField(max_length=2000)
+    owner = models.ForeignKey(User)
+    authors = models.ManyToManyField('BookAuthor')
+
+    title = models.CharField(max_length=5000)
+    content = models.TextField()  # will have to base64-encode this; Django has no blob field, wtf
+    opf = models.TextField()
+    toc = models.TextField()
+    has_stylesheets = models.BooleanField(default=False)
+
+
 
     def author(self):
         '''This method returns the author, if only one, or the first author in
@@ -202,7 +218,7 @@ class EpubArchive(BookwormModel):
 
                 logging.debug('adding image %s ' % item.get('href'))
 
-        db.run_in_transaction(self._create_images, images)                
+        self._create_images(images)                
 
     def _create_images(self, images):
         for i in images:
@@ -212,21 +228,31 @@ class EpubArchive(BookwormModel):
                               file=i['file'],
                               content_type=i['content_type'],
                               archive=self)
-            image.put()            
+            image.save()  
 
     def _get_stylesheets(self, items, content_path):
         stylesheets = []
         for item in items:
             if item.get('media-type') == constants.STYLESHEET_MIMETYPE:
                 content = self._archive.read("%s%s" % (content_path, item.get('href')))
+                parsed_content = self._parse_stylesheet(content)
                 stylesheets.append({'idref':item.get('href'),
-                                    'file':unicode(content, ENC)})
+                                    'file':unicode(parsed_content, ENC)})
 
 
                 logging.debug('adding stylesheet %s ' % item.get('href'))
                 self.has_stylesheets = True
-        db.run_in_transaction(self._create_stylesheets, stylesheets)
+        self._create_stylesheets(stylesheets)
 
+    def _parse_stylesheet(self, stylesheet):
+        css = cssutils.parseString(stylesheet)
+        for rule in css.cssRules:
+            try:
+                for selector in rule._selectorList:
+                    selector.selectorText = BW_BOOK_CLASS + ' ' + selector.selectorText 
+            except AttributeError:
+                pass # (was not a CSSStyleRule)
+        return css.cssText
 
     def _create_stylesheets(self, stylesheets):
         for s in stylesheets:
@@ -234,8 +260,9 @@ class EpubArchive(BookwormModel):
                                  idref=s['idref'],
                                  file=s['file'],
                                  archive=self)
-            css.put()            
+            css.save()            
 
+ 
     def _get_content(self, opf, toc, items, content_path):
         # Get all the item references from the <spine>
         refs = opf.getiterator('{%s}itemref' % (NS['opf']) )
@@ -289,7 +316,7 @@ class EpubArchive(BookwormModel):
                             'order':nav_map[href].order()}
                     pages.append(page)
                     
-        db.run_in_transaction(self._create_pages, pages)
+        self._create_pages(pages)
 
 
     def _create_pages(self, pages):
@@ -304,7 +331,7 @@ class EpubArchive(BookwormModel):
                         file=unicode(f, ENC),
                         archive=archive,
                         order=order)
-        html.put()
+        html.save()
  
                   
     def safe_title(self):
@@ -318,24 +345,26 @@ class EpubArchive(BookwormModel):
             return safe_name(self.authors[0])
         return None
 
-        
-
+class BookAuthor(BookwormModel):
+    name = models.CharField(max_length=2000)
 
 class BookwormFile(BookwormModel):
-    '''Abstract class that represents a file in the datastore'''
-    idref = db.StringProperty(str)
-    file = db.TextProperty()    
-    archive = db.ReferenceProperty(EpubArchive)
+    '''Abstract class that represents a file in the database'''
+    idref = models.CharField(max_length=1000)
+    file = models.TextField()    
+    archive = models.ForeignKey(EpubArchive)
 
     def render(self):
         return self.file
+    class Meta:
+        abstract = True
 
 class HTMLFile(BookwormFile):
     '''Usually an individual page in the ebook'''
-    title = db.StringProperty(unicode)
-    order = db.IntegerProperty()
-    processed_content = db.TextProperty()
-    content_type = db.StringProperty(str, default="application/xhtml")
+    title = models.CharField(max_length=5000)
+    order = models.PositiveSmallIntegerField(default=1)
+    processed_content = models.TextField()
+    content_type = models.CharField(max_length=100, default="application/xhtml")
 
     def render(self):
         '''If we don't have any processed content, process it and cache the
@@ -344,7 +373,7 @@ class HTMLFile(BookwormFile):
             return self.processed_content
         
         logging.debug('Parsing body content for first display')
-        f = self.file.encode(ENC)
+        f = smart_str(self.file, encoding=ENC)
 
         src = StringIO(f)
         try:
@@ -365,8 +394,8 @@ class HTMLFile(BookwormFile):
 
         try:
             self.processed_content = unicode(body_content, ENC)
-            self.put()            
-        except:
+            self.save()            
+        except: 
             logging.error("Could not cache processed document, error was: " + sys.exc_info()[0])
 
         return body_content
@@ -400,33 +429,27 @@ class HTMLFile(BookwormFile):
 
 class StylesheetFile(BookwormFile):
     '''A CSS stylesheet associated with a given book'''
-    content_type = db.StringProperty(str, default="text/css")
+    content_type = models.CharField(max_length=100, default="text/css")
 
 class ImageFile(BookwormFile):
     '''An image file associated with a given book.  Mime-type will vary.'''
-    content_type = db.StringProperty(str)
-    data = db.BlobProperty()
+    content_type = models.CharField(max_length=100)
+    data = models.TextField() # really base64
 
-class SystemInfo(BookwormModel):
-    '''Random information about the status of the whole library'''
-    total_books = db.IntegerProperty(default=0)
-    total_users = db.IntegerProperty(default=0)
 
 def get_system_info():
-    '''There should only be one of these, so create it if it doesn't exists, 
-    otherwise return get()'''
-    instance = SystemInfo.all().get()
-    if not instance:
-        logging.info('Creating SystemInfo instance')
-        instance = SystemInfo()
-        instance.put()
-    return instance
+    '''This can now be computed at runtime (and cached)'''
+    # @todo create methods for these
+    total_books = None
+    total_users = None
 
 class UserPrefs(BookwormModel):
     '''Per-user preferences for this application'''
-    user = db.UserProperty()
-    use_iframe = db.BooleanProperty(default=False)
-    show_iframe_note = db.BooleanProperty(default=True)
+    user = models.ForeignKey(User, unique=True)
+    use_iframe = models.BooleanField(default=False)
+    show_iframe_note = models.BooleanField(default=True)
+    class Admin:
+        pass
 
 class CleanXmlFile(ET.ElementTree):
     '''Implementation that includes all HTML entities'''
@@ -437,3 +460,5 @@ class CleanXmlFile(ET.ElementTree):
         parser.entity = htmlentitydefs.entitydefs
         self.parse(source=file, parser=parser) 
         return
+
+
