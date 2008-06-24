@@ -450,9 +450,13 @@ class HTMLFile(BookwormFile):
                 except: 
                     logging.error("ERROR:" + sys.exc_info())[0]
         return xhtml
+    def __str__(self):
+        return "[%d] '%s' in %s " % (self.order, self.title, self.archive.title)
+
     class Admin:
         pass
-
+    class Meta:
+        ordering = ['order']
 class StylesheetFile(BookwormFile):
     '''A CSS stylesheet associated with a given book'''
     content_type = models.CharField(max_length=100, default="text/css")
@@ -479,6 +483,7 @@ class UserPref(BookwormModel):
     show_iframe_note = models.BooleanField(default=True)
     class Admin:
         pass
+
 class SystemInfo():
     '''This can now be computed at runtime (and cached)'''
     # @todo create methods for these
@@ -504,6 +509,15 @@ class SystemInfo():
         t = self.get_total_books()
         if t > 0:
             self._total_books += 1
+
+    def increment_total_users(self):
+        t = self.get_total_users()
+        self._total_users += 1
+
+    def decrement_total_users(self):
+        t = self.get_total_users()
+        if t > 0:
+            self._total_users += 1
 
 
 

@@ -41,10 +41,10 @@
       <td>
         {% if common.prefs.use_iframe %}
         Yes, show book's styles in a scrolling window 
-        <br/>(<a href="{% url library.views.profile %}?use_iframe=no">change this</a>)
+        <br/>(<a href="{% url library.views.profile %}?iframe=no">change this</a>)
         {% else %}
         No, view without styles 
-        <br/>(<a href="{% url library.views.profile %}?use_iframe=yes">change this</a>)
+        <br/>(<a href="{% url library.views.profile %}?iframe=yes">change this</a>)
         {% endif %}           
       </td>
     </tr>
@@ -53,10 +53,10 @@
       <td>
         {% if common.prefs.show_iframe_note %}
         Yes, show this message
-        <br/>(<a href="{% url library.views.profile %}?show_iframe_note=no">change this</a>)
+        <br/>(<a href="{% url library.views.profile %}?iframe_note=no">change this</a>)
         {% else %}
         No, hide this message
-        <br/>(<a href="{% url library.views.profile %}?show_iframe_note=yes">change this</a>)
+        <br/>(<a href="{% url library.views.profile %}?iframe_note=yes">change this</a>)
         {% endif %}           
       </td>
     </tr>

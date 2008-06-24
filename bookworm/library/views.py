@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
 
-from models import EpubArchive, HTMLFile, UserPref, StylesheetFile, ImageFile, SystemInfo, unsafe_name
+from models import EpubArchive, HTMLFile, UserPref, StylesheetFile, ImageFile, SystemInfo
 from forms import EpubValidateForm
 from epub import constants as epub_constants
 from epub import InvalidEpubException
@@ -76,7 +76,7 @@ def profile_delete(request):
         message = "There was a problem with your request to delete this profile."
         return render_to_response('profile.html', { 'common':common, 'message':message})
 
-    userprefs = _prefs()
+    userprefs = _prefs(request)
     userprefs.delete()
 
     # Decrement our total-users counter
@@ -95,21 +95,14 @@ def _check_switch_modes(request):
     '''Did they switch viewing modes?'''
     common = _common(request, load_prefs=True)
     userprefs = common['prefs']
-    update_cache = False
 
     if request.GET.has_key('iframe'):
         userprefs.use_iframe = (request.GET['iframe'] == 'yes')
-        userprefs.put()
-        update_cache = True
+        userprefs.save()
 
     if request.GET.has_key('iframe_note'):
         userprefs.show_iframe_note = (request.GET['iframe_note'] == 'yes')
-        userprefs.put()
-        update_cache = True
-
-    if update_cache:
-        counter = get_system_info()
-        memcache.set('total_users', counter.total_users)
+        userprefs.save()
 
     return common
 
@@ -149,11 +142,12 @@ def view_chapter(request, title, key, chapter_id):
 
 def _chapter_next_previous(document, chapter, dir='next'):
     if dir == 'next':
-        q = document.htmlfile_set.filter(order=chapter.order+1)
+        q = document.htmlfile_set.filter(order__gte=chapter.order+1)
     else :
-        q = document.htmlfile_set.filter(order=chapter.order-1)
+        q = document.htmlfile_set.filter(order__lte=chapter.order-1)
     if len(q) > 0:
         return q[0]
+    return q
 
 @login_required    
 def view_chapter_image(request, title, key, image):
@@ -319,26 +313,24 @@ def _greeting(request):
     return ("<a name='signin' href=\"%s\">Sign in or register</a>." % '/login/')
 
 
-def _prefs():
+def _prefs(request):
     '''Get (or create) a user preferences object for a given user.
     If created, the total number of users counter will be incremented and
     the memcache updated.'''
-    return
-
-    userprefs = q.get()
-    if not userprefs:
-        logging.info('Creating a userprefs object for %s' % user.nickname)
+    user = request.user
+    try:
+        userprefs = user.get_profile()
+    except UserPref.DoesNotExist:
+        logging.info('Creating a userprefs object for %s' % user.username)
         # Create a preference object for this user
         userprefs = UserPref(user=user)
-        userprefs.put()
+        userprefs.save()
 
         # Increment our total-users counter
-        counter = get_system_info()
+        counter = _get_system_info(request)
 
-        counter.total_users += 1
-        counter.put()
-        memcache.set('total_users', counter.total_users)
-
+        counter.increment_total_users()
+  
     return userprefs
 
 def _common(request, load_prefs=False):
@@ -352,7 +344,7 @@ def _common(request, load_prefs=False):
 
     # Don't load user prefs unless we need to
     if load_prefs:
-        common['prefs'] = _prefs()
+        common['prefs'] = _prefs(request)
 
     #cached_total_books = memcache.get('total_books')
 

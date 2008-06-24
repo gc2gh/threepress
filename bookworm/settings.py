@@ -84,4 +84,5 @@ INSTALLED_APPS = (
     'library',
 )
 
-AUTH_PROFILE_MODULE = "library.userprefs"
+AUTH_PROFILE_MODULE = "library.userpref"
+
