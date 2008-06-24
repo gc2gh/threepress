@@ -1,36 +1,35 @@
 import logging, sys
 from zipfile import BadZipfile
 
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 
-from models import EpubArchive, HTMLFile, UserPrefs, StylesheetFile, ImageFile, unsafe_name, get_system_info
+from models import EpubArchive, HTMLFile, UserPrefs, StylesheetFile, ImageFile, SystemInfo, unsafe_name
 from forms import EpubValidateForm
 from epub import constants as epub_constants
 from epub import InvalidEpubException
 
 
+@login_required
 def index(request):
 
     common = _common(request, load_prefs=True)
-    #user = users.get_current_user()
+    user = request.user
 
     documents = EpubArchive.objects
-    #documents.filter('owner =', user)
-
-#    if not user:
-#        return render_to_response('login.html',  {'common':common,
-#                                                  'login':users.create_login_url('/')})
+    documents.filter(owner=user)
 
     return render_to_response('index.html', {'documents':documents, 
                                              'common':common})
 
+@login_required
 def profile(request):
     common = _check_switch_modes(request)
-    return render_to_response('profile.html', { 'common':common})
+    return render_to_response('auth/profile.html', { 'common':common})
     
-
+@login_required
 def view(request, title, key):
     logging.info("Looking up title %s, key %s" % (title, key))
     common = _check_switch_modes(request)
@@ -47,7 +46,7 @@ def about(request):
     common = _common(request)
     return render_to_response('about.html', {'common': common})
     
-
+@login_required
 def delete(request):
     '''Delete a book and associated metadata, and decrement our total books counter'''
 
@@ -63,6 +62,7 @@ def delete(request):
 
     return HttpResponseRedirect('/')
 
+@login_required
 def profile_delete(request):
     common = _common(request)
 
@@ -72,11 +72,11 @@ def profile_delete(request):
         message = "There was a problem with your request to delete this profile."
         return render_to_response('profile.html', { 'common':common, 'message':message})
 
-    if not request.POST['delete'] == users.get_current_user().nickname():
+    if not request.POST['delete'] == request.user.nickname():
         # And that we're POSTing from our own form (this is a sanity check, 
         # not a security feature.  The current logged-in user profile is always
         # the one to be deleted, regardless of the value of 'delete')
-        logging.error('Received deletion request but nickname did not match: received %s but current user is %s' % (request.POST['delete'], users.get_current_user().nickname()))
+        logging.error('Received deletion request but nickname did not match: received %s but current user is %s' % (request.POST['delete'], request.user.nickname()))
         message = "There was a problem with your request to delete this profile."
         return render_to_response('profile.html', { 'common':common, 'message':message})
 
@@ -121,7 +121,8 @@ def _check_switch_modes(request):
         memcache.set('total_users', counter.total_users)
 
     return common
-    
+
+@login_required    
 def view_chapter(request, title, key, chapter_id):
     logging.info("Looking up title %s, key %s, chapter %s" % (title, key, chapter_id))    
     document = _get_document(title, key)
@@ -175,7 +176,7 @@ def _chapter_next_previous(document, chapter, dir='next'):
                         order=ordinal).get()
 
 
-    
+@login_required    
 def view_chapter_image(request, title, key, image):
     logging.info("Image request: looking up title %s, key %s, image %s" % (title, key, image))        
     document = _get_document(title, key)
@@ -191,7 +192,7 @@ def view_chapter_image(request, title, key, image):
 
     return response
 
-
+@login_required
 def view_chapter_frame(request, title, key, chapter_id):
     '''Generate an iframe to display the document online, possibly with its own stylesheets'''
     document = _get_document(title, key)
@@ -209,6 +210,7 @@ def view_chapter_frame(request, title, key, chapter_id):
                                              'previous':previous,
                                              'stylesheets':stylesheets})
 
+@login_required
 def view_stylesheet(request, title, key, stylesheet_id):
     document = _get_document(title, key)
     logging.info('getting stylesheet %s' % stylesheet_id)
@@ -220,12 +222,14 @@ def view_stylesheet(request, title, key, stylesheet_id):
 
     return response
 
+@login_required
 def download_epub(request, title, key):
     document = _get_document(title, key)
     response = HttpResponse(content=document.content, content_type=epub_constants.MIMETYPE)
     response['Content-Disposition'] = 'attachment; filename=%s' % document.name
     return response
 
+@login_required
 def upload(request):
     '''Uploads a new document and stores it in the datastore'''
     
@@ -242,7 +246,7 @@ def upload(request):
             logging.info("Document name: %s" % document_name)
             document = EpubArchive(name=document_name)
             document.content = data
-            document.owner = users.get_current_user()
+            document.owner = request.user
             document.put()
 
             try:
@@ -320,7 +324,7 @@ def _delete_document(document):
 def _get_document(title, key, override_owner=False):
     '''Return a document by Google key and owner.  Setting override_owner
     will search regardless of ownership, for use with admin accounts.'''
-    user = users.get_current_user()
+    user = request.user
 
     document = EpubArchive.get(db.Key(key))
       
@@ -357,12 +361,8 @@ def _prefs():
     '''Get (or create) a user preferences object for a given user.
     If created, the total number of users counter will be incremented and
     the memcache updated.'''
+    return
 
-    user = users.get_current_user()
-    if not user:
-        return
-
-    q = UserPrefs.gql("WHERE user = :1", user)
     userprefs = q.get()
     if not userprefs:
         logging.info('Creating a userprefs object for %s' % user.nickname)
@@ -384,13 +384,13 @@ def _common(request, load_prefs=False):
     @todo cache some of this, like from sysinfo'''
 
     common = {}
-    #user = users.get_current_user()
-    #common['user']  = user
-    #common['is_admin'] = users.is_current_user_admin()
+    user = request.user
+    common['user']  = user
+    common['is_admin'] = user.is_superuser
 
     # Don't load user prefs unless we need to
-    #if load_prefs:
-    #    common['prefs'] = _prefs()
+    if load_prefs:
+        common['prefs'] = _prefs()
 
     #cached_total_books = memcache.get('total_books')
 
@@ -408,7 +408,10 @@ def _common(request, load_prefs=False):
     #else:
     #    if not sysinfo:
     #sysinfo = get_system_info()            
-    #    common['total_users'] = sysinfo.total_users
+    
+    common['total_users'] = _get_system_info(request).get_total_users()
+    common['total_books'] = _get_system_info(request).get_total_books()
+
     #    memcache.set('total_users', sysinfo.total_users)
 
     common['greeting'] = _greeting(request)
@@ -417,5 +420,9 @@ def _common(request, load_prefs=False):
     return common
 
 
-
+def _get_system_info(request):
+    '''Super-primitive caching system'''
+    if not request.session.has_key('system_info'):
+        request.session['system_info'] = SystemInfo()
+    return request.session['system_info']
     

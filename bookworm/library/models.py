@@ -446,13 +446,23 @@ class ImageFile(BookwormFile):
         return decode_content(self._data)
     def set_data(self, d):
         self._data = encode_content(d)
- 
 
-def get_system_info():
+class SystemInfo():
     '''This can now be computed at runtime (and cached)'''
     # @todo create methods for these
-    total_books = None
-    total_users = None
+    def __init__(self):
+        self._total_books = None
+        self._total_users = None
+
+    def get_total_books(self):
+        if not self._total_books:
+            self._total_books = EpubArchive.objects.count()
+        return self._total_books
+
+    def get_total_users(self):
+        if not self._total_users:
+            self._total_users = UserPrefs.objects.count()
+        return self._total_users
 
 class UserPrefs(BookwormModel):
     '''Per-user preferences for this application'''

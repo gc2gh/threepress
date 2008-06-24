@@ -16,8 +16,8 @@ urlpatterns = patterns('',
                        (r'^sitemap.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}),
                        
                        # Auth
-                       (r'^login/$',  login, {'template_name': 'login.html'}),
-                       (r'^logout/$', logout),
+                       (r'^login/$',  login, {'template_name': 'auth/login.html'}),
+                       (r'^logout/$', logout, {'next_page': '/'}),
 
                        # Bookworm
                        (r'^$', 'library.views.index'),                        

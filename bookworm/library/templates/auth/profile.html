@@ -11,9 +11,7 @@
 {% endif %}
 
 
-<h1>User profile settings for {{ common.user.nickname }}</h1>
-
-<p>Note: these settings are for Bookworm only; no Google Accounts configuration is available here.</p>
+<h1>User profile settings for {{ common.user.username }}</h1>
 
 <table class="bw-meta">
   <thead>
@@ -23,8 +21,16 @@
   </thead>     
   <tbody>
     <tr>
-      <th>Nickname</th>
-      <td>{{ common.user.nickname }}</td>
+      <th>Username</th>
+      <td>{{ common.user.username }}</td>
+    </tr>
+    <tr>
+      <th>First name</th>
+      <td>{{ common.user.firstname }}</td>
+    </tr>
+    <tr>
+      <th>Last name</th>
+      <td>{{ common.user.lastname }}</td>
     </tr>
     <tr>
       <th>Email address</th>
@@ -35,10 +41,10 @@
       <td>
         {% if common.prefs.use_iframe %}
         Yes, show book's styles in a scrolling window 
-        <br/>(<a href="{% url library.views.profile %}?iframe=no">change this</a>)
+        <br/>(<a href="{% url library.views.profile %}?use_iframe=no">change this</a>)
         {% else %}
         No, view without styles 
-        <br/>(<a href="{% url library.views.profile %}?iframe=yes">change this</a>)
+        <br/>(<a href="{% url library.views.profile %}?use_iframe=yes">change this</a>)
         {% endif %}           
       </td>
     </tr>
@@ -47,10 +53,10 @@
       <td>
         {% if common.prefs.show_iframe_note %}
         Yes, show this message
-        <br/>(<a href="{% url library.views.profile %}?iframe_note=no">change this</a>)
+        <br/>(<a href="{% url library.views.profile %}?show_iframe_note=no">change this</a>)
         {% else %}
         No, hide this message
-        <br/>(<a href="{% url library.views.profile %}?iframe_note=yes">change this</a>)
+        <br/>(<a href="{% url library.views.profile %}?show_iframe_note=yes">change this</a>)
         {% endif %}           
       </td>
     </tr>
@@ -62,8 +68,7 @@
     <input type="hidden" name="delete" value="{{ common.user.nickname }}" />
     <p>
       You can <strong>delete all personal information</strong> from this application, including
-      any profile information and all ebooks.
-      This action will also log you out of Google to keep from automatically creating a new profile.
+      any profile information and all e-books.
     </p>
     <p><strong>This action cannot be undone.</strong></p>
     <input type="submit" value="Delete my profile" onclick="return confirm('Are you sure you want to delete all personal info and books?')"/>
