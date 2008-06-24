@@ -1,6 +1,25 @@
 from django.conf.urls.defaults import *
+from django.conf import settings
+from django.contrib.sitemaps import FlatPageSitemap
+from django.contrib.auth.views import login, logout
+
+sitemaps = {
+    'flatpages' : FlatPageSitemap,
+}
 
 urlpatterns = patterns('',
+
+                       # Uncomment this for admin:
+                       (r'^admin/', include('django.contrib.admin.urls')),
+
+                       # Sitemaps
+                       (r'^sitemap.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}),
+                       
+                       # Auth
+                       (r'^login/$',  login, {'template_name': 'login.html'}),
+                       (r'^logout/$', logout),
+
+                       # Bookworm
                        (r'^$', 'library.views.index'),                        
                        
                        (r'^upload/$', 'library.views.upload'),
@@ -39,3 +58,8 @@ urlpatterns = patterns('',
                        (r'^admin/search/$', 'library.admin.search'),
                        )
 
+if settings.DEBUG:
+    urlpatterns += patterns('',
+                            (r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.ROOT_PATH + '/library/templates/static'}),
+                            )
+    

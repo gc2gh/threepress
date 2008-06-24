@@ -11,11 +11,24 @@
 
 <p class="bw-tagline">A free platform for reading ePub books online. <a href="{% url library.views.about %}">Learn more</a>.</p>
 
-<p>Use of the library requires that you be logged in to the Google service.  Once logged in you'll have
+<p>Use of the library requires that you be logged in.  Once logged in you'll have
 access to books that you have uploaded to the service.  
 </p>
 
-<p class="bw-tagline">→ <a href="{{ login }}">Log in to your Google account</a></p>
+{% if form.has_errors %}
+  <p class="error">Sorry, that's not a valid username or password</p>
+ {% endif %}
+
+  <form action='.' method='post'>
+    <label for="username">User name:</label>
+    <input type="text" name="username" value="" id="username">
+    <label for="password">Password:</label>
+    <input type="password" name="password" value="" id="password">
+
+    <input type="submit" value="login" />
+    <input type="hidden" name="next" value="/" />
+
+  <form action='.' method='post'>
 
 {% endblock main %}
 

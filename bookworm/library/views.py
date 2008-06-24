@@ -14,14 +14,14 @@ from epub import InvalidEpubException
 def index(request):
 
     common = _common(request, load_prefs=True)
-    user = users.get_current_user()
+    #user = users.get_current_user()
 
-    documents = EpubArchive.all()
-    documents.filter('owner =', user)
+    documents = EpubArchive.objects
+    #documents.filter('owner =', user)
 
-    if not user:
-        return render_to_response('login.html',  {'common':common,
-                                                  'login':users.create_login_url('/')})
+#    if not user:
+#        return render_to_response('login.html',  {'common':common,
+#                                                  'login':users.create_login_url('/')})
 
     return render_to_response('index.html', {'documents':documents, 
                                              'common':common})
@@ -337,20 +337,20 @@ def _get_document(title, key, override_owner=False):
 
 
 
-def _greeting():
-    user = users.get_current_user()
-    if user:
+def _greeting(request):
+    if request.user.is_authenticated():
+        
         text = ('Signed in as %s: <a href="%s">logout</a> | <a href="%s">edit profile</a>' % 
-                (user.nickname(), 
-                 users.create_logout_url("/"),
+                (request.user.username, 
+                 '/logout/',
                  reverse('library.views.profile')
                  )
                 )
-        if users.is_current_user_admin():
+        if request.user.is_superuser:
             text += ' | <a href="%s">admin</a> ' % reverse('library.admin.search')
         return text
 
-    return ("<a name='signin' href=\"%s\">Sign in or register</a>." % users.create_login_url("/"))
+    return ("<a name='signin' href=\"%s\">Sign in or register</a>." % '/login/')
 
 
 def _prefs():
@@ -384,34 +384,34 @@ def _common(request, load_prefs=False):
     @todo cache some of this, like from sysinfo'''
 
     common = {}
-    user = users.get_current_user()
-    common['user']  = user
-    common['is_admin'] = users.is_current_user_admin()
+    #user = users.get_current_user()
+    #common['user']  = user
+    #common['is_admin'] = users.is_current_user_admin()
 
     # Don't load user prefs unless we need to
-    if load_prefs:
-        common['prefs'] = _prefs()
+    #if load_prefs:
+    #    common['prefs'] = _prefs()
 
-    cached_total_books = memcache.get('total_books')
+    #cached_total_books = memcache.get('total_books')
 
-    if cached_total_books is not None:
-        common['total_books'] = cached_total_books
-    else:
-        sysinfo = get_system_info()
-        common['total_books'] = sysinfo.total_books
-        memcache.set('total_books', sysinfo.total_books)
+    #if cached_total_books is not None:
+    #    common['total_books'] = cached_total_books
+    #else:
+    #sysinfo = get_system_info()
+    #common['total_books'] = sysinfo.total_books
+    #memcache.set('total_books', sysinfo.total_books)
 
-    cached_total_users = memcache.get('total_users')
+    #cached_total_users = memcache.get('total_users')
 
-    if cached_total_users is not None:
-        common['total_users'] = cached_total_users
-    else:
-        if not sysinfo:
-            sysinfo = get_system_info()            
-        common['total_users'] = sysinfo.total_users
-        memcache.set('total_users', sysinfo.total_users)
+    #if cached_total_users is not None:
+    #    common['total_users'] = cached_total_users
+    #else:
+    #    if not sysinfo:
+    #sysinfo = get_system_info()            
+    #    common['total_users'] = sysinfo.total_users
+    #    memcache.set('total_users', sysinfo.total_users)
 
-    common['greeting'] = _greeting()
+    common['greeting'] = _greeting(request)
 
     common['upload_form'] = EpubValidateForm()        
     return common

@@ -30,8 +30,6 @@
 {% block main %}
 
 <div id="bw-content">
-<!-- <h1><img src="/static/bookworm-logo.png" alt="Bookworm" /></h1> -->
-<!--<p class="bw-tagline">A free platform for reading ePub books online. <a href="{% url library.views.about %}">Learn more</a>.</p> -->
 
 {% if documents.count %}
 <h2>Books in your library</h2>
@@ -40,12 +38,13 @@
 
 {% include "includes/document_list.html" %} 
 {% else %}
+<h1><img src="/static/bookworm-logo.png" alt="Bookworm" /></h1> 
+<p class="bw-tagline">A free platform for reading ePub books online. <a href="{% url library.views.about %}">Learn more</a>.</p> 
 
 
 {% endif %}
 
 <h3 style="padding-top:2em;">Upload {% if documents.count %} a new {% else %} your first {% endif %} book</h3>
-<p style="font-size:smaller">(E-books must be less than 1 megabyte in size due to Google restrictions.)</p>
 <form action="{% url library.views.upload d%}" method="post" enctype="multipart/form-data">
   <div id="bw-upload_form">
     {{ common.upload_form.as_p }}
