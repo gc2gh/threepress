@@ -34,9 +34,9 @@
 
 {% block leftnav %}
 
-{% if document.authors %}
+{% if document.authors.all %}
 <h2 class="bw-authors">by 
-{% for a in document.authors %}
+{% for a in document.authors.all %}
   {{ a }}{% if not forloop.last %}, {% endif %}
 {% endfor %}
 </h2>
@@ -148,7 +148,7 @@
  <!-- Title page -->
 
    <h1 class="bw-book_title">{{ document.title }}</h1>
-   <h2 class="bw-book_author">{% for a in document.authors %}{{ a }}{% if not forloop.last %}, {% endif %}{% endfor %}</h2>
+   <h2 class="bw-book_author">{% for a in document.authors.all %}{{ a }}{% if not forloop.last %}, {% endif %}{% endfor %}</h2>
 
    <p>
      To read this book online, select any of the sections to the left.

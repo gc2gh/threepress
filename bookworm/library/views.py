@@ -3,7 +3,7 @@ from zipfile import BadZipfile
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, Http404, HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
 
 from models import EpubArchive, HTMLFile, UserPrefs, StylesheetFile, ImageFile, SystemInfo, unsafe_name
@@ -17,10 +17,7 @@ def index(request):
 
     common = _common(request, load_prefs=True)
     user = request.user
-
-    documents = EpubArchive.objects
-    documents.filter(owner=user)
-
+    documents = EpubArchive.objects.filter(owner=user)
     return render_to_response('index.html', {'documents':documents, 
                                              'common':common})
 
@@ -33,10 +30,9 @@ def profile(request):
 def view(request, title, key):
     logging.info("Looking up title %s, key %s" % (title, key))
     common = _check_switch_modes(request)
-    document = _get_document(title, key)
+    document = _get_document(request, title, key)
 
-    toc = HTMLFile.gql('WHERE archive = :parent ORDER BY order ASC', 
-                   parent=document).fetch(100)
+    toc = HTMLFile.objects.filter(archive=document).order_by('order')
     
     return render_to_response('view.html', {'document':document, 
                                             'toc':toc,
@@ -55,9 +51,9 @@ def delete(request):
         key = request.POST['key']
         logging.info("Deleting title %s, key %s" % (title, key))
         if users.is_current_user_admin():
-            document = _get_document(title, key, override_owner=True)
+            document = _get_document(request, title, key, override_owner=True)
         else:
-            document = _get_document(title, key)
+            document = _get_document(request, title, key)
         _delete_document(document)
 
     return HttpResponseRedirect('/')
@@ -125,12 +121,10 @@ def _check_switch_modes(request):
 @login_required    
 def view_chapter(request, title, key, chapter_id):
     logging.info("Looking up title %s, key %s, chapter %s" % (title, key, chapter_id))    
-    document = _get_document(title, key)
+    document = _get_document(request, title, key)
 
-    chapter = HTMLFile.gql('WHERE archive = :parent AND idref = :idref',
-                           parent=document, idref=chapter_id).get()
-    stylesheets = StylesheetFile.gql('WHERE archive = :parent',
-                                     parent=document).fetch(10)
+    chapter = HTMLFile.objects.get(archive=document, idref=chapter_id)
+    stylesheets = StylesheetFile.objects.filter(archive=document)
     next = _chapter_next_previous(document, chapter, 'next')
     previous = _chapter_next_previous(document, chapter, 'previous')
 
@@ -144,7 +138,6 @@ def view_chapter(request, title, key, chapter_id):
         if href in [c.href() for c in t.find_children()]:
             parent_chapter = t
             subchapter_href = href
-            logging.info(parent_chapter.order())
             break
 
     common = _check_switch_modes(request)
@@ -160,30 +153,18 @@ def view_chapter(request, title, key, chapter_id):
                                             'chapter':chapter})
 
 def _chapter_next_previous(document, chapter, dir='next'):
-
-    if dir == 'previous':
-        argument = '<='
-        ordinal = chapter.order - 1
-        direction = 'DESC'
-    else:
-        argument = '>='
-        ordinal = chapter.order + 1
-        direction = 'ASC'
-    
-    return HTMLFile.gql('WHERE archive = :parent AND order %s :order ORDER by order %s' 
-                        % (argument, direction), 
-                        parent=document,
-                        order=ordinal).get()
-
+    if dir == 'next':
+        q = document.htmlfile_set.filter(order=chapter.order+1)
+    else :
+        q = document.htmlfile_set.filter(order=chapter.order-1)
+    if len(q) > 0:
+        return q[0]
 
 @login_required    
 def view_chapter_image(request, title, key, image):
     logging.info("Image request: looking up title %s, key %s, image %s" % (title, key, image))        
-    document = _get_document(title, key)
-    image = ImageFile.gql('WHERE archive = :parent AND idref = :idref',
-                          parent=document, idref=image).get()
-    if not image:
-        raise Http404
+    document = _get_document(request, title, key)
+    image = get_object_or_404(ImageFile, archive=document, idref=image)
     response = HttpResponse(content_type=image.content_type)
     if image.content_type == 'image/svg+xml':
         response.content = image.file
@@ -195,7 +176,7 @@ def view_chapter_image(request, title, key, image):
 @login_required
 def view_chapter_frame(request, title, key, chapter_id):
     '''Generate an iframe to display the document online, possibly with its own stylesheets'''
-    document = _get_document(title, key)
+    document = _get_document(request, title, key)
     logging.info(request.get_full_path())
     chapter = HTMLFile.gql('WHERE archive = :parent AND idref = :idref',
                            parent=document, idref=chapter_id).get()    
@@ -212,11 +193,9 @@ def view_chapter_frame(request, title, key, chapter_id):
 
 @login_required
 def view_stylesheet(request, title, key, stylesheet_id):
-    document = _get_document(title, key)
+    document = _get_document(request, title, key)
     logging.info('getting stylesheet %s' % stylesheet_id)
-    stylesheet = StylesheetFile.gql('WHERE archive = :parent AND idref = :idref',
-                                    parent=document,
-                                    idref=stylesheet_id).get()
+    stylesheet = get_object_or_404(StylesheetFile, archive=document,idref=stylesheet_id)
     response = HttpResponse(content=stylesheet.file, content_type='text/css')
     response['Cache-Control'] = 'public'
 
@@ -224,7 +203,7 @@ def view_stylesheet(request, title, key, stylesheet_id):
 
 @login_required
 def download_epub(request, title, key):
-    document = _get_document(title, key)
+    document = _get_document(request, title, key)
     response = HttpResponse(content=document.content, content_type=epub_constants.MIMETYPE)
     response['Content-Disposition'] = 'attachment; filename=%s' % document.name
     return response
@@ -245,21 +224,21 @@ def upload(request):
             document_name = form.cleaned_data['epub'].filename
             logging.info("Document name: %s" % document_name)
             document = EpubArchive(name=document_name)
-            document.content = data
+            document.set_content(data)
             document.owner = request.user
-            document.put()
+            document.save()
 
             try:
                 document.explode()
-                document.put()
-                sysinfo = get_system_info()
-                sysinfo.total_books += 1
-                sysinfo.put()
+                document.save()
+                sysinfo = _get_system_info(request)
+                sysinfo.increment_total_books()
                 # Update the cache
-                memcache.set('total_books', sysinfo.total_books)
+                #memcache.set('total_books', sysinfo.total_books)
 
             except BadZipfile:
                 logging.error('Non-zip archive uploaded: %s' % document_name)
+                logging.error(sys.exc_value)
                 message = 'The file you uploaded was not recognized as an ePub archive and could not be added to your library.'
                 document.delete()
                 return render_to_response('upload.html', {'common':common,
@@ -274,8 +253,8 @@ def upload(request):
                                                           'message':message})                
             except:
                 # If we got any error, delete this document
-                logging.error('Got deadline exceeded error on request, deleting document')
-                logging.error(sys.exc_info()[0])
+                logging.error('Got unknown error on request, deleting document')
+                logging.error(sys.exc_value)
                 document.delete()
                 raise
             
@@ -321,19 +300,14 @@ def _delete_document(document):
     sysinfo.put() 
     memcache.set('total_books', sysinfo.total_books)
 
-def _get_document(title, key, override_owner=False):
+def _get_document(request, title, key, override_owner=False):
     '''Return a document by Google key and owner.  Setting override_owner
     will search regardless of ownership, for use with admin accounts.'''
     user = request.user
 
-    document = EpubArchive.get(db.Key(key))
-      
-    if not document:
-        logging.error("Failed to get document with title '%s', key '%s'" 
-                      % (unsafe_name(title), key))
-        raise Http404 
+    document = get_object_or_404(EpubArchive, pk=key)
 
-    if not override_owner and document.owner != user and not users.is_current_user_admin():
+    if not override_owner and document.owner != user and not user.is_superuser:
         logging.error('User %s tried to access document %s, which they do not own' % (user, title))
         raise Http404
 

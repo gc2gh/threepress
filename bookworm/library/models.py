@@ -41,6 +41,10 @@ def decode_content(c):
 class BookwormModel(models.Model):
     '''Base class for all models'''
     created_time = models.DateTimeField('date created', default=datetime.datetime.now())
+    def key(self):
+        '''Backwards compatibility with templates'''
+        return self.id
+
     class Meta:
         abstract = True
 
@@ -228,12 +232,15 @@ class EpubArchive(BookwormModel):
 
     def _create_images(self, images):
         for i in images:
+            f = i['file']
+            if f == None:
+                f = ''
             image = ImageFile(
                               idref=i['idref'],
-                              data=i['data'],
-                              file=i['file'],
+                              file=f,
                               content_type=i['content_type'],
                               archive=self)
+            image.set_data(i['data'])
             image.save()  
 
     def _get_stylesheets(self, items, content_path):
@@ -353,11 +360,13 @@ class EpubArchive(BookwormModel):
 
 class BookAuthor(BookwormModel):
     name = models.CharField(max_length=2000)
+    def __str__(self):
+        return self.name
 
 class BookwormFile(BookwormModel):
     '''Abstract class that represents a file in the database'''
     idref = models.CharField(max_length=1000)
-    file = models.TextField()    
+    file = models.TextField(default='')    
     archive = models.ForeignKey(EpubArchive)
 
     def render(self):
@@ -440,7 +449,7 @@ class StylesheetFile(BookwormFile):
 class ImageFile(BookwormFile):
     '''An image file associated with a given book.  Mime-type will vary.'''
     content_type = models.CharField(max_length=100)
-    _data = models.TextField() # really base64
+    _data = models.TextField(null=True) # really base64
 
     def get_data(self):
         return decode_content(self._data)
@@ -463,6 +472,15 @@ class SystemInfo():
         if not self._total_users:
             self._total_users = UserPrefs.objects.count()
         return self._total_users
+
+    def increment_total_books(self):
+        t = self.get_total_books()
+        self._total_books += 1
+
+    def decrement_total_books(self):
+        t = self.get_total_books()
+        if t > 0:
+            self._total_books += 1
 
 class UserPrefs(BookwormModel):
     '''Per-user preferences for this application'''

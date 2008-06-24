@@ -17,10 +17,16 @@ a:visited {
 }
 
 p { 
+  /*
     font-size: 1em !important;
     text-align:inherit !important;
     line-height: 1.7em !important; 
     text-indent:inherit !important;
+  */
+    font-size: 1em;
+    text-align:inherit;
+    line-height: 1.7em;
+    text-indent:inherit;
 
 }
 
