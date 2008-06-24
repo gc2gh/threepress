@@ -262,7 +262,12 @@ class EpubArchive(BookwormModel):
         for rule in css.cssRules:
             try:
                 for selector in rule._selectorList:
+                    if 'body' in selector.selectorText:
+                        # Replace the body tag with a generic div, so the rules
+                        # apply even though we've stripped out <body>
+                        selector.selectorText = selector.selectorText.replace('body', 'div')
                     selector.selectorText = BW_BOOK_CLASS + ' ' + selector.selectorText 
+                    
             except AttributeError:
                 pass # (was not a CSSStyleRule)
         return css.cssText
@@ -358,10 +363,15 @@ class EpubArchive(BookwormModel):
             return safe_name(self.authors[0])
         return None
 
+    class Admin:
+        pass
+
 class BookAuthor(BookwormModel):
     name = models.CharField(max_length=2000)
     def __str__(self):
         return self.name
+    class Admin:
+        pass
 
 class BookwormFile(BookwormModel):
     '''Abstract class that represents a file in the database'''
@@ -440,11 +450,14 @@ class HTMLFile(BookwormFile):
                 except: 
                     logging.error("ERROR:" + sys.exc_info())[0]
         return xhtml
-
+    class Admin:
+        pass
 
 class StylesheetFile(BookwormFile):
     '''A CSS stylesheet associated with a given book'''
     content_type = models.CharField(max_length=100, default="text/css")
+    class Admin:
+        pass
 
 class ImageFile(BookwormFile):
     '''An image file associated with a given book.  Mime-type will vary.'''
@@ -456,6 +469,16 @@ class ImageFile(BookwormFile):
     def set_data(self, d):
         self._data = encode_content(d)
 
+    class Admin:
+        pass
+
+class UserPref(BookwormModel):
+    '''Per-user preferences for this application'''
+    user = models.ForeignKey(User, unique=True)
+    use_iframe = models.BooleanField(default=False)
+    show_iframe_note = models.BooleanField(default=True)
+    class Admin:
+        pass
 class SystemInfo():
     '''This can now be computed at runtime (and cached)'''
     # @todo create methods for these
@@ -470,7 +493,7 @@ class SystemInfo():
 
     def get_total_users(self):
         if not self._total_users:
-            self._total_users = UserPrefs.objects.count()
+            self._total_users = UserPref.objects.count()
         return self._total_users
 
     def increment_total_books(self):
@@ -482,13 +505,7 @@ class SystemInfo():
         if t > 0:
             self._total_books += 1
 
-class UserPrefs(BookwormModel):
-    '''Per-user preferences for this application'''
-    user = models.ForeignKey(User, unique=True)
-    use_iframe = models.BooleanField(default=False)
-    show_iframe_note = models.BooleanField(default=True)
-    class Admin:
-        pass
+
 
 class CleanXmlFile(ET.ElementTree):
     '''Implementation that includes all HTML entities'''

@@ -1,6 +1,15 @@
 {% extends "base.html" %} 
 {% spaceless %}
-{% block title %}{{ document.title }}{% if document.author %} by {{ document.author }} {% endif %}{% endblock title %}
+{% block title %}
+  {% if chapter.title %}
+     '{{ chapter.title }}' in 
+  {% endif %}
+
+  {{ document.title }}
+  {% if document.author %} 
+     by {{ document.author }} 
+  {% endif %}
+{% endblock title %}
 {% endspaceless %}
 
 

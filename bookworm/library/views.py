@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
 
-from models import EpubArchive, HTMLFile, UserPrefs, StylesheetFile, ImageFile, SystemInfo, unsafe_name
+from models import EpubArchive, HTMLFile, UserPref, StylesheetFile, ImageFile, SystemInfo, unsafe_name
 from forms import EpubValidateForm
 from epub import constants as epub_constants
 from epub import InvalidEpubException
@@ -50,11 +50,11 @@ def delete(request):
         title = request.POST['title']
         key = request.POST['key']
         logging.info("Deleting title %s, key %s" % (title, key))
-        if users.is_current_user_admin():
+        if request.user.is_superuser:
             document = _get_document(request, title, key, override_owner=True)
         else:
             document = _get_document(request, title, key)
-        _delete_document(document)
+        _delete_document(request, document)
 
     return HttpResponseRedirect('/')
 
@@ -80,21 +80,16 @@ def profile_delete(request):
     userprefs.delete()
 
     # Decrement our total-users counter
-    counter = get_system_info()
+    counter = _get_system_info()
     counter.total_users -= 1
-    counter.put()
-    memcache.set('total_users', counter.total_users)
 
     # Delete all their books (this is likely to time out for large numbers of books)
-    documents = EpubArchive.all()
-    common = _common(request, load_prefs=True)
-    user = common['user']
-    documents.filter('owner =', user)
+    documents = EpubArchive.objects.filter(owner=request.user)
 
     for d in documents:
-        _delete_document(d)
+        _delete_document(request, d)
     
-    return HttpResponseRedirect(users.create_logout_url('/'))
+    return HttpResponseRedirect('/') # fixme: actually log them out here
 
 def _check_switch_modes(request):
     '''Did they switch viewing modes?'''
@@ -177,11 +172,8 @@ def view_chapter_image(request, title, key, image):
 def view_chapter_frame(request, title, key, chapter_id):
     '''Generate an iframe to display the document online, possibly with its own stylesheets'''
     document = _get_document(request, title, key)
-    logging.info(request.get_full_path())
-    chapter = HTMLFile.gql('WHERE archive = :parent AND idref = :idref',
-                           parent=document, idref=chapter_id).get()    
-    stylesheets = StylesheetFile.gql('WHERE archive = :parent',
-                                     parent=document).fetch(10)
+    chapter = HTMLFile.objects.get(archive=document, idref=chapter_id)
+    stylesheets = StylesheetFile.objects.filter(archive=document)
     next = _chapter_next_previous(document, chapter, 'next')
     previous = _chapter_next_previous(document, chapter, 'previous')
 
@@ -272,33 +264,29 @@ def upload(request):
 
 
 
-def _delete_document(document):
-    # Delete the chapters of the book
-    toc = HTMLFile.gql('WHERE archive = :parent', 
-                   parent=document).fetch(100)
+def _delete_document(request, document):
+    # Delete the chapters of the book 
+    toc = HTMLFile.objects.filter(archive=document)
     if toc:
-        db.delete(toc)
+        for t in toc:
+            t.delete()
 
     # Delete all the stylesheets in the book
-    css = StylesheetFile.gql('WHERE archive = :parent', 
-                             parent=document).fetch(100)
-
+    css = StylesheetFile.objects.filter(archive=document)
     if css:
-        db.delete(css)
+        for c in css:
+            c.delete()
 
     # Delete all the images in the book
-    images = ImageFile.gql('WHERE archive = :parent', 
-                             parent=document).fetch(100)
-
+    images = ImageFile.objects.filter(archive=document)
     if images:
-        db.delete(images)
+        for i in images:
+            i.delete()
 
     # Delete the book itself, and decrement our counter
     document.delete()
-    sysinfo = get_system_info()
-    sysinfo.total_books -= 1
-    sysinfo.put() 
-    memcache.set('total_books', sysinfo.total_books)
+    sysinfo = _get_system_info(request)
+    sysinfo.decrement_total_books()
 
 def _get_document(request, title, key, override_owner=False):
     '''Return a document by Google key and owner.  Setting override_owner
@@ -341,7 +329,7 @@ def _prefs():
     if not userprefs:
         logging.info('Creating a userprefs object for %s' % user.nickname)
         # Create a preference object for this user
-        userprefs = UserPrefs(user=user)
+        userprefs = UserPref(user=user)
         userprefs.put()
 
         # Increment our total-users counter
