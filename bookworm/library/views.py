@@ -111,7 +111,7 @@ def view_chapter(request, title, key, chapter_id):
     logging.info("Looking up title %s, key %s, chapter %s" % (title, key, chapter_id))    
     document = _get_document(request, title, key)
 
-    chapter = HTMLFile.objects.get(archive=document, idref=chapter_id)
+    chapter = get_object_or_404(HTMLFile,archive=document, idref=chapter_id)
     stylesheets = StylesheetFile.objects.filter(archive=document)
     next = _chapter_next_previous(document, chapter, 'next')
     previous = _chapter_next_previous(document, chapter, 'previous')
@@ -144,7 +144,7 @@ def _chapter_next_previous(document, chapter, dir='next'):
     if dir == 'next':
         q = document.htmlfile_set.filter(order__gte=chapter.order+1)
     else :
-        q = document.htmlfile_set.filter(order__lte=chapter.order-1)
+        q = document.htmlfile_set.filter(order__lte=chapter.order-1).order_by('-order')
     if len(q) > 0:
         return q[0]
     return q

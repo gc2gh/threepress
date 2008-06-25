@@ -67,7 +67,7 @@ class EpubArchive(BookwormModel):
         return epub.get_data()
 
     def delete(self):
-        epub = self.get_content()
+        epub = EpubBlob.objects.filter(archive=self)[0]
         epub.delete()
         super(EpubArchive, self).delete()
 
@@ -164,7 +164,7 @@ class EpubArchive(BookwormModel):
 
 
     def _xml_from_string(self, xml):
-        return ET.fromstring(xml)
+        return ET.fromstring(xml.encode(ENC))
 
     def _get_opf_filename(self, container):
         '''Parse the container to get the name of the opf file'''
@@ -347,8 +347,8 @@ class EpubArchive(BookwormModel):
         '''Create an HTML page and associate it with the archive'''
         html = HTMLFile(
                         title=title, 
-                        idref=unicode(idref, ENC),
-                        file=unicode(f, ENC),
+                        idref=idref,
+                        file=f,
                         archive=archive,
                         order=order)
         html.save()

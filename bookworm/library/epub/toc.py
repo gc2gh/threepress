@@ -3,6 +3,7 @@ from xml.etree import ElementTree as ET
 import sys, logging
 from namespaces import init_namespaces
 from constants import NAMESPACES as NS
+from constants import ENC
 
 ns = NS['ncx']
 
@@ -24,7 +25,7 @@ class TOC():
         self.parse() 
 
     def parse(self):
-        self.parsed = ET.fromstring(self.toc)
+        self.parsed = ET.fromstring(self.toc.encode(ENC))
         self.doc_title = self.parsed.findtext('.//{%s}docTitle/{%s}text' % (ns, ns)).strip()
         for navmap in self.parsed.findall('.//{%s}navMap' % (ns)):
             self._find_point(navmap)
