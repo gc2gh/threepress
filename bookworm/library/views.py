@@ -158,7 +158,7 @@ def view_chapter_image(request, title, key, image):
     if image.content_type == 'image/svg+xml':
         response.content = image.file
     else:
-        response.content = image.data
+        response.content = image.get_data()
 
     return response
 
@@ -190,7 +190,7 @@ def view_stylesheet(request, title, key, stylesheet_id):
 @login_required
 def download_epub(request, title, key):
     document = _get_document(request, title, key)
-    response = HttpResponse(content=document.content, content_type=epub_constants.MIMETYPE)
+    response = HttpResponse(content=document.get_content(), content_type=epub_constants.MIMETYPE)
     response['Content-Disposition'] = 'attachment; filename=%s' % document.name
     return response
 
@@ -210,9 +210,9 @@ def upload(request):
             document_name = form.cleaned_data['epub'].filename
             logging.info("Document name: %s" % document_name)
             document = EpubArchive(name=document_name)
-            document.set_content(data)
             document.owner = request.user
             document.save()
+            document.set_content(data)
 
             try:
                 document.explode()

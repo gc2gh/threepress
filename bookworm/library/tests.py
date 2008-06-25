@@ -72,7 +72,7 @@ class TestModels(unittest.TestCase):
         expected_authors = [u'First Author', u'Second Author']
         opf_file = 'two-authors.opf'
         document = MockEpubArchive(name=opf_file)
-        opf = document.xml_from_string(open('%s/%s' % (DATA_DIR, opf_file)).read())
+        opf = document.xml_from_string(self._get_file(opf_file))
         authors = [a.name for a in document.get_authors(opf)]
         self.assertEquals(expected_authors, authors)
 
@@ -83,7 +83,7 @@ class TestModels(unittest.TestCase):
         document = MockEpubArchive(name=opf_file)
         document.owner = self.user
         document.save()
-        opf = document.xml_from_string(open('%s/%s' % (DATA_DIR, opf_file)).read())
+        opf = document.xml_from_string(self._get_file(opf_file))
         
         fuzz = 4
         len_first_author = len(expected_authors[0])
@@ -98,7 +98,7 @@ class TestModels(unittest.TestCase):
         no_author_document.owner = self.user
         no_author_document.save()
 
-        opf = no_author_document.xml_from_string(open('%s/%s' % (DATA_DIR, no_author_opf_file)).read())
+        opf = no_author_document.xml_from_string(self._get_file(no_author_opf_file))
 
         author = no_author_document.get_author(opf)
         self.failIf(author)
@@ -148,13 +148,13 @@ class TestModels(unittest.TestCase):
 
     def testCountDeepTOC(self):
         '''Check a complex document with multiple nesting levels'''
-        toc = TOC(open('%s/complex-ncx.ncx' % DATA_DIR).read())
+        toc = TOC(self._get_file('complex-ncx.ncx'))
         self.failUnless(toc)
         self.assert_(len(toc.find_points(3)) > len(toc.find_points(2)) > len(toc.find_points(1)))
 
     def testOrderedTOC(self):
         '''TOC should preserve the playorder of the NCX'''
-        toc = TOC(open('%s/complex-ncx.ncx' % DATA_DIR).read())
+        toc = TOC(self._get_file('complex-ncx.ncx'))
         self.failUnless(toc)
         # First item is the Copyright statement, which has no children
         copyright_statement = toc.tree[0]
@@ -170,7 +170,7 @@ class TestModels(unittest.TestCase):
 
     def testGetChildren(self):
         '''Get the children of a particular nested TOC node, by node'''
-        toc = TOC(open('%s/complex-ncx.ncx' % DATA_DIR).read())
+        toc = TOC(self._get_file('complex-ncx.ncx'))
         self.failUnless(toc)
 
         # First item is the Copyright statement, which has no children
@@ -185,7 +185,7 @@ class TestModels(unittest.TestCase):
 
     def testTOCHref(self):
         '''Ensure that we are returning the correct href for an item'''
-        toc = TOC(open('%s/complex-ncx.ncx' % DATA_DIR).read())
+        toc = TOC(self._get_file('complex-ncx.ncx'))
         preface = toc.tree[1]
         self.assertEquals("pr02.html", preface.href())
 
@@ -193,7 +193,7 @@ class TestModels(unittest.TestCase):
         '''All metadata should be returned using the public methods'''
         opf_file = 'all-metadata.opf'
         document = MockEpubArchive(name=opf_file)
-        opf = open('%s/%s' % (DATA_DIR, opf_file)).read()
+        opf = self._get_file(opf_file)
 
         self.assertEquals('en-US', document.get_metadata(DC_LANGUAGE_TAG, opf))
         self.assertEquals('Public Domain', document.get_metadata(DC_RIGHTS_TAG, opf))
@@ -233,14 +233,107 @@ class TestModels(unittest.TestCase):
             self.assert_('<body' not in c.render())
             self.assert_('<div id="bw-book-content"' in c.render())
 
+
+    def testBinaryImage(self):
+        '''Test the ImageBlob class directly'''
+        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+        imagename = 'alice01a.gif'
+        image = self._get_file(imagename)
+        image_obj = ImageFile(idref=imagename,
+                              archive=document)
+        image_obj.save()
+
+        i = ImageBlob(archive=document,
+                      idref=imagename,
+                      image=image_obj,
+                      data=image,
+                      filename=imagename)
+        i.save()
+        i2 = ImageBlob.objects.filter(idref=imagename)[0]
+        self.assertEquals(image, i2.get_data())
+        i2.delete()
+
+    def testBinaryImageAutosave(self):
+        '''Test that an ImageFile creates a blob and can retrieve it'''
+        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+        imagename = 'alice01a.gif'
+        image = self._get_file(imagename)
+        image_obj = ImageFile(idref=imagename,
+                              archive=document,
+                              data=image)
+        image_obj.save()
+        i2 = ImageFile.objects.filter(idref=imagename)[0]
+        self.assertEquals(image, i2.get_data())
+        i2.delete()
+        
+    def testBinaryImageAutodelete(self):
+        '''Test that an ImageFile can delete its associated blob'''
+        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+        imagename = 'alice2.gif'
+        image = self._get_file(imagename)
+        image_obj = ImageFile(idref=imagename,
+                              archive=document,
+                              data=image)
+        image_obj.save()
+        i2 = ImageFile.objects.filter(idref=imagename)[0]
+        storage = i2._blob()._get_file()
+        assert storage
+        i2.delete()
+        self.assert_(not os.path.exists(storage))
+
+    def testImageWithPathInfo(self):
+        filename = 'alice-fromAdobe.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+
+    def testBinaryEpub(self):
+        '''Test the storage of an epub binary'''
+        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+        epub = self._get_file(filename)
+        bin = EpubBlob(idref=filename,
+                       archive=document,
+                       filename=filename,
+                       data=epub)
+        bin.save()
+        b2 = EpubBlob.objects.filter(idref=filename)[0]
+
+        # Assert that we can read the file, and it's the same
+        self.assertEquals(epub, b2.get_data())
+
+        # Assert that it's physically in the storage directory
+        storage = b2._get_file()
+        self.assert_(os.path.exists(storage))        
+
+        # Assert that once we've deleted it, it's gone
+        b2.delete()
+        self.assert_(not os.path.exists(storage))        
+
+    def _get_file(self, f):
+        '''Get a file from either the public or private data directories'''
+        try:
+            return open('%s/%s' % (DATA_DIR, f)).read()
+        except IOError:
+            return open('%s/%s' % (PRIVATE_DATA_DIR, f)).read()
+
     def create_document(self, document):
         epub = MockEpubArchive(name=document)
         epub.owner = self.user
-        try:
-            epub.set_content(open('%s/%s' % (DATA_DIR, document)).read())
-        except IOError:
-            epub.set_content(open('%s/%s' % (PRIVATE_DATA_DIR, document)).read())
         epub.save()
+        epub.set_content(self._get_file(document))
+
         return epub
 
 

@@ -50,7 +50,6 @@ class TOC():
 
     def find_children(self, element):
         '''Find all the children of a node (for expand/collapse navigation)'''
-        logging.info('finding children')
         return [n for n in self.tree if n.parent.get('id') == element.element.get('id')]
     
     def _find_point(self, element, depth=1):
@@ -114,5 +113,6 @@ if __name__ == '__main__':
         init_namespaces()
         toc = TOC(open(sys.argv[1]).read())
         print toc
+
     else:
         print "Usage: toc.py <NCX filename>"

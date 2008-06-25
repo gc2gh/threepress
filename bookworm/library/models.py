@@ -4,10 +4,10 @@ from zipfile import ZipFile
 from StringIO import StringIO
 import logging, datetime, sys
 from urllib import unquote_plus
+import os, os.path
 from xml.parsers.expat import ExpatError
 import htmlentitydefs
 import cssutils
-import base64
 
 from django.utils.http import urlquote_plus
 from django.db import models
@@ -33,10 +33,6 @@ def unsafe_name(name):
     unquote = unquote_plus(name.encode(ENC))
     return unicode(unquote, ENC)
 
-def encode_content(c):
-    return base64.b64encode(c)
-def decode_content(c):
-    return base64.b64decode(c)
 
 class BookwormModel(models.Model):
     '''Base class for all models'''
@@ -62,15 +58,27 @@ class EpubArchive(BookwormModel):
     authors = models.ManyToManyField('BookAuthor')
 
     title = models.CharField(max_length=5000)
-    _content = models.TextField()  # will have to base64-encode this; Django has no blob field, wtf
     opf = models.TextField()
     toc = models.TextField()
     has_stylesheets = models.BooleanField(default=False)
 
     def get_content(self):
-        return decode_content(self._content)
+        epub = EpubBlob.objects.filter(archive=self)[0]
+        return epub.get_data()
+
+    def delete(self):
+        epub = self.get_content()
+        epub.delete()
+        super(EpubArchive, self).delete()
+
     def set_content(self, c):
-        self._content = encode_content(c)
+        if not self.id:
+            raise InvalidEpubException('save() must be called before setting content')
+        epub = EpubBlob(archive=self,
+                        filename=self.name,
+                        data=c,
+                        idref=self.name)
+        epub.save()
 
     def author(self):
         '''This method returns the author, if only one, or the first author in
@@ -123,7 +131,6 @@ class EpubArchive(BookwormModel):
         e = StringIO(self.get_content())
         z = ZipFile(e)
 
-        logging.debug(z.namelist())
         self._archive = z
 
         try:
@@ -182,7 +189,6 @@ class EpubArchive(BookwormModel):
         for item in items:
             if item.get('id') == tocid:
                 toc_filename = item.get('href').strip()
-                logging.debug('Got toc filename as %s' % toc_filename)
                 return "%s%s" % (content_path, toc_filename)
         raise Exception("Could not find toc filename")
 
@@ -238,9 +244,9 @@ class EpubArchive(BookwormModel):
             image = ImageFile(
                               idref=i['idref'],
                               file=f,
+                              data=i['data'],
                               content_type=i['content_type'],
                               archive=self)
-            image.set_data(i['data'])
             image.save()  
 
     def _get_stylesheets(self, items, content_path):
@@ -296,7 +302,6 @@ class EpubArchive(BookwormModel):
         for m in metas:
             if m.get('name') == 'db:depth':
                 depth = int(m.get('content'))
-                logging.debug('Book has depth of %d' % depth)
         
         for item in items:
             item_map[item.get('id')] = item.get('href')
@@ -310,7 +315,6 @@ class EpubArchive(BookwormModel):
                 pass
                 # Skip this item so we don't overwrite with a new navpoint
             else:
-                logging.debug('adding filename %s to navmap' % filename)
                 nav_map[filename] = n
 
         pages = []
@@ -319,9 +323,7 @@ class EpubArchive(BookwormModel):
             idref = ref.get('idref')
             if item_map.has_key(idref):
                 href = item_map[idref]
-                logging.debug("checking href %s" % href)
                 if nav_map.has_key(href):
-                    logging.debug('Adding navmap item %s' % nav_map[href])
                     filename = '%s%s' % (content_path, href)
                     content = self._archive.read(filename)
                     
@@ -397,7 +399,6 @@ class HTMLFile(BookwormFile):
         if self.processed_content:
             return self.processed_content
         
-        logging.debug('Parsing body content for first display')
         f = smart_str(self.file, encoding=ENC)
 
         src = StringIO(f)
@@ -421,7 +422,7 @@ class HTMLFile(BookwormFile):
             self.processed_content = unicode(body_content, ENC)
             self.save()            
         except: 
-            logging.error("Could not cache processed document, error was: " + sys.exc_info()[0])
+            logging.error("Could not cache processed document, error was: " + sys.exc_value)
 
         return body_content
 
@@ -439,17 +440,13 @@ class HTMLFile(BookwormFile):
                 logging.debug('translating svg image %s' % element.get('src'))
                 try:
                     p = parent_map[element]
-                    logging.debug("Got parent %s " % (p.tag)) 
-
-                    e = ET.fromstring("""
-<a class="svg" href="%s">[ View linked image in SVG format ]</a>
-""" % element.get('src'))
+                    e = ET.fromstring("""<a class="svg" href="%s">[ View linked image in SVG format ]</a>""" % element.get('src'))
                     p.remove(element)
                     p.append(e)
-                    logging.debug("Added subelement %s to %s " % (e.tag, p.tag)) 
                 except: 
-                    logging.error("ERROR:" + sys.exc_info())[0]
+                    logging.error("ERROR:" + sys.exc_value)
         return xhtml
+
     def __str__(self):
         return "[%d] '%s' in %s " % (self.order, self.title, self.archive.title)
 
@@ -457,6 +454,7 @@ class HTMLFile(BookwormFile):
         pass
     class Meta:
         ordering = ['order']
+
 class StylesheetFile(BookwormFile):
     '''A CSS stylesheet associated with a given book'''
     content_type = models.CharField(max_length=100, default="text/css")
@@ -466,13 +464,38 @@ class StylesheetFile(BookwormFile):
 class ImageFile(BookwormFile):
     '''An image file associated with a given book.  Mime-type will vary.'''
     content_type = models.CharField(max_length=100)
-    _data = models.TextField(null=True) # really base64
+    data = None
+
+    def __init__(self, *args, **kwargs):
+        if kwargs.has_key('data'):
+            self.data = kwargs['data']
+            del kwargs['data']
+        super(ImageFile, self).__init__(*args, **kwargs)
+
+    def save(self):
+        '''Overridden to also create a related binary image'''
+        # Save first so we have an id
+        super(ImageFile, self).save()
+        if self.data:
+            b = ImageBlob(archive=self.archive,
+                          image=self,
+                          data=self.data,
+                          filename=self.idref)
+            b.save()
+
 
     def get_data(self):
-        return decode_content(self._data)
-    def set_data(self, d):
-        self._data = encode_content(d)
+        b = self._blob()
+        return b.get_data()
 
+    def delete(self):
+        b = self._blob()
+        b.delete()
+        super(ImageFile, self).save()
+
+    def _blob(self):
+        '''Gets the blob related to this image'''
+        return ImageBlob.objects.filter(image=self)[0]        
     class Admin:
         pass
 
@@ -520,7 +543,94 @@ class SystemInfo():
             self._total_users += 1
 
 
+class BinaryBlob(BookwormFile):
+    '''Django doesn't support this natively in the DB model (yet) and quite 
+    probably we don't want to store this in the database anyway, for
+    possible replacement with an S3-like storage system later.  For now
+    this implementation is in the local filesystem.'''
+    
+    _pathname = 'storage'
+    _storage_dir = '%s/%s' % (os.path.dirname(__file__), _pathname)   
+    data = None
+    filename = models.CharField(max_length=2000, null=False, blank=False)
 
+    def __init__(self, *args, **kwargs):
+        if kwargs.has_key('data'):
+            self.data = kwargs['data']
+            del kwargs['data']
+        super(BinaryBlob, self).__init__(*args, **kwargs)
+
+    def save(self):
+        if not os.path.exists(self._storage_dir):
+            os.mkdir(self._storage_dir)
+        if not self.data:
+            raise InvalidBinaryException('No data to save but save() operation called')
+        if not self.filename:
+            raise InvalidBinaryException('No filename but save() operation called')
+
+        storage = self._get_storage()
+
+        if not os.path.exists(storage):
+            os.mkdir(storage)
+        f = self._get_file()
+        if os.path.exists(f):
+            logging.warn('File %s with document %s already exists; saving anyway' % (self.filename, self.archive.name))
+
+        else :
+            path = self.filename
+            pathinfo = []
+            # This is ugly, but we want to create any depth of path,
+            # and then save the file in the appropriate place
+            while os.path.split(path)[1] != '':
+                pathinfo.append(os.path.split(path)[1])
+                path = os.path.split(path)[0]
+            pathinfo.reverse()
+            pathinfo = pathinfo[:-1]
+            d = storage
+            for p in pathinfo:
+                d += '/' + p
+                logging.info('Creating directory %s' % d)
+                if not os.path.exists(d):
+                    os.mkdir(d)
+        f = open(f, 'w')
+        f.write(self.data)
+        f.close()
+        logging.debug('Wrote binary file %s to %s' % (self.filename, storage))
+        super(BinaryBlob, self).save()
+
+    def delete(self):
+        storage = self._get_storage()
+        f = self._get_file()
+        if not os.path.exists(f):
+            raise InvalidBinaryException('Tried to delete non-existent file %s in %s' % (self.filename, storage))         
+        os.remove(f)
+        super(BinaryBlob, self).delete()
+
+    def get_data(self):
+        '''Return the data for this file, as a string of bytes (output from read())'''
+        f = self._get_file()
+        if not os.path.exists(f):
+            raise InvalidBinaryException("Tried to open file %s but it wasn't there" % f)
+        return open(f).read()
+
+    def _get_file(self):
+        storage = self._get_storage()
+        return '%s/%s' % (storage, self.filename)
+
+    def _get_storage(self):
+        return '%s/%s' % (self._storage_dir, self.archive.name)
+
+    class Meta:
+        abstract = True
+
+class EpubBlob(BinaryBlob):
+    '''Storage mechanism for an epub archive'''
+    pass
+
+class ImageBlob(BinaryBlob):
+    '''Storage mechanism for a binary image'''
+    image = models.ForeignKey(ImageFile)    
+    
 class CleanXmlFile(ET.ElementTree):
     '''Implementation that includes all HTML entities'''
     def __init__(self, file=None, tag='global', **extra):
@@ -531,4 +641,6 @@ class CleanXmlFile(ET.ElementTree):
         self.parse(source=file, parser=parser) 
         return
 
+class InvalidBinaryException(Exception):
+    pass
 
