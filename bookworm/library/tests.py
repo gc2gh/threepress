@@ -8,9 +8,8 @@ import logging
 
 from os.path import isfile, isdir
 
-# Could we get this with the relative imports in 2.5 __future__?
-# Tried this but relative imports do not work in 2.5 if the script is run as '__main__' -ld 
 from django.contrib.auth.models import User
+from django.test import TestCase as DjangoTestCase
 
 from models import *
 from testmodels import *
@@ -72,7 +71,7 @@ class TestModels(unittest.TestCase):
         expected_authors = [u'First Author', u'Second Author']
         opf_file = 'two-authors.opf'
         document = MockEpubArchive(name=opf_file)
-        opf = document.xml_from_string(self._get_file(opf_file))
+        opf = document.xml_from_string(_get_file(opf_file))
         authors = [a.name for a in document.get_authors(opf)]
         self.assertEquals(expected_authors, authors)
 
@@ -83,7 +82,7 @@ class TestModels(unittest.TestCase):
         document = MockEpubArchive(name=opf_file)
         document.owner = self.user
         document.save()
-        opf = document.xml_from_string(self._get_file(opf_file))
+        opf = document.xml_from_string(_get_file(opf_file))
         
         fuzz = 4
         len_first_author = len(expected_authors[0])
@@ -98,7 +97,7 @@ class TestModels(unittest.TestCase):
         no_author_document.owner = self.user
         no_author_document.save()
 
-        opf = no_author_document.xml_from_string(self._get_file(no_author_opf_file))
+        opf = no_author_document.xml_from_string(_get_file(no_author_opf_file))
 
         author = no_author_document.get_author(opf)
         self.failIf(author)
@@ -148,13 +147,13 @@ class TestModels(unittest.TestCase):
 
     def testCountDeepTOC(self):
         '''Check a complex document with multiple nesting levels'''
-        toc = TOC(self._get_file('complex-ncx.ncx'))
+        toc = TOC(_get_file('complex-ncx.ncx'))
         self.failUnless(toc)
         self.assert_(len(toc.find_points(3)) > len(toc.find_points(2)) > len(toc.find_points(1)))
 
     def testOrderedTOC(self):
         '''TOC should preserve the playorder of the NCX'''
-        toc = TOC(self._get_file('complex-ncx.ncx'))
+        toc = TOC(_get_file('complex-ncx.ncx'))
         self.failUnless(toc)
         # First item is the Copyright statement, which has no children
         copyright_statement = toc.tree[0]
@@ -170,7 +169,7 @@ class TestModels(unittest.TestCase):
 
     def testGetChildren(self):
         '''Get the children of a particular nested TOC node, by node'''
-        toc = TOC(self._get_file('complex-ncx.ncx'))
+        toc = TOC(_get_file('complex-ncx.ncx'))
         self.failUnless(toc)
 
         # First item is the Copyright statement, which has no children
@@ -185,7 +184,7 @@ class TestModels(unittest.TestCase):
 
     def testTOCHref(self):
         '''Ensure that we are returning the correct href for an item'''
-        toc = TOC(self._get_file('complex-ncx.ncx'))
+        toc = TOC(_get_file('complex-ncx.ncx'))
         preface = toc.tree[1]
         self.assertEquals("pr02.html", preface.href())
 
@@ -193,7 +192,7 @@ class TestModels(unittest.TestCase):
         '''All metadata should be returned using the public methods'''
         opf_file = 'all-metadata.opf'
         document = MockEpubArchive(name=opf_file)
-        opf = self._get_file(opf_file)
+        opf = _get_file(opf_file)
 
         self.assertEquals('en-US', document.get_metadata(DC_LANGUAGE_TAG, opf))
         self.assertEquals('Public Domain', document.get_metadata(DC_RIGHTS_TAG, opf))
@@ -241,7 +240,7 @@ class TestModels(unittest.TestCase):
         document.explode()
         document.save()
         imagename = 'alice01a.gif'
-        image = self._get_file(imagename)
+        image = _get_file(imagename)
         image_obj = ImageFile(idref=imagename,
                               archive=document)
         image_obj.save()
@@ -263,7 +262,7 @@ class TestModels(unittest.TestCase):
         document.explode()
         document.save()
         imagename = 'alice01a.gif'
-        image = self._get_file(imagename)
+        image = _get_file(imagename)
         image_obj = ImageFile(idref=imagename,
                               archive=document,
                               data=image)
@@ -279,7 +278,7 @@ class TestModels(unittest.TestCase):
         document.explode()
         document.save()
         imagename = 'alice2.gif'
-        image = self._get_file(imagename)
+        image = _get_file(imagename)
         image_obj = ImageFile(idref=imagename,
                               archive=document,
                               data=image)
@@ -302,7 +301,7 @@ class TestModels(unittest.TestCase):
         document = self.create_document(filename)
         document.explode()
         document.save()
-        epub = self._get_file(filename)
+        epub = _get_file(filename)
         bin = EpubBlob(idref=filename,
                        archive=document,
                        filename=filename,
@@ -321,26 +320,129 @@ class TestModels(unittest.TestCase):
         b2.delete()
         self.assert_(not os.path.exists(storage))        
 
-    def _get_file(self, f):
-        '''Get a file from either the public or private data directories'''
-        try:
-            return open('%s/%s' % (DATA_DIR, f)).read()
-        except IOError:
-            return open('%s/%s' % (PRIVATE_DATA_DIR, f)).read()
+
 
     def create_document(self, document):
         epub = MockEpubArchive(name=document)
         epub.owner = self.user
         epub.save()
-        epub.set_content(self._get_file(document))
+        epub.set_content(_get_file(document))
 
         return epub
 
+
+class TestViews(DjangoTestCase):
+    def setUp(self):
+        logging.info('Calling setup')
+        self.user = User.objects.create_user(username="testuser",email="test@example.com",password="testuser")
+        self.user.save()        
+
+    def tearDown(self):
+        self.user.delete()
+
+    def test_is_index_protected(self):
+        response = self.client.get('/')
+        self.assertRedirects(response, '/accounts/login/?next=/', 
+                             status_code=302, 
+                             target_status_code=200)
+
+    def test_login(self):
+        self._login()
+        response = self.client.get('/')
+        self.assertTemplateUsed(response, 'index.html')
+
+    def _login(self):
+        self.assertTrue(self.client.login(username='testuser', password='testuser'))
+
+    def test_upload(self):
+        response = self._upload('Pride-and-Prejudice_Jane-Austen.epub')
+        self.assertRedirects(response, '/', 
+                             status_code=302, 
+                             target_status_code=200)
+
+    def test_upload_with_images(self):
+        response = self._upload('alice-fromAdobe.epub')
+        self.assertRedirects(response, '/', 
+                             status_code=302, 
+                             target_status_code=200)        
+
+    def test_upload_with_utf8(self):
+        response = self._upload('The-Adventures-of-Sherlock-Holmes_Arthur-Conan-Doyle.epub')
+        self.assertRedirects(response, '/', 
+                             status_code=302, 
+                             target_status_code=200)        
+
+        # Make sure it's in the list
+        response = self.client.get('/')
+        self.assertContains(response, 'Sherlock')
+
+    def test_delete_with_utf8(self):
+        response = self._upload('The-Adventures-of-Sherlock-Holmes_Arthur-Conan-Doyle.epub')
+        # Make sure it's in the list
+        response = self.client.get('/')
+        self.assertContains(response, 'Sherlock')
+
+        response = self.client.post('/delete/', { 'title':'The+Adventures+of+Sherlock+Holmes',
+                                       'key':'1'})
+        self.assertRedirects(response, '/', 
+                             status_code=302, 
+                             target_status_code=200)   
+        response = self.client.get('/')
+        self.assertNotContains(response, 'Sherlock')
+
+
+    def test_upload_with_entities(self):
+        response = self._upload('html-entities.epub')
+        self.assertRedirects(response, '/', 
+                             status_code=302, 
+                             target_status_code=200)   
+
+    def test_view_document(self):
+        self._upload('Pride-and-Prejudice_Jane-Austen.epub')
+        response = self.client.get('/view/Pride-and-Prejudice/1/')
+        self.assertTemplateUsed(response, 'view.html')
+        self.assertContains(response, 'Pride and Prejudice', status_code=200)
+
+    def test_view_chapter(self):
+        self._upload('Pride-and-Prejudice_Jane-Austen.epub')
+        response = self.client.get('/view/Pride-and-Prejudice/1/chapter-1.html')
+        self.assertTemplateUsed(response, 'view.html')
+        self.assertContains(response, 'It is a truth universally acknowledged', status_code=200)
+
+    def test_delete_book(self):
+        self._upload('Pride-and-Prejudice_Jane-Austen.epub')        
+        response = self.client.post('/delete/', { 'title':'Pride+and+Prejudice',
+                                       'key':'1'})
+        self.assertRedirects(response, '/', 
+                             status_code=302, 
+                             target_status_code=200)   
+        
+    def test_view_profile(self):
+        self._login()
+        response = self.client.get('/accounts/profile/')
+        self.assertTemplateUsed(response, 'auth/profile.html')
+        self.assertContains(response, 'testuser', status_code=200)        
+
+    def _upload(self, f):
+        self._login()
+        fh = _get_filehandle(f)
+        response = self.client.post('/upload/', {'epub':fh})
+        return response
 
 def _get_document(title, id):
     '''@todo Mock this out better instead of overwriting the real view'''
     return MockEpubArchive(id=id)
 
+def _get_file(f):
+    '''Get a file from either the public or private data directories'''
+    return _get_filehandle(f).read()
 
+def _get_filehandle(f):
+    '''Get a file from either the public or private data directories'''
+    try:
+        return open('%s/%s' % (DATA_DIR, f))
+    except IOError:
+        return open('%s/%s' % (PRIVATE_DATA_DIR, f))
+    
 if __name__ == '__main__':
     logging.error('Invoke this using "manage.py test"')

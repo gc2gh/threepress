@@ -164,7 +164,7 @@ class EpubArchive(BookwormModel):
 
 
     def _xml_from_string(self, xml):
-        return ET.fromstring(xml.encode(ENC))
+        return ET.fromstring(xml)
 
     def _get_opf_filename(self, container):
         '''Parse the container to get the name of the opf file'''
