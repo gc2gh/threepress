@@ -423,6 +423,18 @@ class TestViews(DjangoTestCase):
         self.assertTemplateUsed(response, 'auth/profile.html')
         self.assertContains(response, 'testuser', status_code=200)        
 
+
+    def test_register(self):
+        response = self.client.post('/accounts/register/', { 'username':'registertest',
+                                                             'password1':'registertest',
+                                                             'password2':'registertest'})
+        self.assertRedirects(response, '/', 
+                             status_code=302, 
+                             target_status_code=200)   
+        response = self.client.get('/')
+        self.assertTemplateUsed(response, 'index.html')
+        self.assertContains(response, 'registertest', status_code=200)
+
     def _upload(self, f):
         self._login()
         fh = _get_filehandle(f)

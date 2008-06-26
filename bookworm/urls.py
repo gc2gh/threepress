@@ -18,6 +18,7 @@ urlpatterns = patterns('',
                        # Auth
                        (r'^accounts/login/$',  login, {'template_name': 'auth/login.html'}),
                        (r'^accounts/logout/$', logout, {'next_page': '/'}),
+                       (r'^accounts/register/$', 'library.views.register'),
 
                        # Bookworm
                        (r'^$', 'library.views.index'),                        

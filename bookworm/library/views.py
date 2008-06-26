@@ -5,12 +5,34 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
+from django import oldforms 
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import auth
 
 from models import EpubArchive, HTMLFile, UserPref, StylesheetFile, ImageFile, SystemInfo
 from forms import EpubValidateForm
 from epub import constants as epub_constants
 from epub import InvalidEpubException
 
+
+def register(request):
+    form = UserCreationForm()
+
+    if request.method == 'POST':
+        data = request.POST.copy()
+        errors = form.get_validation_errors(data)
+        if not errors:
+            new_user = form.save(data)
+            user = auth.authenticate(username=new_user.username, password=request.POST['password1'])
+            if user is not None and user.is_active:
+                auth.login(request, user)
+                return HttpResponseRedirect(reverse('library.views.index'))
+    else:
+        data, errors = {}, {}
+
+    return render_to_response("auth/register.html", {
+        'form' : oldforms.FormWrapper(form, data, errors)
+    })
 
 @login_required
 def index(request):
@@ -25,7 +47,7 @@ def index(request):
 def profile(request):
     common = _check_switch_modes(request)
     return render_to_response('auth/profile.html', { 'common':common})
-    
+
 @login_required
 def view(request, title, key):
     logging.info("Looking up title %s, key %s" % (title, key))
@@ -302,7 +324,7 @@ def _greeting(request):
         
         text = ('Signed in as %s: <a href="%s">logout</a> | <a href="%s">edit profile</a>' % 
                 (request.user.username, 
-                 '/logout/',
+                 reverse('django.contrib.auth.views.logout'),
                  reverse('library.views.profile')
                  )
                 )

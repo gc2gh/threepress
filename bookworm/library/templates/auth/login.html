@@ -11,6 +11,12 @@
 
 <p class="bw-tagline">A free platform for reading ePub books online. <a href="{% url library.views.about %}">Learn more</a>.</p>
 
+{% if account_created %}
+  <p class="message">Your account has been created and is ready for use.</p>
+{% else %}
+  <p class="bw-tagline">New to Bookworm? <a href="{% url library.views.register %}">Register</a>.</p>
+{% endif %}
+
 <p>Use of the library requires that you be logged in.  Once logged in you'll have
 access to books that you have uploaded to the service.  
 </p>
