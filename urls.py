@@ -16,28 +16,8 @@ urlpatterns = patterns('',
                        (r'^sitemap.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}),
                        
                        # Auth
+                       (r'^accounts/logout/', logout),
                        (r'^account/', include('django_authopenid.urls')),                       
-                       
-#                        (r'^accounts/login/$',  login, {'template_name': 'auth/openid_signin.html'}),
-#                        (r'^accounts/logout/$', logout, {'next_page': '/openid/signout/'}),
-#                        (r'^accounts/register/$', 'library.views.register'),
-
-#                        # OpenID
-#                        (r'^accounts/login/openid/$', 'django_openidconsumer.views.begin', 
-#                         {'sreg': 'email,nickname,fullname,country,language,timezone'},
-#                         ),
-#                        (r'^openid/complete/$', 'django_openidauth.views.complete', 
-#                         {'on_login_ok_url'    : '/',
-#                          'on_login_failed_url': '/accounts/register/'
-#                          }),
-#                        (r'^openid/signout/$', 'django_openidconsumer.views.signout'),
-#                        (r'^openid/associations/$', 'django_openidauth.views.associations'),
-
-#                        (r'^openid/register/$', 'django_openidauth.regviews.register', 
-#                         {'success_url': '/'
-#                          }),
-#                        (r'^accounts/login/complete/$', 'django_openidconsumer.views.complete'),
-#                        (r'^accounts/login/signout/$', 'django_openidconsumer.views.signout'),                       
                        
                        # Bookworm
                        (r'^$', 'library.views.index'),                        

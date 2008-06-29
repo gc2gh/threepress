@@ -8,11 +8,6 @@ from django.core.urlresolvers import reverse
 from django import oldforms 
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import auth
-#from django.contrib.auth import login as log_user_in, load_backend
-
-
-from django_openidauth.models import associate_openid
-
 
 from models import EpubArchive, HTMLFile, UserPref, StylesheetFile, ImageFile, SystemInfo
 from forms import EpubValidateForm
@@ -28,8 +23,6 @@ def register(request):
         errors = form.get_validation_errors(data)
         if not errors:
             new_user = form.save(data)
-            if hasattr(request, 'openid'):
-                associate_openid(new_user, request.openid)
             user = auth.authenticate(username=new_user.username, password=request.POST['password1'])
             if user is not None and user.is_active:
                 auth.login(request, user)
