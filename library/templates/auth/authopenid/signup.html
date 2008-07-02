@@ -4,19 +4,27 @@
 <link rel="stylesheet" href="/static/home.css"></link>
 <link rel="stylesheet" type="text/css" href="/static/auth.css" ></link>
 <style type="text/css">
-form fieldset {
-  border: 1px dotted gray;
+#bw-leftnav ol {
+ padding-left: 0;
 }
+#bw-leftnav ol li {
+  list-style-type: none;
+  padding-left: 0;
+  margin-bottom: 1em;
+}
+
 </style>
 {% endblock head %}
 
 {% block leftnav %}
-  <h2>Two ways to join</h2>
-  <ul>
-    <li>Use OpenID</li>
-    <li>Don't have an OpenID?  Sign up with a username and password just
+  <h2>Two ways to join:</h2>
+  <ol>
+    <li><h3>Use OpenID</h3> 
+    Just enter your OpenID URL and we'll link a Bookworm account to it.
+    </li>
+    <li><h3>Don't have an OpenID?</h3>  Sign up with a username and password just
       for Bookworm.</li>
-  </ul>
+  </ol>
 {% endblock leftnav %}
 
 {% block main %}
@@ -37,10 +45,10 @@ form fieldset {
     </p>
     {% endif %}
     <div id="bw-openid-signup" style="float:left">
-      <h2 class="bw-signup">Use my OpenID</h2>
-      <img src="/static/openid-logo.png" alt="OpenID" />
+
       <form name="fopenid" action="{{ action_signin }}" method="post">
 	<fieldset>
+          <legend>      <img src="/static/openid-logo.png" alt="Use my OpenID" /></legend>
           {{ form2.openid_url }}
           <input name="bsignin" type="submit" value="Sign up with OpenID" />
 	</fieldset>
@@ -48,11 +56,12 @@ form fieldset {
     </div>
 
     <div id="bw-local-signup" style="float:right">
-    <h2 class="bw-signup">Sign up locally</h2>
 
     <form action="{{ action }}" method="post" accept-charset="utf-8">	
       <fieldset>
-        <label for="id_username">Username:</label>
+        <legend>Sign up locally</legend>
+
+        <label for="id_username"><br/>Username:</label>
 	{{ form.username }}
 
         <label for="id_email">Email:</label>{{ form.email }}

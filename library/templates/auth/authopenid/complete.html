@@ -44,9 +44,9 @@
     {{ form.next }}
     <fieldset>
       <legend>I'm new here</legend>
-      <label for "id_username">{% trans "Screen name" %}</label><br />{{ form1.username }}
-      <label for "id_email">{% trans "Email" %}</label><br />{{ form1.email }}
-      <input type="submit" name="bnewaccount" value="Create a new Bookworm account">
+      <label for="id_username">Username</label>{{ form1.username }}
+      <label for="id_email">Email</label>{{ form1.email }}
+      <input type="submit" name="bnewaccount" value="Create a new Bookworm account" />
     </fieldset>
   </form>
 </div>

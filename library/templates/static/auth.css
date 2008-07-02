@@ -14,9 +14,7 @@ form legend {
   font-size:large;
 
 }
+
 form fieldset {
-  border: none;
+  border: 1px dotted gray;
 }
-
-
-
