@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ common.user.nickname }}'s profile{% endblock %}
+{% block title %}{{ common.user.username }}'s profile{% endblock %}
 
 {% block main %}
 
@@ -24,6 +24,12 @@
       <th>Username</th>
       <td>{{ common.user.username }}</td>
     </tr>
+    {% if common.user.prefs.openid %}
+    <tr>
+      <th>OpenID</th>
+      <td>{{ common.user.prefs.openidurl }}</td>
+    </tr>
+    {% endif %}
     <tr>
       <th>Full name</th>
       <td>{{ common.user.prefs.fullname }}</td>

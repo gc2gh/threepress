@@ -1,3 +1,4 @@
+
 from django.conf.urls.defaults import *
 from django.conf import settings
 from django.contrib.sitemaps import FlatPageSitemap
@@ -16,7 +17,7 @@ urlpatterns = patterns('',
                        (r'^sitemap.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}),
                        
                        # Auth
-                       (r'^accounts/logout/', logout),
+                       (r'^accounts/logout/', logout, { 'next_page': '/'}),
                        (r'^account/', include('django_authopenid.urls')),                       
                        
                        # Bookworm
