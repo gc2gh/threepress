@@ -36,7 +36,7 @@ from django.contrib.auth import authenticate
 from django.utils.translation import ugettext as _
 from django.conf import settings
 
-import re
+import re, logging
 
 
 # needed for some linux distributions like debian
@@ -107,8 +107,7 @@ class OpenidAuthForm(forms.Form):
                         username__exact = self.cleaned_data['username']
                 )
             except User.DoesNotExist:
-                raise forms.ValidationError(_("This username don't exist \
-                    in database. Please choose another."))
+                raise forms.ValidationError(_("There is no account with this username."))
             return self.cleaned_data['username']
 
     def clean_password(self):
@@ -359,22 +358,24 @@ class ChangeopenidForm(forms.Form):
 
 class DeleteForm(forms.Form):
     """ confirm form to delete an account """
-    confirm = forms.CharField(widget=forms.CheckboxInput(attrs=attrs_dict))
-    password = forms.CharField(widget=forms.PasswordInput(attrs=attrs_dict))
+    confirm = forms.CharField(required=True, widget=forms.CheckboxInput(attrs={'style':'display:inline', 'class':'required'}))
+    password = forms.CharField(required=False, widget=forms.PasswordInput(attrs={'autocomplete':'off'}))
+    openid_url = forms.CharField(required=False,widget=forms.TextInput(attrs={'autocomplete':'on'}))
 
     def __init__(self, data=None, files=None, auto_id='id_%s',
             prefix=None, initial=None, user=None):
         super(DeleteForm, self).__init__(data, files, auto_id, prefix, initial)
-        self.test_openid = False
         self.user = user
 
-    def clean_password(self):
-        """ check if we have to test a legacy account or not """
-        if 'password' in self.cleaned_data:
-            if not self.user.check_password(self.cleaned_data['password']):
-                self.test_openid = True
-        return self.cleaned_data['password']
-
+    def clean(self):
+        if not self.cleaned_data['password'] and not self.cleaned_data['openid_url']:
+            raise forms.ValidationError(u'Either an OpenID URL or a password must be provided')
+        if self.cleaned_data['password'] and self.cleaned_data['openid_url']:
+            raise forms.ValidationError(u'Please enter either an OpenID URL or a password, but not both')
+            
+        if not self.cleaned_data['confirm'] or self.cleaned_data['confirm'] == 'False':
+            raise forms.ValidationError(u"You must confirm that you're sure by checking the box.")
+        return super(DeleteForm, self).clean()
 
 class EmailPasswordForm(forms.Form):
     """ send new password form """

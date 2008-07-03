@@ -47,7 +47,7 @@
 <h3 style="padding-top:2em;">Upload {% if documents.count %} a new {% else %} your first {% endif %} book</h3>
 <form action="{% url library.views.upload d%}" method="post" enctype="multipart/form-data">
   <div id="bw-upload_form">
-    {{ common.upload_form.as_p }}
+    {{ form.as_p }}
     <input type="submit" value="upload" />
   </div>
 </form>

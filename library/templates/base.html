@@ -43,7 +43,9 @@
       <tr><td>
         <div id="bw-subheader">
           <div style="float:right;padding-right:2em">
-            <p>{{ common.greeting|safe }}</p>
+            {% if request.user.username %}
+              <p>{{ request.session.common.greeting|safe }}</p>
+            {% endif %}
           </div>
           <div class="bw-document_title">
             <h1>{% block header %}Library{% endblock header %}</h1>

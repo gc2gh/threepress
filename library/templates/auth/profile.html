@@ -1,6 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}{{ common.user.username }}'s profile{% endblock %}
+{% block title %}{{ request.user.username }}'s profile{% endblock %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/static/home.css" ></link>
+<link rel="stylesheet" type="text/css" href="/static/auth.css" ></link>
+<style type="text/css">
+ ol { list-style-type: none; padding:0; margin:0; color: gray; }
+ li a { text-decoration: none; color:gray;}
+</style>
+{% endblock head %}
+
+{% block leftnav %}
+<ol>
+<li><h3><a href="{% url django_authopenid.views.changepw %}">Change password</a></h3></li>
+<li><h3><a href="{% url django_authopenid.views.changeemail %}">Change email address</a></h3></li>
+<li><h3><a href="{% url django_authopenid.views.changeopenid %}">Change associated OpenID</a></h3></li>
+<li><h3><a href="{% url django_authopenid.views.delete %}">Delete this account</a></h3></li>
+</ol>
+{% endblock %}
 
 {% block main %}
 
@@ -11,7 +28,7 @@
 {% endif %}
 
 
-<h1>User profile settings for {{ common.user.username }}</h1>
+<h1>User profile settings for {{ request.user.username }}</h1>
 
 <table class="bw-meta">
   <thead>
@@ -22,38 +39,38 @@
   <tbody>
     <tr>
       <th>Username</th>
-      <td>{{ common.user.username }}</td>
+      <td>{{ request.user.username }}</td>
     </tr>
-    {% if common.user.prefs.openid %}
+    {% if prefs.openid %}
     <tr>
       <th>OpenID</th>
-      <td>{{ common.user.prefs.openidurl }}</td>
+      <td>{{ prefs.openidurl }}</td>
     </tr>
     {% endif %}
     <tr>
       <th>Full name</th>
-      <td>{{ common.user.prefs.fullname }}</td>
+      <td>{{ prefs.fullname }}</td>
     </tr>
     <tr>
       <th>Email address</th>
-      <td> {{ common.user.email }}</td>
+      <td> {{ request.user.email }}</td>
     </tr>
 
     <tr>
       <th>Country</th>
-      <td> {{ common.user.prefs.country }}</td>
+      <td> {{ prefs.country }}</td>
     </tr>
 
     <tr>
       <th>Language</th>
-      <td> {{ common.user.prefs.language }}</td>
+      <td> {{ prefs.language }}</td>
     </tr>
 
 
     <tr>
       <th>Show individual book styles? </th>
       <td>
-        {% if common.prefs.use_iframe %}
+        {% if prefs.use_iframe %}
         Yes, show book's styles in a scrolling window 
         <br/>(<a href="{% url library.views.profile %}?iframe=no">change this</a>)
         {% else %}
@@ -65,7 +82,7 @@
     <tr>
       <th>Show warning on chapter pages if the book has styles?</th>
       <td>
-        {% if common.prefs.show_iframe_note %}
+        {% if prefs.show_iframe_note %}
         Yes, show this message
         <br/>(<a href="{% url library.views.profile %}?iframe_note=no">change this</a>)
         {% else %}
@@ -76,17 +93,6 @@
     </tr>
   </tbody>
 </table>
-
-<form action="{% url library.views.profile_delete %}" method="post">
-  <div>
-    <input type="hidden" name="delete" value="{{ common.user.email }}" />
-    <p>
-      You can <strong>delete all personal information</strong> from this application, including
-      any profile information and all e-books.
-    </p>
-    <p><strong>This action cannot be undone.</strong></p>
-    <input type="submit" value="Delete my profile" onclick="return confirm('Are you sure you want to delete all personal info and books?')"/>
-  </div>
-</form>
 </div>
+
 {% endblock main %}

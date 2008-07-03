@@ -8,6 +8,11 @@ from django.core.urlresolvers import reverse
 from django import oldforms 
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import auth
+from django.template import RequestContext, Context, Template
+
+
+from django_authopenid.views import delete as delete_openid_profile
+from django_authopenid.forms import DeleteForm
 
 from models import EpubArchive, HTMLFile, UserPref, StylesheetFile, ImageFile, SystemInfo
 from forms import EpubValidateForm
@@ -37,50 +42,57 @@ def register(request):
 
 @login_required
 def index(request):
-    common = _common(request, load_prefs=True)
+    _common(request, load_prefs=True)
     user = request.user
+    form = EpubValidateForm()
     documents = EpubArchive.objects.filter(owner=user)
     return render_to_response('index.html', {'documents':documents, 
-                                             'common':common})
+                                             'form':form,
+                                             },
+                                             context_instance=RequestContext(request)
+                              )
 
 @login_required
 def profile(request):
-    common = _check_switch_modes(request)
-    uprofile = common['user'].get_profile()
-    sreg = request.openid.sreg
+    _check_switch_modes(request)
+    form = DeleteForm(user=request.user)
 
-    # If we have the email from OpenID and not in their profile, pre-populate it
-    if not common['user'].email and sreg.has_key('email'):
-        common['user'].email = sreg['email']
-    if sreg.has_key('fullname'):
-        uprofile.fullname = sreg['fullname']
-    if sreg.has_key('nickname'):
-        uprofile.nickname = sreg['nickname']
-    if sreg.has_key('timezone'):
-        uprofile.timezone = sreg['timezone']
-    if sreg.has_key('language'):
-        uprofile.language = sreg['language']
-    if sreg.has_key('country'):
-        uprofile.country = sreg['country']
-    uprofile.save()
-    common['prefs'] = uprofile
-    return render_to_response('auth/profile.html', { 'common':common })
+    uprofile = request.user.get_profile()
+    if request.openid:
+        sreg = request.openid.sreg
+        # If we have the email from OpenID and not in their profile, pre-populate it
+        if not request.user.email and sreg.has_key('email'):
+            request.user.email = sreg['email']
+        if sreg.has_key('fullname'):
+            uprofile.fullname = sreg['fullname']
+        if sreg.has_key('nickname'):
+            uprofile.nickname = sreg['nickname']
+        if sreg.has_key('timezone'):
+            uprofile.timezone = sreg['timezone']
+        if sreg.has_key('language'):
+            uprofile.language = sreg['language']
+        if sreg.has_key('country'):
+            uprofile.country = sreg['country']
+        uprofile.save()
+        _check_switch_modes(request)
+    return render_to_response('auth/profile.html', {'form':form, 'prefs':uprofile}, context_instance=RequestContext(request))
 
 @login_required
 def view(request, title, key):
     logging.info("Looking up title %s, key %s" % (title, key))
-    common = _check_switch_modes(request)
+    _check_switch_modes(request)
     document = _get_document(request, title, key)
     
     toc = HTMLFile.objects.filter(archive=document).order_by('order')
     
     return render_to_response('view.html', {'document':document, 
-                                            'toc':toc,
-                                            'common':common})
+                                            'toc':toc },
+                              context_instance=RequestContext(request))
+
 
 def about(request):
-    common = _common(request)
-    return render_to_response('about.html', {'common': common})
+    _common(request)
+    return render_to_response('about.html', context_instance=RequestContext(request))
     
 @login_required
 def delete(request):
@@ -100,7 +112,7 @@ def delete(request):
 
 @login_required
 def profile_delete(request):
-    common = _common(request)
+    _common(request)
 
     if not request.POST.has_key('delete'):
         # Extra sanity-check that this is a POST request
@@ -134,8 +146,8 @@ def profile_delete(request):
 
 def _check_switch_modes(request):
     '''Did they switch viewing modes?'''
-    common = _common(request, load_prefs=True)
-    userprefs = common['prefs']
+    _common(request, load_prefs=True)
+    userprefs = request.session['common']['prefs']
 
     if request.GET.has_key('iframe'):
         userprefs.use_iframe = (request.GET['iframe'] == 'yes')
@@ -145,7 +157,6 @@ def _check_switch_modes(request):
         userprefs.show_iframe_note = (request.GET['iframe_note'] == 'yes')
         userprefs.save()
 
-    return common
 
 @login_required    
 def view_chapter(request, title, key, chapter_id):
@@ -169,17 +180,17 @@ def view_chapter(request, title, key, chapter_id):
             subchapter_href = href
             break
 
-    common = _check_switch_modes(request)
-        
-    return render_to_response('view.html', {'common':common,
+    _check_switch_modes(request)
+    return render_to_response('view.html', {'chapter':chapter,
                                             'document':document,
                                             'next':next,
                                             'toc':toc,
                                             'subchapter_href':subchapter_href,
                                             'parent_chapter':parent_chapter,
                                             'stylesheets':stylesheets,
-                                            'previous':previous,
-                                            'chapter':chapter})
+                                            'previous':previous},
+                              context_instance=RequestContext(request))
+                              
 
 def _chapter_next_previous(document, chapter, dir='next'):
     if dir == 'next':
@@ -239,7 +250,7 @@ def download_epub(request, title, key):
 def upload(request):
     '''Uploads a new document and stores it in the datastore'''
     
-    common = _common(request)
+    _common(request)
     
     document = None 
     
@@ -294,8 +305,8 @@ def upload(request):
         form = EpubValidateForm()        
 
     return render_to_response('upload.html', {'common':common,
-                                              'form':form, 
-                                              'document':document})
+                                              'form':form},
+                              context_instance=RequestContext(request)) 
 
 
 
@@ -375,49 +386,24 @@ def _prefs(request):
     return userprefs
 
 def _common(request, load_prefs=False):
-    '''Builds a dictionary of common 'globals' 
+    '''Builds a dictionary of common 'globals' into the request
     @todo cache some of this, like from sysinfo'''
 
+    request.session['common']  = {}
     common = {}
-    user = request.user
-    common['user']  = user
-    common['is_admin'] = user.is_superuser
-
-    # Don't load user prefs unless we need to
-    if load_prefs:
-        common['prefs'] = _prefs(request)
-
-    #cached_total_books = memcache.get('total_books')
-
-    #if cached_total_books is not None:
-    #    common['total_books'] = cached_total_books
-    #else:
-    #sysinfo = get_system_info()
-    #common['total_books'] = sysinfo.total_books
-    #memcache.set('total_books', sysinfo.total_books)
-
-    #cached_total_users = memcache.get('total_users')
-
-    #if cached_total_users is not None:
-    #    common['total_users'] = cached_total_users
-    #else:
-    #    if not sysinfo:
-    #sysinfo = get_system_info()            
-    
+    common['user'] = request.user
+    common['is_admin'] = request.user.is_superuser
+    common['prefs'] = _prefs(request)
     common['total_users'] = _get_system_info(request).get_total_users()
     common['total_books'] = _get_system_info(request).get_total_books()
-
-    #    memcache.set('total_users', sysinfo.total_users)
-
     common['greeting'] = _greeting(request)
-
-    common['upload_form'] = EpubValidateForm()        
-    return common
+    request.session.modified = True
+    request.session['common'] = common
 
 
 def _get_system_info(request):
     '''Super-primitive caching system'''
-    if not request.session.has_key('system_info'):
+    if not 'system_info' in request.session:
         request.session['system_info'] = SystemInfo()
     return request.session['system_info']
     

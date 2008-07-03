@@ -48,6 +48,7 @@ urlpatterns = patterns('',
 
                        # User profile
                        (r'^accounts/profile/$', 'library.views.profile'),
+                       #(r'^accounts/profile/$', 'django_authopenid.views.account_settings'),
                        
                        (r'^accounts/profile/delete/$', 'library.views.profile_delete'),
 

@@ -9,7 +9,7 @@ def search(request):
     common = _common(request, load_prefs=True)
 
     if request.GET.has_key('author') or request.GET.has_key('title'):
-        d = EpubArchive.all()
+        d = EpubArchive.objects.filter()
         logging.debug('Performing search')
         if request.GET.has_key('author') and request.GET['author']:
             logging.info('including author %s' % request.GET['author'])

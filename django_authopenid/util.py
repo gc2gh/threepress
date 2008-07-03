@@ -124,7 +124,16 @@ class DjangoOpenIDStore(OpenIDStore):
 def from_openid_response(openid_response):
     """ return openid object from response """
     issued = int(time.time())
-    return OpenID(
-        openid_response.identity_url, issued, openid_response.signed_fields, 
-         dict(sreg.SRegResponse.fromSuccessResponse(openid_response))
-    )
+
+    try:
+        return OpenID(
+            openid_response.identity_url, issued, openid_response.signed_fields, 
+            dict(sreg.SRegResponse.fromSuccessResponse(openid_response))
+            )
+    # Hack; early versions of this code were like this and on deletion this was throwing
+    # an exception; try to fix this later @todo
+    except TypeError:
+        return OpenID(
+            openid_response.identity_url, issued, openid_response.signed_fields, 
+            openid_response.extensionResponse('http://openid.net/sreg/1.0', False)
+            )

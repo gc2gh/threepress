@@ -15,7 +15,7 @@
 
 {% block localstyles %}
 {% spaceless %}
-    {% if not common.prefs.use_iframe %}
+    {% if not request.common.prefs.use_iframe %}
       {% for css in stylesheets %}
       <link rel="stylesheet" href="{% url library.views.view_stylesheet document.safe_title,document.key,css.idref %}" />
       {% endfor %}
@@ -101,7 +101,7 @@
 
 {% if chapter %}
 
-  {% if common.prefs.use_iframe %}
+  {% if request.common.prefs.use_iframe %}
   <script type="text/javascript">
     getFullPath();
   </script>
@@ -140,7 +140,7 @@
       {% if document.has_stylesheets %}
 
          <!-- Show iframe note -->
-         {% if common.prefs.show_iframe_note %}
+         {% if request.common.prefs.show_iframe_note %}
             <p class="bw-note" style="margin-top:2em;margin-left:0;">
               Note: This book came bundled with its own stylesheets.  It's possible for these
               styles to interfere with the behavior of the site.  If the site does not appear to be laid out as expected, you may
@@ -216,7 +216,7 @@
        <tr>
          <th>Read this book with its own styles and fonts?</th>
          <td>
-           {% if common.prefs.use_iframe %}
+           {% if request.common.prefs.use_iframe %}
            Yes, show book's styles in a scrolling window 
            <br/>(<a href="{% url library.views.view_chapter document.safe_title,document.key,chapter.idref %}?iframe=no">change this</a>)
            {% else %}

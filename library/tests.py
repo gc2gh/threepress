@@ -15,6 +15,7 @@ from models import *
 from testmodels import *
 from epub.toc import TOC
 from epub.constants import *
+import smtp
 
 # Data for public epub documents
 DATA_DIR = os.path.abspath('./library/test-data/data')
@@ -342,7 +343,7 @@ class TestViews(DjangoTestCase):
 
     def test_is_index_protected(self):
         response = self.client.get('/')
-        self.assertRedirects(response, '/accounts/login/?next=/', 
+        self.assertRedirects(response, '/account/signin/?next=/', 
                              status_code=302, 
                              target_status_code=200)
 
@@ -424,10 +425,12 @@ class TestViews(DjangoTestCase):
         self.assertContains(response, 'testuser', status_code=200)        
 
 
-    def test_register(self):
-        response = self.client.post('/accounts/register/', { 'username':'registertest',
-                                                             'password1':'registertest',
-                                                             'password2':'registertest'})
+    def test_register_standard(self):
+        logging.info("This test may fail if the local client does not have a running stmp server. Try running library/smtp.py as root before calling this test.")
+        response = self.client.post('/account/signup/', { 'username':'registertest',
+                                                          'email':'registertest@example.com',
+                                                          'password1':'registertest',
+                                                          'password2':'registertest'})
         self.assertRedirects(response, '/', 
                              status_code=302, 
                              target_status_code=200)   

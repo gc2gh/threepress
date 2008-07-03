@@ -44,6 +44,8 @@ from django.contrib.sites.models import Site
 from django.utils.http import urlquote_plus
 from django.core.mail import send_mail
 
+import logging
+
 from openid.consumer.consumer import Consumer, \
     SUCCESS, CANCEL, FAILURE, SETUP_NEEDED
 from openid.consumer.discover import DiscoveryFailure
@@ -107,7 +109,7 @@ def ask_openid(request, openid_url, redirect_to, on_failure=None,
     try:
         auth_request = consumer.begin(openid_url)
     except DiscoveryFailure:
-        msg = _("The OpenID %s was invalid" % openid_url)
+        msg = _("The password or OpenID was invalid")
         return on_failure(request, msg)
 
     if sreg_request:
@@ -194,7 +196,7 @@ def signin(request):
                 if not next:
                     next = getattr(settings, 'OPENID_REDIRECT_NEXT', '/')
 
-                sreg_req = sreg.SRegRequest(optional=['nickname', 'email'])
+                sreg_req = sreg.SRegRequest(optional=['nickname', 'email', 'language', 'country', 'timezone', 'fullname'])
                 redirect_to = "%s%s?%s" % (
                         get_url_host(request),
                         reverse('user_complete_signin'), 
@@ -526,7 +528,7 @@ def changeemail(request):
     if request.POST:
         form = ChangeemailForm(request.POST, user=user_)
         if form.is_valid():
-            if not form.test_openid:
+            if form.test_openid:
                 user_.email = form.cleaned_data['email']
                 user_.save()
                 msg = _("Email changed.") 
@@ -536,7 +538,7 @@ def changeemail(request):
             else:
                 request.session['new_email'] = form.cleaned_data['email']
                 return ask_openid(request, form.cleaned_data['password'], 
-                        redirect_to, on_failure=emailopenid_failure)    
+                        redirect_to, on_failure=emailopenid_failure, sreg_request=request.openid.sreg)    
     elif not request.POST and 'openid.mode' in request.GET:
         return complete(request, emailopenid_success, 
                 emailopenid_failure, redirect_to) 
@@ -560,11 +562,11 @@ def emailopenid_success(request, identity_url, openid_response):
         )
     except:
         return emailopenid_failure(request, 
-                _("No openid % associated in our database" % identity_url))
+                _("No OpenID was found in our database"))
 
     if uassoc.user.username != request.user.username:
         return emailopenid_failure(request, 
-                _("The openid %s isn't associated to current logged user" % 
+                _("This OpenID isn't associated with the current logged-in user" % 
                     identity_url))
     
     new_email = request.session.get('new_email', '')
@@ -572,7 +574,7 @@ def emailopenid_success(request, identity_url, openid_response):
         user_.email = new_email
         user_.save()
         del request.session['new_email']
-    msg = _("Email Changed.")
+    msg = _("Email changed.")
 
     redirect = "%s?msg=%s" % (reverse('user_account_settings'),
             urlquote_plus(msg))
@@ -675,36 +677,40 @@ def delete(request):
 
     template : authopenid/delete.html
     """
-
     extension_args = {}
     
     user_ = request.user
+    form = None
 
     redirect_to = get_url_host(request) + reverse('user_delete') 
     if request.POST:
         form = DeleteForm(request.POST, user=user_)
         if form.is_valid():
-            if not form.test_openid:
-                user_.delete() 
-                return signout(request)
-            else:
+            if  'password' in form.cleaned_data and form.cleaned_data['password']:
                 return ask_openid(request, form.cleaned_data['password'],
                         redirect_to, on_failure=deleteopenid_failure)
+            else:
+                return ask_openid(request, form.cleaned_data['openid_url'],
+                        redirect_to, on_failure=deleteopenid_failure)
     elif not request.POST and 'openid.mode' in request.GET:
+        logging.info('calling complete with request %s' % request)
         return complete(request, deleteopenid_success, deleteopenid_failure,
                 redirect_to) 
     
-    form = DeleteForm(user=user_)
+    if not form:
+        form = DeleteForm(user=user_)
 
     msg = request.GET.get('msg','')
     return render('authopenid/delete.html', {
         'form': form, 
         'msg': msg, 
+        'common':request.session.get('common')
         }, context_instance=RequestContext(request))
 
 def deleteopenid_success(request, identity_url, openid_response):
+    logging.info('openid response: %s' % openid_response)
     openid_ = from_openid_response(openid_response)
-
+    
     user_ = request.user
     try:
         uassoc = UserAssociation.objects.get(
@@ -712,15 +718,14 @@ def deleteopenid_success(request, identity_url, openid_response):
         )
     except:
         return deleteopenid_failure(request,
-                _("No openid % associated in our database" % identity_url))
+                _("This OpenID isn't associated in the system."))
 
     if uassoc.user.username == user_.username:
         user_.delete()
         return signout(request)
     else:
         return deleteopenid_failure(request,
-                _("The openid %s isn't associated to current logged user" % 
-                    identity_url))
+                _("This OpenID isn't associated with the current logged-in user"))
     
     msg = _("Account deleted.") 
     redirect = "/?msg=%s" % (urlquote_plus(msg))
@@ -814,8 +819,7 @@ def confirmchangepw(request):
     try:
         user_ = User.objects.get(id=uqueue.user.id)
     except:
-        msg = _("Can not change password. User don't exist anymore \
-                in our database.") 
+        msg = _("Cannot change password, as this user doesn't exist in the database.") 
         redirect = "%s?msg=%s" % (reverse('user_sendpw'), 
                 urlquote_plus(msg))
         return HttpResponseRedirect(redirect)
@@ -823,7 +827,7 @@ def confirmchangepw(request):
     user_.set_password(uqueue.new_password)
     user_.save()
     uqueue.delete()
-    msg = _("Password changed for %s. You could now sign-in" % 
+    msg = _("Password changed for %s. You could now sign in" % 
             user_.username) 
     redirect = "%s?msg=%s" % (reverse('user_signin'), 
                                         urlquote_plus(msg))
