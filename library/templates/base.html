@@ -1,0 +1,26 @@
+{% extends "shell.html" %}
+
+{% block center %}
+
+    <table style="margin-left: 60px; padding: 0 60px 100px 0; background-color:white">
+      <tr><td valign="top">
+        <div id="bw-leftnav">
+          {% block leftnav %}{% endblock leftnav %}
+        </div>
+      </td>
+      <td valign="top" style="background-color:white;padding-right: 50px;width:100%;">
+        <!-- Content -->
+        <div id="bw-main">
+          {% block main %}{% endblock main %}
+          {% block content %}{% endblock content %}
+        </div>
+      </td>
+      <td valign="top">
+        <div id="bw-rightnav">
+          {% block rightnav %}{% endblock rightnav %}
+        </div>
+      </td>
+      </tr>
+    </table>
+
+{% endblock center %}

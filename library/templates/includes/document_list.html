@@ -1,0 +1,70 @@
+{% load humanize %}
+
+<table class="bw-pagination">
+  {% include "includes/pagination.html" %}
+</table>
+
+<table id="bw-library">
+  <tr>
+    <th><a href="{% url index-reorder page.number,"title",reverse_dir %}">Title
+    {% ifequal order "title" %}<span class="bw-pagination-arrow">{% ifequal "asc" reverse_dir %}↓{% else %}↑{% endifequal %}</span>{% endifequal %}
+    </a></th>
+    <th><a href="{% url index-reorder page.number,"orderable_author",reverse_dir %}">Author
+    {% ifequal order "orderable_author" %}<span class="bw-pagination-arrow">{% ifequal "asc" reverse_dir %}↓{% else %}↑{% endifequal %}</span>{% endifequal %}
+    </a></th>
+    <th><a href="{% url index-reorder page.number,"created_time",reverse_dir %}">Date added
+    {% ifequal order "created_time" %}<span class="bw-pagination-arrow">{% ifequal "asc" reverse_dir %}↓{% else %}↑{% endifequal %}</span>{% endifequal %}
+</a></th>
+    {% if not request.session.common.mobile %}
+    <th>&nbsp;</th>
+    {% endif %}
+  </tr>
+
+  {% for d in page.object_list %}
+  <tr>
+    <td class="bw-title-container">
+      <span class="bw-title"><a href="{% url view d.safe_title,d.key %}">{{ d.title}}</a></span>
+      {% if d.last_chapter_read and d.last_chapter_read.title %}
+      <span class="bw-last-read">last read <a href="{% url view_chapter d.safe_title,d.key,d.last_chapter_read.filename %}">{{ d.last_chapter_read.title }}</a></span>
+      {% endif %}
+    </td>
+    <td class="bw-attribution-container">
+    <span class="bw-attribution">{% if d.author %}<span class="bw-author">{{ d.author }}</span>{% endif %}</span>
+    </td>
+    <td class="bw-added-container">
+      <span class="bw-added">
+         {% if request.session.common.mobile %}
+	    {{ d.created_time|naturalday:"M j y"|capfirst}}
+         {% else %}
+            {{ d.created_time|naturalday:"l, F j Y"|capfirst}}
+         {% endif %}
+       </span>
+    </td>
+    {% if common.is_admin %}
+      {% if show_owner %}
+      <td>
+        owned by <span class="bw-owner">{{ d.owner.username }}</span>
+      </td>
+      {% endif %}
+    {% endif %}
+    {% if not request.session.common.mobile %}
+    <td>
+      <span class="bw-delete">
+      <form action="{% url library.views.delete %}" method="post">
+        <input type="hidden" name="title" value="{{ d.safe_title }}" />
+        <input type="hidden" name="key" value="{{ d.key }}" />
+        <input type="submit" value="delete" onclick="return confirm('Are you sure?')" />
+      </form>
+      </span>
+    </td>
+    <td style="display:none">
+      <span style="display:none" class="id_{{ d.safe_title}}">{{ d.id }}</span>
+    </td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+
+</table>
+<table class="bw-pagination">
+  {% include "includes/pagination.html" %}
+</table>
