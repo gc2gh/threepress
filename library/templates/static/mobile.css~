@@ -1,0 +1,7 @@
+
+h1.bw-mb-logo {
+  font-size:small;
+}
+h2.bw-mb-motto {
+  font-size:x-small;
+}

@@ -1,0 +1,29 @@
+.bw-home-block {
+  float:left;
+  width: 200px;
+  margin-top: .5em;
+  height:200px;
+  background-image: url(/static/lightgreen-fill.png);
+}
+.bw-home-block h2 {
+  text-align:center;
+  margin-top:-.5em;
+  background: white;
+
+}
+.bw-home-block ul {
+  list-style-type:none;
+  line-height:1.6em;
+}
+.bw-home-block ul li { 
+  margin-bottom:.5em;
+}
+.bw-public {
+  padding-left:50px;
+  padding-right:50px;
+  margin:auto;
+}
+#bw-public-container {
+  margin:auto;
+}
+

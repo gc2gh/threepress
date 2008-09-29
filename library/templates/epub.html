@@ -1,0 +1,58 @@
+{% extends "shell.html" %} 
+
+{% block title %}Bookworm and the ePub standard{% endblock title %}
+{% block header %}For publishers: Bookworm and ePub{% endblock header %}
+
+{% block center %}
+<div id="bw-content" class="bw-generic">
+
+    <p>
+      This page is meant for developers, publishers and ebook
+      enthusiasts who are interested in the adoption of the
+      ePub standard.
+    </p>
+
+    <h2>About ePub</h2>
+    <p>
+      ePub is the open format of the The International Digital Publishing Forum (IDPF).
+      It is based on XML and XHTML, re-using existing standards for 
+      digital books.
+    </p>
+    <p>
+      The technical details and specification are available from <a href="http://openebook.org/">http://openebook.org/</a>.
+    </p>
+    <h2>How Bookworm implements ePub</h2>
+    <p>
+      Because ePub's content format is XHTML, ePub and the web browser
+      are a natural fit.  If you use Bookworm, you take
+      advantage of more than 10 years of browser technology.
+    </p>
+    <p>
+      This allows Bookworm to support advanced layout and markup
+      that standalone reading software cannot, including:
+    </p>
+    <ul>
+      <li>Tables</li>
+      <li>Lists</li>
+      <li>Fixed-width fonts</li>
+    </ul>
+
+    <h2>ePub details</h2>
+    <h3>The Table of Contents</h3>
+    <img src="/static/images/screenshots/expanded-nav.png" alt="Expanded navigation" class="bw-screenshot-page" align="right" />
+    <p>The Table of Contents may not just contain chapters.  It might
+      also include parts, books, or sub-chapters.  
+    </p>
+
+    <ul>
+
+      </li>
+      <li>Bookworm supports illustrations and photos in all the 
+      formats that ePub does: <em>JPEG</em>, <em>GIF</em>,
+      <em>PNG</em>, and even Scalable Vector Graphics (<em>SVG</em>), if
+       you are using a browser which supports SVG.
+      </li>
+    </ul>
+</div>
+
+{% endblock center %}
