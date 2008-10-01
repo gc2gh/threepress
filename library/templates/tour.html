@@ -2,48 +2,15 @@
 
 {% block title %}Take a tour{% endblock title %}
 {% block head %}
-<style type="text/css">
-#bw-content img {
-  margin-left: 10px;
-  padding:5px;
-}
-#bw-tour-description {
-  font-size: 22px;
-}
-#bw-content div.bw-tour-step {
-  clear:both;
-  border-bottom: 1px solid rgb(210,210,210);
-  height:150px;
-}
-#bw-content h1, #bw-content h2 {
- width:400px;
- font-weight:normal;
-
-}
-#bw-content img.bw-screenshot {
-}
-#bw-tour-toc {
-  margin:auto;
-  text-align:center;
-  padding-bottom:2em;
-}
-#bw-tour-toc a:link, #bw-tour-toc a:visited {
-  text-decoration:none;
-
-} 
-img.bw-screenshot-page {
-  border: 1px solid rgb(210,210,210);
-}
-</style>
-
-{% endblock %}
+<link rel="stylesheet" href="/static/about.css"></link>
+{% endblock head %}
 
 {% block header %}About: Take a tour of Bookworm{% endblock header %}
 
 {% block center %}
 <div id="bw-content" class="bw-generic">
 
-  <p id="bw-tour-description">
+  <p id="bw-about-description">
     This quick tour will show you all the major features of
     Bookworm, from adding your first ebook to reading it 
     on the web and on your mobile device. 

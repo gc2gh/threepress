@@ -1,6 +1,6 @@
 from django.core.mail import EmailMessage
 
-import logging, sys, StringIO, urllib
+import logging, sys, StringIO, urllib, MySQLdb
 from zipfile import BadZipfile
 from lxml import etree
 
@@ -372,11 +372,28 @@ def upload(request):
                 return render_to_response('upload.html', {
                                                           'form':form, 
                                                           'message':message})
+
+            except MySQLdb.OperationalError, e:
+                log.debug("Got operational error %s" % e)
+                message = "We detected a problem with your ebook that is most likely related to it being too big to display safely in a web browser. This can happen with very large images, or with extremely long chapters. Please check with the publisher that the book has been formatted correctly.  Very large pages would require a lot of scrolling and load very slowly, so they are not allowed to be added to Bookworm."
+                try:
+                    # Email it to the admins
+                    email = EmailMessage('[bookworm] Too-large book added: %s' % document_name, e.__str__(), 'no-reply@threepress.org',
+                                         ['liza@threepress.org'])
+                    email.attach(document_name, data.getvalue(), epub_constants.MIMETYPE)
+                    email.send()
+                except Exception, f:
+                    log.error(f)
+
+
+                return render_to_response('upload.html', {'form':form, 
+                                                          'message':message})                
             except Exception, e:
+                log.debug(e.__class__)
                 # Delete it first so we don't end up with a broken document in the library
                 try:
                     # Email it to the admins
-                    email = EmailMessage('[bookworm] Failed upload', '', 'no-reply@threepress.org',
+                    email = EmailMessage('[bookworm] Failed upload for %s' % document_name, e.__str__(), 'no-reply@threepress.org',
                                          ['liza@threepress.org'])
                     email.attach(document_name, data.getvalue(), epub_constants.MIMETYPE)
                     email.send()
