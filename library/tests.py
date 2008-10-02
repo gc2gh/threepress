@@ -569,12 +569,15 @@ class TestModels(unittest.TestCase):
         chapter3 = HTMLFile.objects.filter(archive=document)[1]
         self.assertTrue(chapter3.is_read)
 
-    def testNoPlayOrderAttributeInToc(self):
+    def testAllowNoPlayOrderAttributeInToc(self):
+        '''Assert that if we have no playOrder we can fall back to document order'''
         filename = 'no-playorder.ncx'
         f = _get_file(filename)
         toc = TOC(f)
         point = toc.find_points()[0]
-        self.assertRaises(InvalidEpubException, point.order)
+        self.assertEquals(1, point.order())
+        point = toc.find_points()[1]
+        self.assertEquals(4, point.order())
 
     def create_document(self, document):
         epub = MockEpubArchive(name=document)
@@ -593,16 +596,24 @@ class TestViews(DjangoTestCase):
     def tearDown(self):
         self.user.delete()
 
-    def test_is_index_protected(self):
-        response = self.client.get('/')
-        self.assertRedirects(response, '/account/signin/?next=/', 
+    def test_is_inner_path_protected(self):
+        self._login()
+        self.client.logout()
+        response = self.client.get('/view/test/1/')
+        self.assertRedirects(response, '/account/signin/?next=/view/test/1/', 
                              status_code=302, 
                              target_status_code=200)
+
+    def test_home_unprotected(self):
+        '''Index should now be accessible'''
+        response = self.client.get('/')
+        self.assertTemplateUsed(response, 'public.html')
 
     def test_login(self):
         self._login()
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'index.html')
+        self.assertContains(response, 'testuser')
 
     def _login(self):
         self.assertTrue(self.client.login(username='testuser', password='testuser'))
@@ -612,6 +623,13 @@ class TestViews(DjangoTestCase):
         self.assertRedirects(response, '/', 
                              status_code=302, 
                              target_status_code=200)
+
+
+    def _upload(self, f):
+        self._login()
+        fh = _get_filehandle(f)
+        response = self.client.post('/upload/', {'epub':fh})
+        return response
 
     def test_upload_invalid_epub(self):
         response = self._upload('invalid-no-toc.epub')
@@ -624,7 +642,7 @@ class TestViews(DjangoTestCase):
     def test_content_visible(self):
         response = self._upload('Cory_Doctorow_-_Little_Brother.epub')
 
-        id = self._get_id_for_document(self.client.get('/'), 'Little+Brother')
+        id = '1'
         self.assert_(id)
         response = self.client.get('/view/Little-Brother/%s/main5.xml' % id)
         self.assertTemplateUsed(response, 'view.html')
@@ -634,7 +652,7 @@ class TestViews(DjangoTestCase):
         self.assertRedirects(response, '/', 
                              status_code=302, 
                              target_status_code=200)        
-        id = self._get_id_for_document(self.client.get('/'), 'The+Bible')
+        id = '1'
         response = self.client.get('/view/The+Bible/%s/Genesis/Genesis3.html' % id)
         self.assertTemplateUsed(response, 'view.html')
 
@@ -832,11 +850,11 @@ class TestViews(DjangoTestCase):
         response = self.client.post('/account/delete/', { 'password':'registertest',
                                                           'confirm':'checked'})
         
-        self.assertRedirects(response, '/account/signin/?msg=Your+account+has+been+deleted.',
+        self.assertRedirects(response, '/?msg=Your+account+has+been+deleted.',
                              status_code=302, 
                              target_status_code=200)   
-        response = self.client.get('/')
-        self.assertRedirects(response, '/account/signin/?next=/', 
+        response = self.client.get('/view/test/1/')
+        self.assertRedirects(response, '/account/signin/?next=/view/test/1/', 
                              status_code=302, 
                              target_status_code=200)   
         self.assertFalse(self.client.login(username='registertest', password='registertest'))                
@@ -904,20 +922,6 @@ class TestViews(DjangoTestCase):
         self.assertEquals(first_page, response.content)        
 
 
-    def _upload(self, f):
-        self._login()
-        fh = _get_filehandle(f)
-        response = self.client.post('/upload/', {'epub':fh})
-        return response
-
-    def _get_id_for_document(self, response, title):
-        p = re.compile('class="id_%s">(\d+)</' % title.replace('+', '\+'))
-        m = p.search(response.content)
-        if m:
-            return m.group(1)
-        else:
-            raise Exception
-
     
 class TestTwill(DjangoTestCase):
     def setUp(self):
@@ -938,7 +942,7 @@ class TestTwill(DjangoTestCase):
 
     def test_home(self):
         go(self.url)
-        url('signin')
+        url('/')
 
     def test_register(self):
         self._register()
@@ -952,7 +956,7 @@ class TestTwill(DjangoTestCase):
         find('Pride and Prejudice')
 
     def _login(self):
-        go('/')
+        go('/account/signin/')
         fv("fauth", "username", "twilltest")
         fv("fauth", "password", "twill")
         submit()

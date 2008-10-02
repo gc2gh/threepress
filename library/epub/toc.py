@@ -243,18 +243,12 @@ class NavPoint():
             log.warn('Could not find playOrder value in %s' % self.element)
             # Get it by counting where we are from the parent; I want to use
             # self::*/position() here but lxml is complaining
-
-            # If this is so malformed that we don't even have a valid tree,
-            # just punt and return 0
             if not self.tree:
                 return 0
             else:
-                for index, x in enumerate(self.tree.xpath('//{%s}navPoint' % NS['ncx'])):
+                for index, x in enumerate(self.tree):
                     if x.id == self.id:
                         return index + 1
-                        log.warn('Returning %d as position' % self.order_value)
-
-
 
     def href(self):
         return self.element.find('.//{%s}content' % (NS['ncx'])).get('src')

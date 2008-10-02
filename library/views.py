@@ -40,15 +40,15 @@ def register(request):
     return render_to_response("auth/register.html", 
                               { 'form' : form })
 
-def index(request):
-    if request.user.is_authenticated():
-        return logged_in_home(request)
-    return render_to_response("public.html")
-
-def logged_in_home(request, 
+def index(request, 
           page_number=settings.DEFAULT_START_PAGE, 
           order=settings.DEFAULT_ORDER_FIELD,
           dir=settings.DEFAULT_ORDER_DIRECTION):
+    if request.user.is_authenticated():
+        return logged_in_home(request, page_number, order, dir)
+    return render_to_response("public.html")
+
+def logged_in_home(request, page_number, order, dir):
 
     if not dir in settings.VALID_ORDER_DIRECTIONS:
         raise Exception("Direction %s was not in our list of known ordering directions" % dir)

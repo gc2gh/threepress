@@ -488,12 +488,16 @@ class HTMLFile(BookwormFile):
             body = xhtml.find('{%s}body' % NS['html'])
         except ET.XMLSyntaxError:
             # Use the HTML parser
+            logging.warn('Falling back to html parser')
             xhtml = ET.parse(StringIO(f), ET.HTMLParser())
             body = xhtml.find('body')
         except ExpatError:
-            logging.error('Was not valid XHTML; treating as uncleaned string')
-            self.processed_content = f
-            return f 
+            logging.warn('Was not valid XHTML; trying with BeautifulSoup')
+            html = lxml.html.soupparser.fromstring(f)
+            body = html.find('.//body')
+
+            #self.processed_content = f
+            #return f 
 
         body = self._clean_xhtml(body)
         div = ET.Element('div')
@@ -537,6 +541,11 @@ class HTMLFile(BookwormFile):
                 e = ET.fromstring("""<a class="svg" href="%s">[ View linked image in SVG format ]</a>""" % element.get('src'))
                 p.remove(element)
                 p.append(e)
+            
+            # Script tags are removed
+            if element.tag == 'script':
+                p = element.getparent()
+                p.remove(element)
 
         return xhtml
 

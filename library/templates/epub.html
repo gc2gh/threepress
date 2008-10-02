@@ -53,6 +53,18 @@
       These features are especially important in non-fiction books
       such as technical titles or scientific papers.
     </p>
+    <a name="css"></a>
+    <h2>Cascading Style Sheets (CSS) and JavaScript</h2>
+    <p>
+      Bookworm will render any stylesheets that are packaged with an ebook.  In order to prevent 
+      interference with Bookworm's native CSS, book stylesheets are slightly modified
+      to keep their effects restricted to the book's content area. 
+    </p>
+    <p>
+      Any external JavaScript files that might be bundled with the book are <em>not</em> loaded,
+      and any &lt;script&gt; tags embedded in the content are removed.  This is a security feature
+      to prevent malicious scripts from being uploaded to the site.
+    </p>
     <a name="toc"></a>
     <h2>NCX Table of Contents</h2>
     <img src="/static/images/screenshots/expanded-nav.png" alt="Expanded navigation" class="bw-screenshot-page" align="right" />
