@@ -1,34 +1,21 @@
 {% extends "base.html" %} 
-{% spaceless %}
-{% block title %}
-  {% if chapter.title %}
-     '{{ chapter.title }}' in 
-  {% endif %}
+{% block title %}{% spaceless %}
 
-  {{ document.title }}
-  {% if document.author %} 
-     by {{ document.author }} 
-  {% endif %}
-{% endblock title %}
-{% endspaceless %}
+{% if chapter.title %} '{{ chapter.title }}' in {% endif %} {{ document.title }} {% if document.author %} by {{ document.author }} {% endif %}
+{% endspaceless %}{% endblock title %}
 
-
-{% block localstyles %}
-{% spaceless %}
-    {% if not request.common.prefs.use_iframe %}
+{% block localstyles %}{% spaceless %}  {% if not request.common.prefs.use_iframe %}
       {% for css in stylesheets %}
       <link rel="stylesheet" href="{% url library.views.view_stylesheet document.safe_title,document.key,css.filename %}" />
       {% endfor %}
-    {% endif %}
-{% endspaceless %}
-{% endblock %}
+    {% endif %}{% endspaceless %}{% endblock %}
 
 {% block head %}
-
+{% spaceless %}
 <link rel="stylesheet" href="/static/document.css"></link>
 
 {% include "includes/meta.html" %}
-
+{% endspaceless %}
 {% endblock head %}
 
 {% block header %}

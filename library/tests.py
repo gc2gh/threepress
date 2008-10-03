@@ -31,11 +31,11 @@ from django.conf import settings
 settings.SITE_ID = 1
 
 # Data for public epub documents
-DATA_DIR = os.path.abspath('./library/test-data/data')
+DATA_DIR = unicode(os.path.abspath('./library/test-data/data'))
 
 # Local documents should be added here and will be included in tests,
 # but not in the svn repository
-PRIVATE_DATA_DIR = '%s/private' % DATA_DIR
+PRIVATE_DATA_DIR = u'%s/private' % DATA_DIR
 
 STORAGE_DIR = os.path.abspath('./library/test-data/storage')
 
@@ -377,6 +377,16 @@ class TestModels(unittest.TestCase):
         for c in chapters:
             c.render()        
 
+    def testNonUtf8Document(self):
+        '''This document has both UTF-8 characters in it and UTF-8 filenames'''
+        document = self.create_document(u'天.epub')
+        document.explode()
+        document.save()
+        chapters = HTMLFile.objects.filter(archive=document)
+        self.assert_(len(chapters) > 0)
+        for c in chapters:
+            c.render()        
+        
     def testRemoveHTMLNamespaces(self):
         filename = 'Cory_Doctorow_-_Little_Brother.epub'        
         document = self.create_document(filename)
@@ -470,6 +480,11 @@ class TestModels(unittest.TestCase):
         document = self.create_document(filename)
         document.explode()
         document.save()
+        
+        i = MockImageFile.objects.filter(archive=document)[0]
+        self.assertEquals(u'images', i.path)
+
+
 
     def testBinaryEpub(self):
         '''Test the storage of an epub binary'''
@@ -657,11 +672,28 @@ class TestViews(DjangoTestCase):
         self.assertTemplateUsed(response, 'view.html')
 
     def test_upload_with_images(self):
+        ''' Image uploads should work whether or not their path is specified'''
         response = self._upload('alice-fromAdobe.epub')
         self.assertRedirects(response, '/', 
                              status_code=302, 
                              target_status_code=200)        
+        response = self.client.get('/view/alice/1/images/alice01a.gif')
+        self.assertEquals(response.status_code, 200)
 
+        response = self.client.get('/view/alice/1/alice01a.gif')
+        self.assertEquals(response.status_code, 200)
+
+    def test_upload_with_pathless_image(self):
+        response = self._upload(u'天.epub')
+        self.assertRedirects(response, '/', 
+                             status_code=302, 
+                             target_status_code=200)        
+
+        response = self.client.get('/view/chinese/1/cover.jpg')
+        self.assertEquals(response.status_code, 200)
+
+        response = self.client.get('/view/chinese/1/www/cover.jpg')
+        self.assertEquals(response.status_code, 200)
 
     def test_upload_no_title(self):
         response = self._upload('invalid-no-title.epub')
@@ -994,11 +1026,11 @@ def _get_filehandle(f):
     return open(path)
 
 def _get_filepath(f):
-    data_dir = '%s/%s' % (DATA_DIR, f)
+    data_dir = u'%s/%s' % (DATA_DIR, f)
     if os.path.exists(data_dir):
         return data_dir
 
-    data_dir = '%s/%s' % (PRIVATE_DATA_DIR, f)
+    data_dir = u'%s/%s' % (PRIVATE_DATA_DIR, f)
     if os.path.exists(data_dir):
         return data_dir    
     raise OSError('Could not find file %s in either data dir' % f)

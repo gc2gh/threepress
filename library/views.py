@@ -1,6 +1,6 @@
 from django.core.mail import EmailMessage
 
-import logging, sys, StringIO, urllib, MySQLdb, cStringIO
+import logging, sys, StringIO, urllib, MySQLdb, cStringIO, os.path
 from zipfile import BadZipfile
 from lxml import etree
 
@@ -292,12 +292,16 @@ def _chapter_next_previous(document, chapter, dir='next'):
 def view_chapter_image(request, title, key, image):
     log.debug("Image request: looking up title %s, key %s, image %s" % (title, key, image))        
     document = _get_document(request, title, key)
-    image = get_object_or_404(ImageFile, archive=document, filename=image)
-    response = HttpResponse(content_type=str(image.content_type))
-    if image.content_type == 'image/svg+xml':
-        response.content = image.file
+    try: 
+        image_obj = get_object_or_404(ImageFile, archive=document, filename=image)
+    except Http404:
+        image = os.path.basename(image)
+        image_obj = get_object_or_404(ImageFile, archive=document, filename=image)
+    response = HttpResponse(content_type=str(image_obj.content_type))
+    if image_obj.content_type == 'image/svg+xml':
+        response.content = image_obj.file
     else:
-        response.content = image.get_data()
+        response.content = image_obj.get_data()
 
     return response
 

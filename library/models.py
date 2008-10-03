@@ -291,7 +291,8 @@ class EpubArchive(BookwormModel):
                     # This is a binary file, like a jpeg
                     data['data'] = content
 
-                data['filename'] = item.get('href')
+                (data['path'], data['filename']) = os.path.split(item.get('href'))
+                #log.debug('Got path=%s, filename=%s' % (data['path'], data['filename']))
                 data['idref'] = item.get('id')
                 data['content_type'] = item.get('media-type')
 
@@ -309,6 +310,7 @@ class EpubArchive(BookwormModel):
                 file=f,
                 filename=i['filename'],
                 data=i['data'],
+                path=i['path'],
                 content_type=i['content_type'],
                 archive=self)
             image.save()  
@@ -407,6 +409,7 @@ class EpubArchive(BookwormModel):
                     order = 0
 
                 page = {'title': title,
+                        'path': os.path.split(title)[0],
                         'idref':idref,
                         'filename':href,
                         'file':content,
@@ -455,6 +458,7 @@ class BookwormFile(BookwormModel):
     file = models.TextField(default='')    
     filename = models.CharField(max_length=1000)
     archive = models.ForeignKey(EpubArchive)
+    path = models.CharField(max_length=255, default='')
 
     def render(self):
         return self.file
@@ -688,7 +692,7 @@ class BinaryBlob(BookwormFile):
             logging.warn('File %s with document %s already exists; saving anyway' % (self.filename, self.archive.name))
 
         else :
-            path = self.filename
+            path = self.filename.encode('utf8')
             pathinfo = []
             # This is ugly, but we want to create any depth of path,
             # and then save the file in the appropriate place
@@ -725,7 +729,7 @@ class BinaryBlob(BookwormFile):
         return open(f.encode('utf8')).read()
 
     def _get_pathname(self):
-        return 'storage'
+        return u'storage'
 
     def _get_storage_dir(self):
         return u'%s/%s' % (os.path.dirname(__file__), self._get_pathname())   
@@ -735,7 +739,7 @@ class BinaryBlob(BookwormFile):
         storage = self._get_storage()
         if not os.path.exists(storage):
             storage = self._get_storage_deprecated()
-        return u'%s/%s' % (storage, self.filename)
+        return u'%s/%s' % (storage.encode('utf8'), self.filename)
 
     def _get_storage(self):
         return u'%s/%s' % (self._get_storage_dir(), self.archive.id)
