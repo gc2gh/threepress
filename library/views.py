@@ -551,9 +551,9 @@ def _get_google_books_info(document, request):
     title_words = document.title.replace(',', '').split(' ')
     author_words = document.author.replace(',', '').split(' ')
     for t in title_words:
-        query = 'intitle:%s+' % urllib.quote(t)
+        query = 'intitle:%s+' % urllib.quote(t.encode('utf8'))
     for a in author_words:
-        query += 'inauthor:%s+' % urllib.quote(a)
+        query += 'inauthor:%s+' % urllib.quote(a.encode('utf8'))
     if 'REMOTE_ADDR' in request.META:
         remote_addr = request.META['REMOTE_ADDR']
     else:
