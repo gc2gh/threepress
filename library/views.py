@@ -1,6 +1,6 @@
 from django.core.mail import EmailMessage
 
-import logging, sys, StringIO, urllib, MySQLdb
+import logging, sys, StringIO, urllib, MySQLdb, cStringIO
 from zipfile import BadZipfile
 from lxml import etree
 
@@ -345,7 +345,7 @@ def upload(request):
         form = EpubValidateForm(request.POST, request.FILES)
         if form.is_valid():
 
-            data = StringIO.StringIO()
+            data = cStringIO.StringIO()
             for c in request.FILES['epub'].chunks():
                 data.write(c)
             #data.close()
@@ -389,11 +389,13 @@ def upload(request):
                 return render_to_response('upload.html', {'form':form, 
                                                           'message':message})                
             except Exception, e:
-                log.debug(e.__class__)
+                import traceback
+                tb =  traceback.format_exc()
+                log.error(tb)
                 # Delete it first so we don't end up with a broken document in the library
                 try:
                     # Email it to the admins
-                    email = EmailMessage('[bookworm] Failed upload for %s' % document_name, e.__str__(), 'no-reply@threepress.org',
+                    email = EmailMessage('[bookworm] Failed upload for %s' % document_name, tb, 'no-reply@threepress.org',
                                          ['liza@threepress.org'])
                     email.attach(document_name, data.getvalue(), epub_constants.MIMETYPE)
                     email.send()

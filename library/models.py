@@ -684,7 +684,7 @@ class BinaryBlob(BookwormFile):
         if not os.path.exists(storage):
             os.mkdir(storage)
         f = self._get_file()
-        if os.path.exists(f):
+        if os.path.exists(f.encode('utf8')):
             logging.warn('File %s with document %s already exists; saving anyway' % (self.filename, self.archive.name))
 
         else :
@@ -702,7 +702,7 @@ class BinaryBlob(BookwormFile):
                 d += '/' + p
                 if not os.path.exists(d):
                     os.mkdir(d)
-        f = open(f, 'w')
+        f = open(f.encode('utf8'), 'w')
         f.write(self.data)
         f.close()
         super(BinaryBlob, self).save()
@@ -710,7 +710,7 @@ class BinaryBlob(BookwormFile):
     def delete(self):
         storage = self._get_storage()
         f = self._get_file()
-        if not os.path.exists(f):
+        if not os.path.exists(f.encode('utf8')):
             logging.warn('Tried to delete non-existent file %s in %s' % (self.filename, storage))         
         else:
             os.remove(f)
@@ -719,30 +719,30 @@ class BinaryBlob(BookwormFile):
     def get_data(self):
         '''Return the data for this file, as a string of bytes (output from read())'''
         f = self._get_file()
-        if not os.path.exists(f):
+        if not os.path.exists(f.encode('utf8')):
             logging.warn("Tried to open file %s but it wasn't there (storage dir %s)" % (f, self._get_storage()))
             return None
-        return open(f).read()
+        return open(f.encode('utf8')).read()
 
     def _get_pathname(self):
         return 'storage'
 
     def _get_storage_dir(self):
-        return '%s/%s' % (os.path.dirname(__file__), self._get_pathname())   
+        return u'%s/%s' % (os.path.dirname(__file__), self._get_pathname())   
 
 
     def _get_file(self):
         storage = self._get_storage()
         if not os.path.exists(storage):
             storage = self._get_storage_deprecated()
-        return '%s/%s' % (storage, self.filename)
+        return u'%s/%s' % (storage, self.filename)
 
     def _get_storage(self):
-        return '%s/%s' % (self._get_storage_dir(), self.archive.id)
+        return u'%s/%s' % (self._get_storage_dir(), self.archive.id)
 
     def _get_storage_deprecated(self):
         logging.warn('Using old method of file retrieval; this should be removed!')
-        return '%s/%s' % (self._get_storage_dir(), self.archive.name)
+        return u'%s/%s' % (self._get_storage_dir(), self.archive.name)
 
     class Meta:
         abstract = True
