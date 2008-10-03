@@ -1,4 +1,5 @@
 import os
+import logging, logging.handlers
 
 # Django settings for bookworm project.
 
@@ -114,5 +115,24 @@ VALID_ORDER_FIELDS = ('created_time', 'title', 'orderable_author')
 MOBILE_DEVICE_AGENTS = ('kindle', 'iphone')
 MOBILE = False
 
+# Set up logging
+LOG_DIR = '%s/log/' % ROOT_PATH
+LOG_NAME = 'bookworm.log'
+
+
+# Access time, filename/function#line-number message
+log_formatter = logging.Formatter("[%(asctime)s %(filename)s/%(funcName)s#%(lineno)d] %(message)s")
+
+try:
+    # This should roll logs over at midnight and date-stamp them appropriately
+    handler = logging.handlers.TimedRotatingFileHandler(filename="%s/%s" % (LOG_DIR, LOG_NAME),
+                                                        when='midnight')
+    handler.setFormatter(log_formatter)
+    log = logging.getLogger('')
+    log.setLevel(logging.DEBUG)
+    log.addHandler(handler)
+
+except IOError:
+    pass
 from local import *
 
