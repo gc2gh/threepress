@@ -237,6 +237,7 @@ def signin(request):
         'form2': form_signin,
         'action': request.path,
         'msg':  request.GET.get('msg',''),
+        'signin_page': True,
         'sendpw_url': reverse('user_sendpw'),
     }, context_instance=RequestContext(request))
 
@@ -720,7 +721,6 @@ def delete(request):
     return render('authopenid/delete.html', {
         'form': form, 
         'msg': msg, 
-        'common':request.session.get('common')
         }, context_instance=RequestContext(request))
 
 def deleteopenid_success(request, identity_url, openid_response):

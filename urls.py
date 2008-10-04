@@ -76,6 +76,11 @@ urlpatterns += patterns('django.views.generic.simple',
                            {'template': 'epub.html'}, name='epub'),
                        url(r'^publishers/ebook-testing$', 'direct_to_template',
                            {'template': 'ebooktesting.html'}, name='ebooktesting'),
+                       url(r'^help$', 'direct_to_template',
+                           {'template': 'help.html'}, name='help'),
+                       url(r'^about/openid$', 'direct_to_template',
+                           {'template': 'openid.html'}, name='openid'),
+
 
                         )
 

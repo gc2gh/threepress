@@ -21,6 +21,7 @@ from epub.constants import NAMESPACES as NS
 from epub.toc import NavPoint, TOC
 import epub.util as util
 
+log = logging.getLogger('library.models')
 
 # Functions
 def safe_name(name):
@@ -112,7 +113,7 @@ class EpubArchive(BookwormModel):
             epub.delete()
             super(EpubArchive, self).delete()
         except blob.DoesNotExist:
-            logging.error('Could not find associated epubblob, maybe deleted from file system?')
+            log.error('Could not find associated epubblob, maybe deleted from file system?')
             
 
 
@@ -259,7 +260,7 @@ class EpubArchive(BookwormModel):
         to have no author or even an empty dc:creator'''
         authors = [BookAuthor(name=a.text.strip()) for a in opf.findall('.//{%s}%s' % (NS['dc'], constants.DC_CREATOR_TAG)) if a is not None and a.text is not None]
         if len(authors) == 0:
-            logging.warn('Got empty authors string for book %s' % self.name)
+            log.warn('Got empty authors string for book %s' % self.name)
         for a in authors:
             a.save()
         return authors
@@ -292,7 +293,7 @@ class EpubArchive(BookwormModel):
                     data['data'] = content
 
                 (data['path'], data['filename']) = os.path.split(item.get('href'))
-                #log.debug('Got path=%s, filename=%s' % (data['path'], data['filename']))
+                log.debug('Got path=%s, filename=%s' % (data['path'], data['filename']))
                 data['idref'] = item.get('id')
                 data['content_type'] = item.get('media-type')
 
@@ -492,11 +493,11 @@ class HTMLFile(BookwormFile):
             body = xhtml.find('{%s}body' % NS['html'])
         except ET.XMLSyntaxError:
             # Use the HTML parser
-            logging.warn('Falling back to html parser')
+            log.warn('Falling back to html parser')
             xhtml = ET.parse(StringIO(f), ET.HTMLParser())
             body = xhtml.find('body')
         except ExpatError:
-            logging.warn('Was not valid XHTML; trying with BeautifulSoup')
+            log.warn('Was not valid XHTML; trying with BeautifulSoup')
             html = lxml.html.soupparser.fromstring(f)
             body = html.find('.//body')
 
@@ -515,7 +516,7 @@ class HTMLFile(BookwormFile):
             self.processed_content = body_content
             self.save()            
         except: 
-            logging.error("Could not cache processed document, error was: " + sys.exc_value)
+            log.error("Could not cache processed document, error was: " + sys.exc_value)
 
         # Mark this chapter as last-read
 
@@ -689,7 +690,7 @@ class BinaryBlob(BookwormFile):
             os.mkdir(storage)
         f = self._get_file()
         if os.path.exists(f.encode('utf8')):
-            logging.warn('File %s with document %s already exists; saving anyway' % (self.filename, self.archive.name))
+            log.warn('File %s with document %s already exists; saving anyway' % (self.filename, self.archive.name))
 
         else :
             path = self.filename.encode('utf8')
@@ -715,7 +716,7 @@ class BinaryBlob(BookwormFile):
         storage = self._get_storage()
         f = self._get_file()
         if not os.path.exists(f.encode('utf8')):
-            logging.warn('Tried to delete non-existent file %s in %s' % (self.filename, storage))         
+            log.warn('Tried to delete non-existent file %s in %s' % (self.filename, storage))         
         else:
             os.remove(f)
         super(BinaryBlob, self).delete()
@@ -724,7 +725,7 @@ class BinaryBlob(BookwormFile):
         '''Return the data for this file, as a string of bytes (output from read())'''
         f = self._get_file()
         if not os.path.exists(f.encode('utf8')):
-            logging.warn("Tried to open file %s but it wasn't there (storage dir %s)" % (f, self._get_storage()))
+            log.warn("Tried to open file %s but it wasn't there (storage dir %s)" % (f, self._get_storage()))
             return None
         return open(f.encode('utf8')).read()
 
@@ -745,7 +746,7 @@ class BinaryBlob(BookwormFile):
         return u'%s/%s' % (self._get_storage_dir(), self.archive.id)
 
     def _get_storage_deprecated(self):
-        logging.warn('Using old method of file retrieval; this should be removed!')
+        log.warn('Using old method of file retrieval; this should be removed!')
         return u'%s/%s' % (self._get_storage_dir(), self.archive.name)
 
     class Meta:

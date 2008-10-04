@@ -6,8 +6,10 @@
     <meta name="Description" content="Bookworm is the web-based ereader for ePub ebooks. Bookworm was developed by Liza Daly at threepress.org, a project to expand the reach of open source software in academic and trade publishing." />
     <meta name="Keywords" content="ebook epub ereader bookworm threepress liza daly open source" />
     <script type="text/javascript" src="/static/jquery-1.2.6.min.js" ></script>
-
+    <script type="text/javascript" src="/static/jquery-ui-1.6rc2.js" ></script>
+    <script type="text/javascript" src="/static/bookworm.js" ></script>
     {% block localstyles %}{% endblock localstyles %}
+    <link rel="stylesheet" href="http://dev.jquery.com/view/tags/ui/latest/themes/flora/flora.all.css" type="text/css" media="screen" title="Flora (Default)"></link>
     <link rel="stylesheet" type="text/css" href="/static/base.css"></link>
     <link rel="stylesheet" type="text/css" media="print" href="/static/print.css"></link>
 
@@ -32,16 +34,26 @@
       </div>
       <div id="bw-header_nav">
         <p>
-          <a href="/">my books</a>
-          <a href="/upload/">add a book</a>
-          <a href="http://mobile.threepress.org">mobile version</a>
+          {% if request.user.is_authenticated %}
+            <a href="{% url index %}">my books</a>
+            <a href="{% url upload %}" id="bw-upload-link">add a book</a>
+            <a href="http://mobile.threepress.org">mobile version</a>
+            <br />
+          {% endif %}
           <a href="http://blog.threepress.org">blog</a>
-          <br />
           <a href="/about/">about <span class="bw-logo">bookworm</span></a>
           <a href="http://www.threepress.org/about/">about <span class="bw-three">three</span><span class="bw-press">press</span></a>
         </p>
       </div>
    </div>
+      <div id="bw-upload-box">
+        <form action="{% url library.views.upload %}" method="post" enctype="multipart/form-data" name="upload">
+           <h3>Add a book:</h3> {{ upload_form.epub }}
+          <input type="submit" value="add" name="submit-upload"/>
+          <a class="bw-help" href="{% url help %}">help</a>
+        </form>
+      </div>
+
     <table style="width:100%;background-color:white">
       <tr><td>
         <div id="bw-subheader">
@@ -56,14 +68,17 @@
            </span>
           </h3>
         {% else %}
-          <h3 class="bw-signed-out"><a href="{% url user_signin %}">Sign in</a></h3>
+           {% if not signin_page %}
+             <h3 class="bw-signed-out"><a href="{% url user_signin %}">Sign in</a></h3>
+           {% endif %}
         {% endif %}
           </div>
           <div class="bw-document_title">
             <h1>{% block header %}Library{% endblock header %}</h1>
           </div>
-
-
+        </div>
+        <div id="bw-printheader">
+          <p>From the Bookworm account of {{ request.user.fullname }} &lt;{{request.user.email}}&gt;</p>
         </div>
       </td></tr>
     </table>

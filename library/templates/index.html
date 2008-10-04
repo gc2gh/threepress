@@ -12,12 +12,12 @@
 
 <div class="bw-status">
   <h2>Status</h2>
-  <p>There {% ifequal request.session.common.total_users 1 %} is {% else %} are {% endifequal %}
+  <p>There {% ifequal common.total_users 1 %} is {% else %} are {% endifequal %}
 
-  {{ request.session.common.total_users }} reader{{ request.session.common.total_users|pluralize }} using Bookworm.
+  {{ common.total_users }} reader{{ common.total_users|pluralize }} using Bookworm.
   </p>
   <p>
-  There {% ifequal request.session.common.total_books 1 %} is {% else %} are {% endifequal %}  {{ request.session.common.total_books }} individual book{{ request.session.common.total_books|pluralize }}.
+  There {% ifequal common.total_books 1 %} is {% else %} are {% endifequal %}  {{ common.total_books }} individual book{{ common.total_books|pluralize }}.
   </p>
 </div>
 
@@ -37,7 +37,7 @@
 {% if documents.count %}
 <h2>Books in your library</h2>
 
-{% if not request.session.common.mobile %}
+{% if not common.mobile %}
 {% if order_text %}<p>Books are listed by <em>{{ order_text }}</em> in <em>{{ order_direction }}</em> order {{ order_adverb }}.</p>{% endif %}
 {% endif %}
 
@@ -46,7 +46,7 @@
 <p style="color:gray">You can re-order your books by clicking on "title", "author" or "date added".
  Clicking on the same label twice will reverse the order.</p>
 
-{% if request.session.common.prefs.open_to_last_chapter %}
+{% if common.prefs.open_to_last_chapter %}
 <p style="color:gray">You've set your account to always go to the last-read chapter in 
 a book (<a href="{% url profile %}">change this</a>).
 </p>
@@ -62,7 +62,7 @@ to enable always going to the last-read chapter in a book when clicking on a boo
 
 {% endif %}
 
-{% if request.session.common.mobile %}
+{% if common.mobile %}
 <p>To add a new book, log in using your computer.</p>
 {% else %}
 

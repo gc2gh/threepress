@@ -2,13 +2,13 @@
 
 {% block center %}
 
-    <table style="margin-left: 60px; padding: 0 60px 100px 0; background-color:white">
+    <table id="bw-shell-table">
       <tr><td valign="top">
         <div id="bw-leftnav">
           {% block leftnav %}{% endblock leftnav %}
         </div>
       </td>
-      <td valign="top" style="background-color:white;padding-right: 50px;width:100%;">
+      <td valign="top" id="bw-shell-table-content">
         <!-- Content -->
         <div id="bw-main">
           {% block main %}{% endblock main %}

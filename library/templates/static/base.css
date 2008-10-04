@@ -33,8 +33,6 @@ p {
 #bw-footer { 
     border-top: 1px solid rgb(200,200,200);
     padding: 5px 20px 30px 20px;
-    background-image: url(/static/yellow-gradiant.png);
-    background-repeat: repeat-x;
 }
 
 #bw-footer span, #bw-footer a:link, #bw-footer a:hover, #bw-footer a:visited, #bw-footer a:active {
@@ -267,4 +265,38 @@ div.bw-generic {
   width: 90%;
   margin:auto;
   padding: 10px;
+}
+#bw-upload-box {
+  margin:0;padding:0;
+  width:450px;
+  border-top:none;
+  border-bottom: 1px solid white;
+  border: 5px solid rgb(156, 175, 131); 
+  background:white;
+  position:absolute;
+  right:1em;
+  padding-left:1em;
+  font-size: smallest;
+ }
+#bw-upload-box form {
+  display:inline;
+}
+#bw-upload-box input { 
+  margin: 1em 1em 1em 1em;
+}
+
+#bw-upload-box h3 {
+  display:inline;
+}
+#bw-shell-table {
+  margin-left: 60px; padding: 0 60px 100px 0; background-color:white;
+}
+#bw-shell-table-content {
+   background-color:white;padding-right: 50px;width:100%;
+}
+a.bw-help {
+  font-size:smaller;
+}
+#bw-printheader {
+ display:none;
 }
