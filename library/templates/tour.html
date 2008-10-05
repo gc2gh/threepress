@@ -3,9 +3,15 @@
 {% block title %}Take a tour{% endblock title %}
 {% block head %}
 <link rel="stylesheet" href="/static/about.css"></link>
+<style type="text/css">
+#bw-content h2, #bw-content h3 {
+ width:400px;
+}
+
+</style>
 {% endblock head %}
 
-{% block header %}About: Take a tour of Bookworm{% endblock header %}
+{% block header %}<a href="{% url about %}">About</a>: Take a tour of Bookworm{% endblock header %}
 
 {% block center %}
 <div id="bw-content" class="bw-generic">

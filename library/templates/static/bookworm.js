@@ -1,7 +1,6 @@
 jQuery(document).ready(function() {
         $("#bw-upload-box").hide();
 
-        $("#bw-what-is-openid").hide();
         $('#bw-upload-link').hover(function() {
                 $("#bw-upload-box").slideDown('fast');
             },

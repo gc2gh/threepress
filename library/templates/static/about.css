@@ -11,10 +11,10 @@
   border-bottom: 1px solid rgb(210,210,210);
   height:150px;
 }
-#bw-content h1, #bw-content h2 {
- width:400px;
+#bw-content h1, #bw-content h2,
+#bw-leftnav h1, #bw-leftnav h2
+ {
  font-weight:normal;
-
 }
 #bw-content img.bw-screenshot {
 }
@@ -22,6 +22,7 @@
   margin:auto;
   text-align:center;
   padding-bottom:2em;
+  width:550px;
 }
 #bw-tour-toc a:link, #bw-tour-toc a:visited {
   text-decoration:none;
@@ -29,4 +30,15 @@
 } 
 img.bw-screenshot-page {
   border: 1px solid rgb(210,210,210);
+}
+#bw-leftnav ul {
+  list-style-type: none;
+  margin:0;padding:0;
+}
+li {
+  margin-bottom: 1em;
+}
+#bw-howto {
+  margin:auto;
+  font-size: large;
 }

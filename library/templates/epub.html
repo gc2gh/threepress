@@ -8,7 +8,7 @@
 
 {% block leftnav %}
 
-    <h2>About ePub</h2>
+    <h1>About ePub</h1>
     <p>
       ePub is the open format of the The International Digital Publishing Forum (IDPF).
       It is based on XML and XHTML, re-using existing standards for 
@@ -17,6 +17,10 @@
     <p>
       The technical details and specification are available from <a href="http://openebook.org/">http://openebook.org/</a>.
     </p>
+    <p>
+      There's a lot of good, up-to-date information about where to buy ePubs
+      and which devices and software support it at <a href="http://www.epubbooks.com/">ePub Books</a>.
+    </p>
 
     <h2>Contents</h2>
     <ol style="margin:0;padding:0;list-style-type:none;line-height:2em">
@@ -24,9 +28,12 @@
       <li><a href="#toc">NCX Table of Contents</a></li>
       <li><a href="#reading">Conformance</a></li>
       <li><a href="#images">Images and graphics</a></li>
+      <li><a href="#dtbook">DTBook</a></li>
+      <li><a href="#fonts">Fonts</a></li>
       <li><a href="#invalid">Invalid ePub handling</a></li>
       <li><a href="#limitations">Limitations</a></li>
     </ol>
+{% include "includes/about.html" %}
 {% endblock leftnav %}
 {% block main %}
 <div id="bw-content" class="bw-generic">
@@ -42,7 +49,7 @@
       Because ePub's content format is XHTML, ePub and the web browser
       are a natural fit.  
       This allows Bookworm to support advanced layout and markup
-      that standalone reading software cannot, including:
+      that standalone reading software often does not, including:
     </p>
     <ul>
       <li>Tables</li>
@@ -64,6 +71,10 @@
       Any external JavaScript files that might be bundled with the book are <em>not</em> loaded,
       and any &lt;script&gt; tags embedded in the content are removed.  This is a security feature
       to prevent malicious scripts from being uploaded to the site.
+    </p>
+    <p>
+      Bookworm includes its own stylesheets specially-formatted for the printed page.
+      Try "Print Preview" from any book page to see how the book would appear printed.
     </p>
     <a name="toc"></a>
     <h2>NCX Table of Contents</h2>
@@ -87,6 +98,10 @@
       the default page for that book will not be the first item in the
       NCX file.
     </p>
+    <p>
+      Bookworm cannot be considered to be a 100% conforming reading system 
+      as it does not support <a href="#dtbook">DTBook</a> as a content format.
+    </p>
     <a name="images"></a>
     <h2>Images and graphics</h2>
     <img src="/static/svg.png" alt="SVG logo" align="right"/>
@@ -97,6 +112,22 @@
     images are handled by linking to an external SVG file,
     as many browsers do not have inline-SVG support via the
     <code>&lt;img&gt;</code> tag.
+    </p>
+    <a name="dtbook"></a>
+      <h2>DTBook</h2>
+      <p>Although the specification indicates that valid ePubs may 
+      contain content in either XHTML or <a href="http://wiki.mobileread.com/wiki/DTBook">DTBook</a>,
+      Bookworm supports only XHTML as it relies entirely on the browser for 
+      rendering. 
+      </p>
+      <p>It's possible that a future update may include some support for DTBook
+      when combined with a reading plugin, or allow loading of DTBook content
+      but not direct viewing.</p>
+    <a name="fonts"></a>      
+    <h2>Fonts</h2>
+    <p>Bookworm will support any font declarations made using CSS 1 or CSS 2.
+    In theory it could support embedded fonts as defined by CSS 3 if the browser
+    does, but this has not been tested (samples welcome!)
     </p>
     <a name="invalid"></a>
     <h2>How Bookworm treats invalid ePub</h2>
@@ -113,7 +144,7 @@
       <a href="http://www.threepress.org/document/epub-validate/">threepress.org epubcheck service</a>.
       The results from epubcheck are reported to the user who is uploading
       the book.
-      It is hoped that the combination of Bookworm and epubcheck reporting
+      It is hoped that the messages from Bookworm and epubcheck 
       will clearly identify the problem with the ePub file.
     </p>
     <a name="limitations"></a>

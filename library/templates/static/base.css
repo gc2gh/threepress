@@ -300,3 +300,16 @@ a.bw-help {
 #bw-printheader {
  display:none;
 }
+div.bw-info-box {
+  font-size:larger;
+  border: 1px solid rgb(200,200,200) ;
+  padding:1em;
+  background-image: url(/static/yellow-gradiant.png);
+  background-repeat: repeat-x;
+  -moz-border-radius: 20px; 
+  -webkit-border-radius: 20px; 
+
+}
+div.bw-info-box  h2 {
+  padding:0;margin:1em;
+}

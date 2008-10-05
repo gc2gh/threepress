@@ -5,7 +5,15 @@
 
 <link rel="stylesheet" type="text/css" href="/static/auth.css" ></link>
 <link rel="stylesheet" href="/static/home.css"></link>
-
+<script type="text/javascript">
+jQuery(document).ready(function() {
+        $("#bw-what-is-openid").hide();
+        $('.bw-what-is-openid-link').click(function() {
+                $("#bw-what-is-openid").fadeIn('normal');
+            }
+            )
+    });
+</script>
 <style type="text/css">
  ol {
   font-size: large;
