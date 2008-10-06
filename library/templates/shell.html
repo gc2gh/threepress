@@ -47,6 +47,7 @@
         </p>
       </div>
    </div>
+
       <div id="bw-upload-box">
         <form action="{% url library.views.upload %}" method="post" enctype="multipart/form-data" name="upload">
            <h3>Add a book:</h3> {{ upload_form.epub }}
@@ -55,32 +56,31 @@
         </form>
       </div>
 
-    <table style="width:100%;background-color:white">
-      <tr><td>
-        <div id="bw-subheader">
-          <div style="float:right;padding-right:2em">
-        {% if request.user.is_authenticated %}
-          <h3 class="bw-signed-in" >Signed in as <span class="bw-username">{{ request.user.username }}:  
-             <a class="bw-edit-profile-link" href="{% url library.views.profile %}">edit profile</a> 
-           {% if request.user.is_superuser %}
-             | <a class="bw-admin-link" href="/admin">admin</a>
-           {% endif %}
-	     | <a class="bw-logout-link" href="{% url user_signout %}">logout</a> 
-           </span>
+    <table id="bw-subheader">
+      <tr>
+        <td width="50%">
+          <h1 class="bw-document_header">{% block header %}Library{% endblock header %}</h1>
+        </td>
+        <td width="50%">
+          {% if request.user.is_authenticated %}
+          <h3 class="bw-signed-in" >
+            Signed in as 
+            <span class="bw-username">{{ request.user.username }}:  
+            <a class="bw-edit-profile-link" href="{% url library.views.profile %}">edit profile</a> 
+            {% if request.user.is_superuser %}
+            | <a class="bw-admin-link" href="/admin">admin</a>
+            {% endif %}
+            | <a class="bw-logout-link" href="{% url user_signout %}">logout</a> 
+            </span>
           </h3>
-        {% else %}
-           {% if not signin_page %}
-             <h3 class="bw-signed-out"><a href="{% url user_signin %}">Sign in</a></h3>
-           {% endif %}
-        {% endif %}
+          {% else %}
+            {% if not signin_page %}
+              <h3 class="bw-signed-out"><a href="{% url user_signin %}">Sign in</a></h3>
+            {% endif %}
+          {% endif %}
+          <div id="bw-printheader">
+            <p>From the Bookworm account of {{ request.user.fullname }} &lt;{{request.user.email}}&gt;</p>
           </div>
-          <div class="bw-document_title">
-            <h1>{% block header %}Library{% endblock header %}</h1>
-          </div>
-        </div>
-        <div id="bw-printheader">
-          <p>From the Bookworm account of {{ request.user.fullname }} &lt;{{request.user.email}}&gt;</p>
-        </div>
       </td></tr>
     </table>
 
