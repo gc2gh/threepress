@@ -8,7 +8,7 @@
     <th><a href="{% url index-reorder page.number,"created_time",reverse_dir %}">Date added
     {% ifequal order "created_time" %}<span class="bw-pagination-arrow">{% ifequal "asc" reverse_dir %}↓{% else %}↑{% endifequal %}</span>{% endifequal %}
 </a></th>
-    {% if not common.mobile %}
+    {% if not request.mobile %}
     <th>&nbsp;</th>
     {% endif %}
   </tr>

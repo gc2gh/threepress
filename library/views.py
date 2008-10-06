@@ -46,7 +46,7 @@ def index(request,
           dir=settings.DEFAULT_ORDER_DIRECTION):
     if request.user.is_authenticated():
         return logged_in_home(request, page_number, order, dir)
-    return direct_to_template(request, "public.html")
+    return direct_to_template(request, "public.html", {})
 
 def logged_in_home(request, page_number, order, dir):
 
@@ -78,12 +78,15 @@ def logged_in_home(request, page_number, order, dir):
             # Populate the author field if it was empty before
             d.orderable_author = d.safe_author()
             d.save()
-        
+
+    sysinfo = SystemInfo()
     return direct_to_template(request, 'index.html', {'documents':paginator, 
                                              'page':page,
                                              'form':form,
                                              'order':order,
                                              'dir':dir,
+                                             'total_users':sysinfo.get_total_users(),
+                                             'total_books':sysinfo.get_total_books(),
                                              'reverse_dir':reverse_dir,
                                              'order_text': order_fields[order],
                                              'order_direction': 'ascending' if dir == 'asc' else 'descending',
@@ -93,8 +96,7 @@ def logged_in_home(request, page_number, order, dir):
 
 @login_required
 def profile(request):
-
-    uprofile = request.user.get_profile()
+    uprofile = RequestContext(request).get('profile')
     
     if request.openid:
         sreg = request.openid.sreg
@@ -195,12 +197,7 @@ def profile_delete(request):
         message = "There was a problem with your request to delete this profile."
         return direct_to_template(request, 'profile.html', { 'message':message})
 
-    userprefs = _prefs(request)
-    userprefs.delete()
-
-    # Decrement our total-users counter
-    counter = _get_system_info(request)
-    counter.decrement_total_users()
+    request.user.get_profile().delete()
 
     # Delete all their books (this is likely to time out for large numbers of books)
     documents = EpubArchive.objects.filter(owner=request.user)
@@ -319,10 +316,6 @@ def upload(request):
             try:
                 document.explode()
                 document.save()
-                sysinfo = _get_system_info(request)
-                sysinfo.increment_total_books()
-                # Update the cache
-                #memcache.set('total_books', sysinfo.total_books)
 
             except BadZipfile:
                 log.error('Non-zip archive uploaded: %s' % document_name)
@@ -424,10 +417,8 @@ def _delete_document(request, document):
         for i in images:
             i.delete()
 
-    # Delete the book itself, and decrement our counter
+    # Delete the book itself
     document.delete()
-    sysinfo = request.session['system_info']
-    sysinfo.decrement_total_books()
 
 def _get_document(request, title, key, override_owner=False):
     '''Return a document by Google key and owner.  Setting override_owner

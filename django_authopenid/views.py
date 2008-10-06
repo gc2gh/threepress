@@ -339,7 +339,10 @@ def register(request):
                 tmp_pwd = User.objects.make_random_password()
                 user_ = User.objects.create_user(form1.cleaned_data['username'],
                          form1.cleaned_data['email'], tmp_pwd)
-                
+
+                # Save a profile for them
+                profile = UserPref(user=user_)
+                profile.save()
                 # make association with openid
                 uassoc = UserAssociation(openid_url=str(openid_),
                         user_id=user_.id)

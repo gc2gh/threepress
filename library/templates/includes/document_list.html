@@ -20,14 +20,14 @@
     </td>
     <td class="bw-added-container">
       <span class="bw-added">
-         {% if common.mobile %}
+         {% if request.mobile %}
 	    {{ d.created_time|naturalday:"M j y"|capfirst}}
          {% else %}
             {{ d.created_time|naturalday:"l, F j Y"|capfirst}}
          {% endif %}
        </span>
     </td>
-    {% if common.is_admin %}
+    {% if request.user.is_superuser %}
       {% if show_owner %}
       <td>
         owned by <span class="bw-owner">{{ d.owner.username }}</span>
@@ -35,7 +35,7 @@
       {% endif %}
 
     {% endif %}
-    {% if not common.mobile %}
+    {% if not request.mobile %}
     <td>
       <span class="bw-delete">
       <form action="{% url library.views.delete %}" method="post">

@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
-import shutil
-import os
-import re
-import unittest
-import logging
-
+import shutil, os, re, unittest, logging
 from os.path import isfile, isdir
 
 from django.contrib.auth.models import User
@@ -18,13 +12,10 @@ from epub.toc import TOC
 from epub.constants import *
 import epub.util
 
-import twill
 from twill import get_browser
 from twill.errors import TwillAssertionError
 from twill import add_wsgi_intercept
-
 from twill.commands import *
-from socket import gethostname
 
 from django.conf import settings
 
@@ -52,6 +43,8 @@ class TestModels(unittest.TestCase):
         
         self.user = User(username='testuser')
         self.user.save()
+        profile = UserPref(user=self.user)
+        profile.save()
 
     def tearDown(self):
         self.user.delete()
@@ -607,6 +600,8 @@ class TestViews(DjangoTestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser",email="test@example.com",password="testuser")
         self.user.save()        
+        profile = UserPref(user=self.user)
+        profile.save()
 
     def tearDown(self):
         self.user.delete()
