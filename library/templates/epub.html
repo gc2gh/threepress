@@ -10,7 +10,7 @@
 
     <h1>About ePub</h1>
     <p>
-      ePub is the open format of the The International Digital Publishing Forum (IDPF).
+      ePub is an open format of the The International Digital Publishing Forum (IDPF).
       It is based on XML and XHTML, re-using existing standards for 
       digital books.
     </p>
@@ -46,7 +46,7 @@
     <a name="xhtml"></a>
     <h2>XHTML support</h2>
     <p>
-      Because ePub's content format is XHTML, ePub and the web browser
+      Because the most common content format for ePub is XHTML, ePub and the web browser
       are a natural fit.  
       This allows Bookworm to support advanced layout and markup
       that standalone reading software often does not, including:
@@ -57,45 +57,49 @@
       <li>Fixed-width fonts</li>
     </ul>
     <p>
-      These features are especially important in non-fiction books
+      These features are especially important in non-fiction works
       such as technical titles or scientific papers.
     </p>
     <a name="css"></a>
     <h2>Cascading Style Sheets (CSS) and JavaScript</h2>
     <p>
-      Bookworm will render any stylesheets that are packaged with an ebook.  In order to prevent 
-      interference with Bookworm's native CSS, book stylesheets are slightly modified
-      to keep their effects restricted to the book's content area. 
+      Bookworm will render any CSS stylesheets that are packaged with an ebook.  In order to prevent 
+      interference with Bookworm's native CSS, an ePub's included stylesheets are slightly modified
+      to restrict their effects to the book's content area. 
     </p>
     <p>
-      Any external JavaScript files that might be bundled with the book are <em>not</em> loaded,
+      Any external JavaScript files that might be bundled with the ePub are <em>not</em> loaded,
       and any &lt;script&gt; tags embedded in the content are removed.  This is a security feature
       to prevent malicious scripts from being uploaded to the site.
     </p>
     <p>
       Bookworm includes its own stylesheets specially-formatted for the printed page.
-      Try "Print Preview" from any book page to see how the book would appear printed.
+      Try using your browser's "Print Preview" feature while reading an ePub
+      to see how it would appear when printed.
     </p>
     <a name="toc"></a>
     <h2>NCX Table of Contents</h2>
     <img src="/static/images/screenshots/expanded-nav.png" alt="Expanded navigation" class="bw-screenshot-page" align="right" />
-    <p>The table of contents metadata may not just contain chapters.  It might
-      also include parts, books, or sub-chapters.  
+    <p>The table of contents metadata contain chunks at levels other than 
+    the chapter. It might
+      also include chunks at the "part" or sub-chapter level, 
+      organized into a nested hierarchy.
     </p>
     <p>Bookworm will expand nested items in the Table of Contents 
     when the user moves through them.
     </p>
     <p>
       When multiple sub-sections exist, a small arrow will appear next
-      to the currently-read sub-section.
+      to the sub-section that is being read.
     </p>
     <a name="reading"></a>
     <h2>Reading system conformance</h2>
     <p>
       In accordance with the ePub specification, Bookworm will &lsquo;open&rsquo;
-      the ePub book to the first item in the NCX file with
-      <code>linear=yes</code>.  This may mean that in some books,
-      the default page for that book will not be the first item in the
+      the ePub to the first item in the NCX file with the attribute
+      <code>linear</code> set to &lsquo;yes&rsquo;  Counterintuitively,
+      this may mean that in some titles
+      the default page for the ePub will not be the first item in the
       NCX file.
     </p>
     <p>
@@ -107,15 +111,15 @@
     <img src="/static/svg.png" alt="SVG logo" align="right"/>
     <p>As a browser-based application, 
     Bookworm supports illustrations and photos in all the 
-    formats that ePub does: <em>JPEG</em>, <em>GIF</em>,
-    <em>PNG</em>.  Scalable Vector Graphics (<em>SVG</em>) if
+    formats that ePub does: <em>JPEG</em>, <em>GIF</em>
+    and <em>PNG</em>.  Scalable Vector Graphics (<em>SVG</em>) if
     images are handled by linking to an external SVG file,
     as many browsers do not have inline-SVG support via the
     <code>&lt;img&gt;</code> tag.
     </p>
     <a name="dtbook"></a>
       <h2>DTBook</h2>
-      <p>Although the specification indicates that valid ePubs may 
+      <p>Although the OPS specification indicates that valid ePubs may 
       contain content in either XHTML or <a href="http://wiki.mobileread.com/wiki/DTBook">DTBook</a>,
       Bookworm supports only XHTML as it relies entirely on the browser for 
       rendering. 
@@ -127,7 +131,7 @@
     <h2>Fonts</h2>
     <p>Bookworm will support any font declarations made using CSS 1 or CSS 2.
     In theory it could support embedded fonts as defined by CSS 3 if the browser
-    does, but this has not been tested (samples welcome!)
+    does, but this has not been tested (samples welcome!).
     </p>
     <a name="invalid"></a>
     <h2>How Bookworm treats invalid ePub</h2>
@@ -142,7 +146,8 @@
       Any ePub book which is found to be seriously malformed
       will be automatically handed off to the 
       <a href="http://www.threepress.org/document/epub-validate/">threepress.org epubcheck service</a>.
-      The results from epubcheck are reported to the user who is uploading
+      The results from <a
+href="http://code.google.com/p/epubcheck/">epubcheck</a> are reported to the user who is uploading
       the book.
       It is hoped that the messages from Bookworm and epubcheck 
       will clearly identify the problem with the ePub file.
@@ -160,6 +165,9 @@
       or unbroken novel-length texts, are not appropriate for web-based reading.
       Document authors are advised to break up long texts into
       individual XHTML files if at all appropriate.
+      This is especially important
+      when creating ePub documents for mobile devices, which often
+      have problems with large file sizes.
     </p>
 </div>
 
