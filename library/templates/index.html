@@ -67,8 +67,18 @@ to enable always going to the last-read chapter in a book when clicking on a boo
 {% else %}
 
 <h3 class="bw-upload-message">Add {% if documents.count %} a new {% else %} your first {% endif %} ePub ebook. 
+{% if not documents.count %}
 If you don't have any ePubs yet, you can start with <a href="http://www.threepress.org/static/epub/Pride-and-Prejudice_Jane-Austen.epub">Pride and Prejudice</a> by Jane Austen,
-or the <a href="http://toc.oreilly.com/2008/07/30-oreilly-titles-now-available-as-ebook-bundles.html">technical ePubs available from O'Reilly</a>.</h3>
+or the <a href="http://toc.oreilly.com/2008/07/30-oreilly-titles-now-available-as-ebook-bundles.html">technical ePubs available from O'Reilly</a>.
+{% endif %}
+</h3>
+{% if not documents.count %}
+<p>
+Once you've gotten one of these books on your computer, you can upload them to your 
+new Bookworm account.
+</p>
+{% endif %}
+
 <form action="{% url library.views.upload %}" method="post" enctype="multipart/form-data" name="upload">
   <div id="bw-upload_form">
     {{ form.as_p }}
