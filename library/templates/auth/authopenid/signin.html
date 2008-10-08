@@ -22,7 +22,14 @@ jQuery(document).ready(function() {
 {% endblock head %}
 
 {% block header %}
- Sign in to Bookworm
+{% if mobile %} 
+    Bookworm: the mobile web ePub ebook reader ~
+    <a href="{% url about %}">Learn more</a>.
+{% else %}
+Sign in to Bookworm
+{% endif %}
+
+
 {% endblock header %}
 
 {% block leftnav %}
@@ -55,7 +62,7 @@ jQuery(document).ready(function() {
   {% endif %}
 
   <div class="login"> 
-
+    
     <form name="fauth" action="{{ action }}" method="post" id="bw-username-form">
       {{ form1.next }}
       <fieldset>

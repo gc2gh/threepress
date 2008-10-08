@@ -71,8 +71,7 @@ p {
 }
 
 #bw-mb-signed-in-message {
-  clear:both;
-
+  float:right;                         
 }
 #bw-leftnav {
  width:auto;
