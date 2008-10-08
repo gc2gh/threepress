@@ -46,7 +46,7 @@ and should be changed with your OpenID provider, rather than with Bookworm.</p>
 <div id="bw-content">
 
 {% if message or request.GET.msg or form.errors %}
-<p class="bw-message"><strong>{{ message }}{{ request.GET.msg }} {{ form.errors }}</strong></p>
+<p class="bw-message"><strong>{{ message }} {{ form.errors }}</strong></p>
 {% endif %}
 
 

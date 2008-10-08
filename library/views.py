@@ -123,6 +123,8 @@ def profile(request):
     else:
         form = ProfileForm(instance=uprofile)
         message = None
+    if 'msg' in request.GET:
+        message = request.GET['msg']
 
     return direct_to_template(request,
                               'auth/profile.html', 
