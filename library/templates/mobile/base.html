@@ -40,12 +40,11 @@
     <div class="bw-mb-document_title">
      <div id="bw-mb-signed-in-message">
           {% if request.user.is_authenticated %}
-             <p>Signed in as <span class="bw-username">{{ request.user.username }}</span>:  
-             <a class="bw-edit-profile-link bw-profile-link" href="{% url library.views.profile %}">edit profile</a> 
+             <p>
              {% if request.user.is_superuser %}
-             ~ <a class="bw-admin-link bw-profile-link" href="/admin">admin</a>
+             <a class="bw-admin-link bw-profile-link" href="/admin">admin</a> ~
              {% endif %}
-             ~ <a class="bw-logout-link bw-profile-link" href="{% url user_signout %}">logout</a> 
+             <a class="bw-logout-link bw-profile-link" href="{% url user_signout %}">logout</a> 
              {% endif %}
              </p>
         </div>
