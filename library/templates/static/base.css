@@ -308,3 +308,6 @@ div.bw-info-box {
 div.bw-info-box  h2 {
   padding:0;margin:1em;
 }
+h3.bw-upload-message {
+ line-height: 1.5em;
+}
