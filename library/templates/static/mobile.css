@@ -20,12 +20,13 @@ h1.bw-mb-logo {
   color:white;
 }
 h2.bw-mb-motto {
-  font-size:large;
+  font-size:medium;
   display:inline;
   float:right;
   color:white;
-  padding-right: 2em;
-  padding-bottom: 1em;
+  padding-right: .5em;
+  padding-bottom: .5em;
+  font-weight:normal;
 }
 #bw-header a:link, #bw-header a:visited, #bw-header a:hover 
 {
