@@ -29,6 +29,7 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import logging
 
 from django.http import HttpResponseRedirect, get_host
 from django.shortcuts import render_to_response as render
@@ -44,7 +45,7 @@ from django.contrib.sites.models import Site
 from django.utils.http import urlquote_plus
 from django.core.mail import send_mail
 
-import logging
+from bookworm.library.models import UserPref
 
 from openid.consumer.consumer import Consumer, \
     SUCCESS, CANCEL, FAILURE, SETUP_NEEDED
@@ -343,6 +344,7 @@ def register(request):
                 # Save a profile for them
                 profile = UserPref(user=user_)
                 profile.save()
+
                 # make association with openid
                 uassoc = UserAssociation(openid_url=str(openid_),
                         user_id=user_.id)
