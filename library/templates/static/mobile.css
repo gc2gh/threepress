@@ -34,6 +34,7 @@ h2.bw-mb-motto {
 }
 div.login form fieldset {
  /*border:none; */
+ margin-top:1em;
 }
 input {
  -webkit-border-radius:10px;
@@ -243,4 +244,7 @@ span.bw-last-read a:visited, span.bw-last-read a:link {
 span.bw-title a{
   font-size:large;
   padding-bottom:.2em;
+}
+a.bw-what-is-openid-link {
+ font-size: smaller;
 }

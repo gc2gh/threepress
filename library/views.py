@@ -1,8 +1,7 @@
 from django.core.mail import EmailMessage
 
-import logging, sys, StringIO, urllib, MySQLdb, cStringIO, os.path
+import logging, sys, urllib, MySQLdb, cStringIO, os.path
 from zipfile import BadZipfile
-from lxml import etree
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, Http404, HttpResponse
@@ -13,12 +12,12 @@ from django.contrib import auth
 from django.template import RequestContext
 from django.core.paginator import Paginator, EmptyPage
 from django.views.generic.simple import direct_to_template
-from models import EpubArchive, HTMLFile, UserPref, StylesheetFile, ImageFile, SystemInfo, get_file_by_item, order_fields
+from models import EpubArchive, HTMLFile, StylesheetFile, ImageFile, SystemInfo, get_file_by_item, order_fields
 from forms import EpubValidateForm, ProfileForm
 from epub import constants as epub_constants
-from epub import InvalidEpubException
 from django.conf import settings
 from google_books.search import Request
+from django_authopenid.views import signin
 
 log = logging.getLogger('views')
 
@@ -46,6 +45,10 @@ def index(request,
           dir=settings.DEFAULT_ORDER_DIRECTION):
     if request.user.is_authenticated():
         return logged_in_home(request, page_number, order, dir)
+
+    # If this is a mobile user, skip the public page
+    if settings.MOBILE:
+        return signin(request)
     return direct_to_template(request, "public.html", {})
 
 def logged_in_home(request, page_number, order, dir):

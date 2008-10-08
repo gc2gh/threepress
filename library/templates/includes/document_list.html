@@ -20,7 +20,7 @@
     </td>
     <td class="bw-added-container">
       <span class="bw-added">
-         {% if request.mobile %}
+         {% if mobile %}
 	    {{ d.created_time|naturalday:"M j y"|capfirst}}
          {% else %}
             {{ d.created_time|naturalday:"l, F j Y"|capfirst}}
@@ -35,7 +35,7 @@
       {% endif %}
 
     {% endif %}
-    {% if not request.mobile %}
+    {% if not mobile %}
     <td>
       <span class="bw-delete">
       <form action="{% url library.views.delete %}" method="post">

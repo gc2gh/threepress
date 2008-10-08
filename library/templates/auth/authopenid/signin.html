@@ -54,7 +54,8 @@ jQuery(document).ready(function() {
     </p>
   {% endif %}
 
-  <div class="login">
+  <div class="login"> 
+
     <form name="fauth" action="{{ action }}" method="post" id="bw-username-form">
       {{ form1.next }}
       <fieldset>
@@ -76,7 +77,9 @@ jQuery(document).ready(function() {
         <a href="#" class="bw-what-is-openid-link">What's this?</a>
       </fieldset>
     </form>	
-    {% include "includes/openid.html" %}
+    {% if not mobile %}
+      {% include "includes/openid.html" %}
+    {% endif %}
   </div>	
 
 </div>
