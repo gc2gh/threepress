@@ -24,6 +24,7 @@ def delete_user_database(username):
     shutil.rmtree(user_db)
 
 def create_epub_database(username, epub_id):
+    create_user_database(username)
     book_db = _epub_database(username, epub_id)
     return xapian.WritableDatabase(book_db, xapian.DB_CREATE_OR_OPEN)    
 
