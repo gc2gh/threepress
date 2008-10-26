@@ -96,8 +96,9 @@ INSTALLED_APPS = (
     'django.contrib.flatpages',
     'django.contrib.sitemaps',
     'django_authopenid',
-#    'django_evolution',
+    'django_evolution',
     'library',
+    'search',
     )
 
 AUTH_PROFILE_MODULE = "library.userpref"
@@ -121,6 +122,8 @@ LOG_DIR = '%s/log/' % ROOT_PATH
 LOG_NAME = 'bookworm.log'
 
 TEST_DATABASE_CHARSET = 'utf8'
+
+SEARCH_ROOT = os.path.join(ROOT_PATH, 'search', 'dbs')
 
 # Access time, filename/function#line-number message
 log_formatter = logging.Formatter("[%(asctime)s %(filename)s/%(funcName)s#%(lineno)d] %(message)s")
