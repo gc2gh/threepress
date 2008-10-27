@@ -6,9 +6,12 @@ import bookworm.settings
 setup_environ(bookworm.settings)
 
 from django.contrib.auth.models import User
+from library.models import EpubArchive, HTMLFile
 
-from bookworm.search import index, epubindexer, constants, search
-from bookworm.library.models import EpubArchive, HTMLFile
+import search.index as index
+import search.epubindexer as epubindexer
+import search.constants as constants
+import search.results as results
 
 bookworm.settings.SEARCH_ROOT = os.path.join(bookworm.settings.ROOT_PATH, 'search', 'tests', 'dbs')
 
@@ -19,17 +22,15 @@ book_name = 'book'
 
 test_data_dir = os.path.join(bookworm.settings.ROOT_PATH, 'search', 'tests', 'test-data')
 
-def setup(self):
-    pass
-
-
-
-def teardown(self):
-    if os.path.exists(bookworm.settings.SEARCH_ROOT):
-        shutil.rmtree(bookworm.settings.SEARCH_ROOT)
 
 class TestIndex(object):
-        
+    def setup(self):
+        pass
+    
+    def teardown(self):
+        if os.path.exists(bookworm.settings.SEARCH_ROOT):
+            shutil.rmtree(bookworm.settings.SEARCH_ROOT)
+
     def test_create_user_database(self):
         index.create_user_database(username)
         assert_true(os.path.exists(os.path.join(bookworm.settings.SEARCH_ROOT, username)))
@@ -71,14 +72,38 @@ class TestIndex(object):
         index.add_search_document(db, doc)
         
 class TestEpubIndex(object):
+    def setup(self):
+        pass
+    
+    def teardown(self):
+        if os.path.exists(bookworm.settings.SEARCH_ROOT):
+            shutil.rmtree(bookworm.settings.SEARCH_ROOT)
 
     def test_get_searchable_content(self):
+        '''Make sure we can handle all kinds of HTML content'''
         f = open(os.path.join(test_data_dir, 'valid-xhtml.html')).read()
         paras = epubindexer.get_searchable_content(f)
         assert_not_equals(None, paras)
         assert_true(len(paras) > 0)
         assert_true('humane' in paras)
         assert_false('<p' in paras)
+
+        f = open(os.path.join(test_data_dir, 'valid-html.html')).read()
+        paras = epubindexer.get_searchable_content(f)
+        assert_not_equals(None, paras)
+        assert_true(len(paras) > 0)
+        assert_true('humane' in paras)
+        assert_false('<p' in paras)
+
+        f = open(os.path.join(test_data_dir, 'broken-html.html')).read()
+        paras = epubindexer.get_searchable_content(f)
+        assert_not_equals(None, paras)
+        assert_true(len(paras) > 0)
+        assert_true('humane' in paras)
+        assert_false('<p' in paras)
+
+        paras = epubindexer.get_searchable_content('')
+        assert_equals('', paras)
 
     def test_index_epub(self):
         epub_id = create_document()
@@ -88,18 +113,59 @@ class TestEpubIndex(object):
 
 
 class TestEpubSearch(object):
+    def setup(self):
+        pass
+    
+    def teardown(self):
+        if os.path.exists(bookworm.settings.SEARCH_ROOT):
+            shutil.rmtree(bookworm.settings.SEARCH_ROOT)
+
+
     def test_search(self):
         epub_id = create_document()
         epub = EpubArchive.objects.get(id=epub_id)
         chapter = HTMLFile.objects.get(archive=epub)
         epubindexer.index_epub(username, epub, chapter)
-        results = search.search('content', username, book=epub)
-        assert_not_equals(None, results)
-        assert_true(len(results) > 0)
-        content = ''.join([r.highlighted_content for r in results])
+        res = results.search('content', username, book_id=epub_id)
+        assert_not_equals(None, res)
+        assert_true(len(res) == 1)
+        content = ''.join([r.highlighted_content for r in res])
         assert_true('content' in content)
         assert_true('class="match"' in content)
         assert_false('foobar' in content)
+
+    def test_result_object(self):
+        epub_id = create_document(title='test title')
+        epub = EpubArchive.objects.get(id=epub_id)
+        chapter = HTMLFile.objects.get(archive=epub)
+        epubindexer.index_epub(username, epub, chapter)
+        res = results.search('content', username, book_id=epub_id)[0]
+        assert_equals(res.title, 'test title')
+        assert_equals(res.document_id, epub_id)
+        
+    def test_search_user(self):
+        f = open(os.path.join(test_data_dir, 'valid-xhtml.html')).read()
+        epub_id1 = create_document(content=f,
+                                   title='Epub 1')
+        f2 = open(os.path.join(test_data_dir, 'valid-xhtml2.html')).read()
+        epub_id2 = create_document(content=f2,
+                                   title='Epub 2')
+
+        epub1 = EpubArchive.objects.get(id=epub_id1)
+        chapter1 = HTMLFile.objects.get(archive=epub1)
+        epub2 = EpubArchive.objects.get(id=epub_id2)
+        chapter2 = HTMLFile.objects.get(archive=epub2)
+
+        epubindexer.index_epub(username, epub1, chapter1)
+        epubindexer.index_epub(username, epub2, chapter2)
+        
+        res = results.search('the', username)
+        assert_equals(len(res), 2)
+
+        res = results.search('Kitty', username)
+        assert_equals(len(res), 1)
+
+
 
 def create_user(username=username):
     user = User.objects.get_or_create(username=username)[0]

@@ -33,6 +33,8 @@ def index_epub(username, epub, chapter=None):
         index.index_search_document(doc, clean_content)
         database = index.create_book_database(username, book_id)
         index.add_search_document(database, doc)
+        user_database = index.create_user_database(username)
+        index.add_search_document(user_database, doc)
 
 def get_searchable_content(content):
     '''Returns the content of a chapter as a searchable field'''
@@ -43,7 +45,7 @@ def get_searchable_content(content):
         temp_para = [ p.xpath('.//text()') for p in html.iter(tag='p')]
     paragraphs = []
     for p in temp_para:
-        paragraphs.append(''.join([i.strip().replace('\n','') for i in p]))
+        paragraphs.append(' '.join([i.strip().replace('\n',' ') for i in p]))
     return '\n'.join(paragraphs)
 
                                      

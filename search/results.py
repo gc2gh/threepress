@@ -15,8 +15,8 @@ stemmer = xapian.Stem("english")
 indexer.set_stemmer(stemmer)
 
 
-def search(term, username, book=None, start=1, end=constants.RESULTS_PAGESIZE, sort='ordinal'):
-    database = index.get_database(username, book.id)
+def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE, sort='ordinal'):
+    database = index.get_database(username, book_id)
 
     # Start an enquire session.
     enquire = xapian.Enquire(database)
@@ -65,8 +65,6 @@ def search(term, username, book=None, start=1, end=constants.RESULTS_PAGESIZE, s
             words.append(word)
 
         r.highlighted_content = ' '.join(words)
-        print r.highlighted_content
-
     return results
 
 
@@ -74,7 +72,7 @@ class Result:
     highlighted_content = None
     def __init__(self, id, xapian_document):
         self.id = id
-        self.document_id = xapian_document.get_value(constants.SEARCH_BOOK_ID)
+        self.document_id = int(xapian_document.get_value(constants.SEARCH_BOOK_ID))
         self.xapian_document = xapian_document
         self.title = xapian_document.get_value(constants.SEARCH_BOOK_TITLE)
 
