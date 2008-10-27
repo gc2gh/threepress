@@ -1,0 +1,17 @@
+#bw-search-results {
+  list-style-type: none;
+}
+#bw-search-results li {
+  padding: .5em 10em .5em 0;
+}
+#bw-search-results .bw-match {
+ font-weight:bold;
+}
+#bw-search-results .bw-search-results-fragment {
+  display:block;
+  color: gray;
+}
+#bw-search-results .bw-search-results-title {
+  font-size: larger;
+
+}
