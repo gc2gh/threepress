@@ -12,14 +12,16 @@ from django.contrib import auth
 from django.template import RequestContext
 from django.core.paginator import Paginator, EmptyPage
 from django.views.generic.simple import direct_to_template
-from models import EpubArchive, HTMLFile, StylesheetFile, ImageFile, SystemInfo, get_file_by_item, order_fields, DRMEpubException
-from forms import EpubValidateForm, ProfileForm
-from epub import constants as epub_constants
 from django.conf import settings
-from google_books.search import Request
+
 from django_authopenid.views import signin
 
-log = logging.getLogger('views')
+from library.models import EpubArchive, HTMLFile, StylesheetFile, ImageFile, SystemInfo, get_file_by_item, order_fields, DRMEpubException
+from library.forms import EpubValidateForm, ProfileForm
+from library.epub import constants as epub_constants
+from library.google_books.search import Request
+
+log = logging.getLogger('library.views')
 
 def register(request):
     form = UserCreationForm()
@@ -165,9 +167,6 @@ def view_document_metadata(request, title, key):
     google_books = _get_google_books_info(document, request)
     return direct_to_template(request, 'view.html', {'document':document, 'google_books':google_books})
 
-def about(request):
-    return direct_to_template(request, 'about.html')
-    
 @login_required
 def delete(request):
     '''Delete a book and associated metadata, and decrement our total books counter'''

@@ -3,9 +3,8 @@ from lxml import etree as ET
 import lxml.html
 from zipfile import ZipFile
 from StringIO import StringIO
-import logging, datetime, sys
+import logging, datetime, sys, os, os.path
 from urllib import unquote_plus
-import os, os.path
 from xml.parsers.expat import ExpatError
 import cssutils
 
@@ -14,11 +13,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.encoding import smart_str
 
-from epub import constants, InvalidEpubException
-from epub.constants import ENC, BW_BOOK_CLASS, STYLESHEET_MIMETYPE, XHTML_MIMETYPE
-from epub.constants import NAMESPACES as NS
-from epub.toc import NavPoint, TOC
-import epub.util as util
+from library.epub import constants, InvalidEpubException
+from library.epub.constants import ENC, BW_BOOK_CLASS, STYLESHEET_MIMETYPE, XHTML_MIMETYPE
+from library.epub.constants import NAMESPACES as NS
+from library.epub.toc import NavPoint, TOC
+import library.epub.util as util
 
 log = logging.getLogger('library.models')
 

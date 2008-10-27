@@ -843,7 +843,6 @@ class TestViews(DjangoTestCase):
 
     def test_register_standard(self):
         '''Register a new account using a standard Django account'''
-        logging.info("This test may fail if the local client does not have a running stmp server. Try running library/smtp.py as root before calling this test.")
         response = self.client.post('/account/signup/', { 'username':'registertest',
                                                           'email':'registertest@example.com',
                                                           'password1':'registertest',
