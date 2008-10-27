@@ -16,16 +16,18 @@ log = logging.getLogger('search.views')
 
 @login_required
 def search(request, book_id=None):
+    term = None
     res = None
     if 'q' in request.GET:
         term = request.GET['q']
         res = results.search(term, request.user.username, book_id)
     return direct_to_template(request, 'results.html', 
-                              { 'results':res, })
+                              { 'results':res,
+                                'term':term})
 
 @login_required
 def index(request, book_id=None):
-    '''Forceaably index a user's books.  The user can only index
+    '''Forceably index a user's books.  The user can only index
     their own books; this will generally be used for testing only.'''
-    index_user_library(request.user)
-    
+    num_indexed = epubindexer.index_user_library(request.user)
+    return HttpResponse("Indexed %d documents" % num_indexed)

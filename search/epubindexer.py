@@ -1,32 +1,27 @@
-import lxml
 from lxml.html.soupparser import fromstring
-import os, sys, logging, subprocess, os.path, shutil
-import xapian
+import logging, os.path
 from django.core.management import setup_environ
 import bookworm.settings
 setup_environ(bookworm.settings)
-
-import bookworm.search.constants as constants
-import bookworm.search.index as index
+ 
+import bookworm.search.indexer as indexer
 import bookworm.library.models as models
 
 logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger('epubindexer')
+log = logging.getLogger('epubindexerer')
 
 def index_user_library(user):
-    '''Index all of the books in a user's library. Returns the
-    number of books indexed.'''
+    '''Indexer all of the books in a user's library. Returns the
+    number of books indexered.'''
     books = models.EpubArchive.objects.filter(owner=user)
     for b in books:
         index_epub(user.username, b)
     return len(books)
     
-
-
 def index_epub(username, epub, chapter=None):
-    '''Index parts of an epub book as a searchable document.
-    If an HTMLFile object is passed, index only that chapter;
-    otherwise index all chapters.'''
+    '''Indexer parts of an epub book as a searchable document.
+    If an HTMLFile object is passed, indexer only that chapter;
+    otherwise indexer all chapters.'''
     book_id = epub.id
     book_title = epub.title
     chapters = []
@@ -35,18 +30,18 @@ def index_epub(username, epub, chapter=None):
     if chapter is not None:
         chapters.append(chapter)
 
-    database = index.create_book_database(username, book_id)
-    user_database = index.create_user_database(username)
+    database = indexer.create_book_database(username, book_id)
+    user_database = indexer.create_user_database(username)
 
     for c in chapters:
         content = c.render()
         clean_content = get_searchable_content(content)
-        doc = index.create_search_document(book_id, book_title, clean_content,
+        doc = indexer.create_search_document(book_id, book_title, clean_content,
                                            c.id, c.title)
-        index.index_search_document(doc, clean_content)
+        indexer.index_search_document(doc, clean_content)
 
-        index.add_search_document(database, doc)
-        index.add_search_document(user_database, doc)
+        indexer.add_search_document(database, doc)
+        indexer.add_search_document(user_database, doc)
 
 def get_searchable_content(content):
     '''Returns the content of a chapter as a searchable field'''

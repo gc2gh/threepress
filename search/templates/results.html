@@ -1,1 +1,15 @@
 {% extends "base.html" %}
+
+{% block main %}
+<div id="bw-content">
+  
+  {% if results %}
+    <ol>
+      {% for result in results %}
+      <li>{{ result.chapter_title }}</li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+
+</div>
+{% endblock %}

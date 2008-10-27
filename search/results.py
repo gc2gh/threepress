@@ -56,28 +56,37 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     results = [Result(match.docid, match.document) for match in matches]
     for r in results:
         words = []
+        terms = set(enquire.matching_terms(r.xapian_id))
         for word in r.xapian_document.get_data().split(" "):
             term = word.replace('?', '').replace('"', '').replace('.', '').replace(',', '')
             term = term.lower()
-            for t in enquire.matching_terms(r.id):
-                if "Z%s" % stemmer(term) == t or term == t:
-                    word = '<span class="match">%s</span>' % word
+            if "Z%s" % stemmer(term) in terms or term in terms:
+                word = '<span class="match">%s</span>' % word
             words.append(word)
-
+        
         r.highlighted_content = ' '.join(words)
     return results
 
 
 class Result:
     highlighted_content = None
-    def __init__(self, id, xapian_document):
-        self.id = id
-        self.document_id = int(xapian_document.get_value(constants.SEARCH_BOOK_ID))
+    def __init__(self, xapian_id, xapian_document):
+        self.xapian_id = xapian_id
         self.xapian_document = xapian_document
-        self.title = xapian_document.get_value(constants.SEARCH_BOOK_TITLE)
 
-    def get_chapter_id(self):
+    @property
+    def id(self):
+        return int(self.xapian_document.get_value(constants.SEARCH_BOOK_ID))
+
+    @property
+    def title(self):
+        return self.xapian_document.get_value(constants.SEARCH_BOOK_TITLE)
+
+    @property
+    def chapter_id(self):
         return self.xapian_document.get_value(constants.SEARCH_CHAPTER_ID)
 
-    def get_book_title(self):
-        return self.xapian_document.get_value(constants.SEARCH_BOOK_TITLE)
+    @property
+    def chapter_title(self):
+        return self.xapian_document.get_value(constants.SEARCH_CHAPTER_TITLE)
+

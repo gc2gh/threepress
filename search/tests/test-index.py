@@ -8,7 +8,7 @@ setup_environ(bookworm.settings)
 from django.contrib.auth.models import User
 from library.models import EpubArchive, HTMLFile
 
-import search.index as index
+import search.indexer as indexer
 import search.epubindexer as epubindexer
 import search.constants as constants
 import search.results as results
@@ -32,44 +32,43 @@ class TestIndex(object):
             shutil.rmtree(bookworm.settings.SEARCH_ROOT)
 
     def test_create_user_database(self):
-        index.create_user_database(username)
+        indexer.create_user_database(username)
         assert_true(os.path.exists(os.path.join(bookworm.settings.SEARCH_ROOT, username)))
             
     def test_delete_user_database(self):
-        index.create_user_database(username)
+        indexer.create_user_database(username)
         assert_true(os.path.exists(os.path.join(bookworm.settings.SEARCH_ROOT, username)))
-        index.delete_user_database(username)
+        indexer.delete_user_database(username)
         assert_false(os.path.exists(os.path.join(bookworm.settings.SEARCH_ROOT, username)))
 
     def test_create_book_database(self):
-        index.create_book_database(username, book_name)
+        indexer.create_book_database(username, book_name)
         assert_true(os.path.exists(os.path.join(bookworm.settings.SEARCH_ROOT, username, book_name)))
 
     def test_delete_book_database(self):
-        index.create_book_database(username, book_name)
+        indexer.create_book_database(username, book_name)
         assert_true(os.path.exists(os.path.join(bookworm.settings.SEARCH_ROOT, username, book_name)))
-        index.delete_book_database(username, book_name)
+        indexer.delete_book_database(username, book_name)
         assert_false(os.path.exists(os.path.join(bookworm.settings.SEARCH_ROOT, username, book_name)))
 
     def test_create_search_document(self):
         data = 'this is some content'
-        doc = index.create_search_document('1', 'hello', data, '2', 'this is a chapter_title')
+        doc = indexer.create_search_document('1', 'hello', data, '2', 'this is a chapter_title')
         assert_equals(data, doc.get_data())
         assert_equals('1', doc.get_value(constants.SEARCH_BOOK_ID))
 
     def test_index_search_document(self):
         book_id = '1'
         data = 'This is some test content'
-        #db = index.create_book_database(username, book_id)
-        doc = index.create_search_document(book_id, 'hello', data, '2', 'this is a chapter_title')
-        index.index_search_document(doc, data)
+        doc = indexer.create_search_document(book_id, 'hello', data, '2', 'this is a chapter_title')
+        indexer.index_search_document(doc, data)
 
     def test_add_search_document(self):
         book_id = '1'
         data = 'This is some test content'
-        db = index.create_book_database(username, book_id)
-        doc = index.create_search_document(book_id, 'hello', data, '2', 'this is a chapter_title')
-        index.add_search_document(db, doc)
+        db = indexer.create_book_database(username, book_id)
+        doc = indexer.create_search_document(book_id, 'hello', data, '2', 'this is a chapter_title')
+        indexer.add_search_document(db, doc)
         
 class TestEpubIndex(object):
     def setup(self):
@@ -144,13 +143,14 @@ class TestEpubSearch(object):
         assert_false('foobar' in content)
 
     def test_result_object(self):
-        epub_id = create_document(title='test title')
+        epub_id = create_document(title='test title', chapter_title='chapter one')
         epub = EpubArchive.objects.get(id=epub_id)
         chapter = HTMLFile.objects.get(archive=epub)
         epubindexer.index_epub(username, epub, chapter)
         res = results.search('content', username, book_id=epub_id)[0]
         assert_equals(res.title, 'test title')
-        assert_equals(res.document_id, epub_id)
+        assert_equals(res.chapter_title, 'chapter one')
+        assert_equals(res.id, epub_id)
         
     def test_search_user(self):
         f = open(os.path.join(test_data_dir, 'valid-xhtml.html')).read()
