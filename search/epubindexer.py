@@ -46,11 +46,12 @@ def index_epub(username, epub, chapter=None):
         
         chapter_title = c.title if c.title is not None and c.title is not u'' else 'Chapter %d' % index
         doc = indexer.create_search_document(book_id, book_title, clean_content,
-                                           c.filename, chapter_title)
+                                           c.filename, chapter_title, author_name=epub.orderable_author)
         indexer.index_search_document(doc, clean_content)
 
         indexer.add_search_document(database, doc)
         indexer.add_search_document(user_database, doc)
+
     epub.indexed = True
     epub.save()
 

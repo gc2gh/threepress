@@ -5,7 +5,16 @@
     <table id="bw-shell-table">
       <tr><td valign="top">
         <div id="bw-leftnav">
-          {% block leftnav %}{% endblock leftnav %}
+          {% if search_form %}
+            <div id="bw-search-box">
+              <h3>Search your library</h3>
+              <form action="{% url search %}" method="get">
+                {{ search_form.q }}
+              </form>
+            </div>
+          {% endif %}
+          {% block leftnav %}
+          {% endblock leftnav %}
         </div>
       </td>
       <td valign="top" id="bw-shell-table-content">

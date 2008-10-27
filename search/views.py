@@ -11,18 +11,52 @@ from django.conf import settings
 
 import results
 import epubindexer
+import constants
 
 log = logging.getLogger('search.views')
 
 @login_required
 def search(request, book_id=None):
-    term = None
-    res = None
-    if 'q' in request.GET:
-        term = request.GET['q']
-        res = results.search(term, request.user.username, book_id)
+
+    if not 'q' in request.GET:
+        return direct_to_template(request, 'results.html')
+
+    term = request.GET['q']
+    start = int(request.GET['start']) if request.GET.has_key('start') else 1
+    end = int(request.GET['end']) if request.GET.has_key('end') else constants.RESULTS_PAGESIZE
+    res = results.search(term, request.user.username, book_id, start=start)
+    if len(res) == 0:
+        return direct_to_template(request, 'results.html')        
+
+    total_results = res[0].total_results
+    page_size = res[0].page_size
+
+    if page_size < end - start:
+        end = start + page_size
+    next_end = end + constants.RESULTS_PAGESIZE
+
+    show_previous = True if start != 1 else False
+    show_next = True if end < total_results else False
+    
+    next_start = start + constants.RESULTS_PAGESIZE
+
+    previous_start = start - constants.RESULTS_PAGESIZE
+    previous_end = previous_start + constants.RESULTS_PAGESIZE
+
     return direct_to_template(request, 'results.html', 
                               { 'results':res,
+                                'start':start,
+                                'end': end,
+                                'total_results': total_results,
+                                'multiple_pages': True if show_next or show_previous else False,
+                                'next_start': next_start,
+                                'next_end' : next_end,
+                                'previous_start': previous_start,
+                                'previous_end' : previous_end,
+                                'end': end,
+                                'show_next': show_next,
+                                'show_previous': show_previous,
+                                'page_size':page_size,
                                 'term':term})
 
 @login_required

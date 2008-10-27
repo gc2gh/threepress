@@ -299,3 +299,20 @@ div.bw-info-box  h2 {
 h3.bw-upload-message {
  line-height: 1.5em;
 }
+#bw-search-box form {
+ padding:0;
+ margin-bottom:20px;
+}
+#bw-search-box h3 {
+  color: gray;
+  font-weight: normal;
+  padding:0;
+  margin:0;
+  margin-bottom:2px;
+  font-size: 12px;
+} 
+#bw-search-box input {
+ padding:0;
+ margin:0;
+ width: 140px;
+}

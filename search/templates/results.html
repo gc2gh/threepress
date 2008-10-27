@@ -10,15 +10,41 @@
 <div id="bw-content">
   
   {% if results %}
+  <p class="bw-search-results-info">{{ total_results }} result{{ page_size|pluralize}} found for 
+  &lsquo;{{ term }}&rsquo; in your library. Results are returned
+  starting from the most relevant.</p>
+  {% if multiple_pages %}
+    <p class="bw-search-results-listed">Showing result{{ page_size|pluralize}} {{ start }} &mdash; {{ end }}</p>
+  {% endif %}
+
     <ol id="bw-search-results">
       {% for result in results %}
-      <li><span class="bw-search-results-title"><a href="{{ result.url }}">{{ result.chapter_title }}</a></span>
-      ~ <span class="bw-search-results-book-title">{{ result.title }}</span>
-      <div class="bw-search-results-fragment">... {{ result.result_fragment|safe }} ...</div>
+      <li><a href="{{ result.url }}"><span class="bw-search-results-book-title">{{ result.title }}</span> ~ <span class="bw-search-results-title">{{ result.chapter_title }}</span></a>
+      {% if result.author %}
+        <div class="bw-search-results-author">by {{ result.author }}</div>
+      {% endif %}
+      {% if result.result_fragment %}
+        <div class="bw-search-results-fragment">... {{ result.result_fragment|safe }} ...</div>
+      {% endif %}
       </li>
       {% endfor %}
     </ol>
+
+
+
+  {% if multiple_pages %}
+  <div class="bw-search-results-nav">
+    <div class="bw-search-previous">{% if show_previous %} <a href="/search?search={{ search }}&amp;start={{ previous_start }}&amp;end={{ previous_end }}">← previous</a> {% endif %} </div>
+    <div class="bw-search-next">
+    {% if show_next %} <a href="{% url search %}?q={{ term }}&amp;start={{ next_start }}&amp;end={{ next_end }}">next →</a> {% endif %} 
+    </div>
+  </div>
   {% endif %}
 
+  {% else %}
+    <h2>No results were found</h2>
+    <p>No results were found for your search.</p>
+  {% endif %}
+ 
 </div>
 {% endblock %}

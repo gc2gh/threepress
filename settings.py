@@ -57,7 +57,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.request",
     "bookworm.library.context_processors.nav",
     "bookworm.library.context_processors.profile",
-    "bookworm.library.context_processors.mobile"
+    "bookworm.library.context_processors.mobile",
+    "bookworm.search.context_processors.search"
 ) 
 
 MIDDLEWARE_CLASSES = (

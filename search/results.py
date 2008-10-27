@@ -22,7 +22,7 @@ stemmer = xapian.Stem("english")
 indexer.set_stemmer(stemmer)
 
 
-def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE, sort='ordinal'):
+def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE, sort=constants.SORT_RELEVANCE):
     database = index.get_database(username, book_id)
 
     # Start an enquire session.
@@ -45,27 +45,15 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     matches = enquire.get_mset(set_start, end, 101)
 
     # Display the results.
-    estimate = matches.get_matches_estimated()
+    page_size = matches.size()
+    total_results = matches.get_matches_estimated()
 
-    size = matches.size()
-    if size < end - start:
-        end = start + size
-    next_end = end + constants.RESULTS_PAGESIZE
-
-    show_previous = True if start != 1 else False
-    show_next = True if end < estimate else False
-    
-    next_start = start + constants.RESULTS_PAGESIZE
-
-    previous_start = start - constants.RESULTS_PAGESIZE
-    previous_end = previous_start + constants.RESULTS_PAGESIZE
-
-    results = [Result(match.docid, match.document) for match in matches]
+    results = [Result(match.docid, match.document, term, total_results, page_size) for match in matches]
     for r in results:
         words = []
         terms = set(enquire.matching_terms(r.xapian_id))
         for word in r.xapian_document.get_data().split(" "):
-            term = word.replace('?', '').replace('"', '').replace('.', '').replace(',', '')
+            term = word.replace('?', '').replace('"', '').replace('.', '').replace(',', '').replace('-', ' ')
             term = term.lower()
             if "Z%s" % stemmer(term) in terms or term in terms:
                 word = '<%s class="%s">%s</span>' % (constants.RESULT_ELEMENT, constants.RESULT_ELEMENT_CLASS, word)
@@ -77,11 +65,14 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
 
 class Result(object):
     highlighted_content = None
-    def __init__(self, xapian_id, xapian_document):
+    def __init__(self, xapian_id, xapian_document, term, total_results, page_size):
         self.xapian_id = xapian_id
         self.xapian_document = xapian_document
+        self.term = term
         self.parsed_content = None
         self.highlighted_content = None
+        self.total_results = total_results
+        self.page_size = page_size
 
     @property
     def id(self):
@@ -100,6 +91,10 @@ class Result(object):
         return self.xapian_document.get_value(constants.SEARCH_CHAPTER_TITLE)
 
     @property
+    def author(self):
+        return self.xapian_document.get_value(constants.SEARCH_AUTHOR_NAME)
+
+    @property
     def namespace(self):
         ns = self.xapian_document.get_value(constants.SEARCH_NAMESPACE)
         if ns:
@@ -116,7 +111,12 @@ class Result(object):
 
     @property
     def result_fragment(self):
-        match = self.parsed_content.xpath("(//%s%s[@class='%s'])[1]" % (self.namespace, constants.RESULT_ELEMENT, constants.RESULT_ELEMENT_CLASS))[0]
+        match_expression = self.parsed_content.xpath("(//%s%s[@class='%s'])[1]" % (self.namespace, constants.RESULT_ELEMENT, constants.RESULT_ELEMENT_CLASS))
+        if len(match_expression) == 0:
+            # We didn't find a match; for now don't show captioning
+            # fixme later to improve term matching
+            return None
+        match = match_expression[0]
         out = []
         text_preceding = match.xpath('preceding::text()[1]')
         if len(text_preceding) > 0:

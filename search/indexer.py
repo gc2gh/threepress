@@ -13,7 +13,7 @@ stemmer = xapian.Stem("english")
 indexer.set_stemmer(stemmer)
 
 
-def create_search_document(book_id, book_title, content, chapter_id, chapter_title='Untitled chapter', ns=''):
+def create_search_document(book_id, book_title, content, chapter_id, chapter_title='Untitled chapter', ns='', author_name=''):
     doc = xapian.Document()
     doc.set_data(content)
     doc.add_value(constants.SEARCH_BOOK_ID, unicode(book_id))
@@ -21,6 +21,8 @@ def create_search_document(book_id, book_title, content, chapter_id, chapter_tit
     doc.add_value(constants.SEARCH_CHAPTER_ID, unicode(chapter_id))
     doc.add_value(constants.SEARCH_CHAPTER_TITLE, unicode(chapter_title))
     doc.add_value(constants.SEARCH_NAMESPACE, ns)
+    doc.add_value(constants.SEARCH_AUTHOR_NAME, unicode(author_name))
+
     return doc
 
 def add_search_document(database, doc):
