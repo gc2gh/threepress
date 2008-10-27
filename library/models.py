@@ -76,6 +76,9 @@ class EpubArchive(BookwormModel):
     has_stylesheets = models.BooleanField(default=False)
     last_chapter_read = models.ForeignKey('HTMLFile', null=True)
 
+    # Has this epub been indexed for search?
+    indexed = models.BooleanField(default=False)
+
     _CONTAINER = constants.CONTAINER     
     _parsed_metadata = None
     _parsed_toc = None

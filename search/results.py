@@ -1,4 +1,6 @@
 import os, logging, os.path, shutil
+from lxml.html import soupparser
+from lxml import etree
 import xapian
 
 from django.core.management import setup_environ
@@ -66,10 +68,10 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
             term = word.replace('?', '').replace('"', '').replace('.', '').replace(',', '')
             term = term.lower()
             if "Z%s" % stemmer(term) in terms or term in terms:
-                word = '<span class="match">%s</span>' % word
+                word = '<%s class="%s">%s</span>' % (constants.RESULT_ELEMENT, constants.RESULT_ELEMENT_CLASS, word)
             words.append(word)
         
-        r.highlighted_content = ' '.join(words)
+        r.set_content(' '.join(words))
     return results
 
 
@@ -78,6 +80,8 @@ class Result(object):
     def __init__(self, xapian_id, xapian_document):
         self.xapian_id = xapian_id
         self.xapian_document = xapian_document
+        self.parsed_content = None
+        self.highlighted_content = None
 
     @property
     def id(self):
@@ -96,5 +100,46 @@ class Result(object):
         return self.xapian_document.get_value(constants.SEARCH_CHAPTER_TITLE)
 
     @property
+    def namespace(self):
+        ns = self.xapian_document.get_value(constants.SEARCH_NAMESPACE)
+        if ns:
+            ns = '{%s}' % ns
+        return ns
+
+    @property
     def url(self):
         return reverse('view_chapter', args=[urlquote_plus(self.title), str(self.id), str(self.chapter_id)])
+
+    def set_content(self, content):
+        self.highlighted_content = content
+        self.parsed_content = soupparser.fromstring(content)
+
+    @property
+    def result_fragment(self):
+        match = self.parsed_content.xpath("(//%s%s[@class='%s'])[1]" % (self.namespace, constants.RESULT_ELEMENT, constants.RESULT_ELEMENT_CLASS))[0]
+        out = []
+        text_preceding = match.xpath('preceding::text()[1]')
+        if len(text_preceding) > 0:
+            preceding = text_preceding[0].split(' ')
+            preceding.reverse()
+            length = constants.RESULT_WORD_BREAKS if len(preceding) > constants.RESULT_WORD_BREAKS else len(preceding)
+            temp = []
+            for word in preceding[0:length]:
+                temp.append(word)
+            temp.reverse()
+            for word in temp:
+                out.append(word)
+        out.append('<%s class="%s">%s</span>' % (constants.RESULT_ELEMENT,
+                                                 constants.RESULT_ELEMENT_CLASS,
+                                                 match.text))
+
+        text_following = match.xpath('following::text()[1]')
+        if len(text_following) > 0:
+            following = text_following[0].split(' ')
+            length = constants.RESULT_WORD_BREAKS if len(following) > constants.RESULT_WORD_BREAKS else len(following)
+            for word in following[0:length]:
+                out.append(word)
+        return ' '.join(out)
+
+
+

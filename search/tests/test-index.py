@@ -107,9 +107,13 @@ class TestEpubIndex(object):
     def test_index_epub(self):
         epub_id = create_document()
         epub = EpubArchive.objects.get(id=epub_id)
+        assert_false(epub.indexed)
         chapter = HTMLFile.objects.get(archive=epub)
         epubindexer.index_epub(username, epub, chapter)
 
+        epub = EpubArchive.objects.get(id=epub_id)
+        assert_true(epub.indexed)
+        
     def test_user_library(self):
         username1 = 'test_user_library'
         indexer.create_user_database(username)
@@ -140,7 +144,7 @@ class TestEpubSearch(object):
         assert_true(len(res) == 1)
         content = ''.join([r.highlighted_content for r in res])
         assert_true('content' in content)
-        assert_true('class="match"' in content)
+        assert_true('class="bw-match"' in content)
         assert_false('foobar' in content)
 
     def test_result_object(self):

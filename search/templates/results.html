@@ -1,12 +1,21 @@
 {% extends "base.html" %}
 
+{% block title %}Search results{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="/static/results.css"></link>
+{% endblock head %}
+
 {% block main %}
 <div id="bw-content">
   
   {% if results %}
-    <ol>
+    <ol id="bw-search-results">
       {% for result in results %}
-      <li><a href="{{ result.url }}">{{ result.chapter_title }}</a></li>
+      <li><span class="bw-search-results-title"><a href="{{ result.url }}">{{ result.chapter_title }}</a></span>
+      ~ <span class="bw-search-results-book-title">{{ result.title }}</span>
+      <div class="bw-search-results-fragment">... {{ result.result_fragment|safe }} ...</div>
+      </li>
       {% endfor %}
     </ol>
   {% endif %}

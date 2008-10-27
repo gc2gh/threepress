@@ -6,6 +6,7 @@ setup_environ(bookworm.settings)
  
 import bookworm.search.indexer as indexer
 import bookworm.library.models as models
+import bookworm.search.constants as constants
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger('epubindexerer')
@@ -42,7 +43,7 @@ def index_epub(username, epub, chapter=None):
     for index, c in enumerate(chapters):
         content = c.render()
         clean_content = get_searchable_content(content)
-
+        
         chapter_title = c.title if c.title is not None and c.title is not u'' else 'Chapter %d' % index
         doc = indexer.create_search_document(book_id, book_title, clean_content,
                                            c.filename, chapter_title)
@@ -50,18 +51,26 @@ def index_epub(username, epub, chapter=None):
 
         indexer.add_search_document(database, doc)
         indexer.add_search_document(user_database, doc)
+    epub.indexed = True
+    epub.save()
 
 def get_searchable_content(content):
     '''Returns the content of a chapter as a searchable field'''
     html = fromstring(content)
-    temp_para = [ p.xpath('.//text()') for p in html.iter(tag='{http://www.w3.org/1999/xhtml}p')]
-
-    if len(temp_para) == 0 or None in temp_para:
+    ns = get_namespace(content)
+    if ns is not None:
+        temp_para = [ p.xpath('.//text()') for p in html.iter(tag='{%s}p' % ns)]
+    else:
         temp_para = [ p.xpath('.//text()') for p in html.iter(tag='p')]
     paragraphs = []
     for p in temp_para:
         paragraphs.append(' '.join([i.strip().replace('\n',' ') for i in p]))
     return '\n'.join(paragraphs)
 
-                                     
+def get_namespace(content):
+    '''Determines whether this content has a namespace or not'''
+    html = fromstring(content)
+    if html.find('{%s}p' % constants.XHTML_NS) is not None:
+        return constants.XHTML_NS
+    return None
     
