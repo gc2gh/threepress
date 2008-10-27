@@ -111,6 +111,15 @@ class TestEpubIndex(object):
         chapter = HTMLFile.objects.get(archive=epub)
         epubindexer.index_epub(username, epub, chapter)
 
+    def test_user_library(self):
+        username1 = 'test_user_library'
+        user = User(username=username1)
+        user.save()
+        create_document(title='test1', username=username1)        
+        create_document(title='test2', username=username1)                
+        create_document(title='test3', username=username1)         
+        num_indexed = epubindexer.index_user_library(user)
+        assert_equals(3, num_indexed)
 
 class TestEpubSearch(object):
     def setup(self):
@@ -161,7 +170,7 @@ class TestEpubSearch(object):
         
         res = results.search('the', username)
         assert_equals(len(res), 2)
-
+        
         res = results.search('Kitty', username)
         assert_equals(len(res), 1)
 
@@ -174,8 +183,9 @@ def create_user(username=username):
 
 def create_document(title='test', 
                     content='<p>This is some content</p>',
-                    chapter_title='Chapter 1'):
-    user = create_user()
+                    chapter_title='Chapter 1',
+                    username='test'):
+    user = create_user(username)
     epub = EpubArchive(title=title,
                        owner=user)
     epub.save()

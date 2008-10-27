@@ -23,8 +23,8 @@ urlpatterns = patterns('',
                        # Library
                        (r'^', include('bookworm.library.urls')),
                        
-#                       # Search 
-#                       (r'^search/', include('bookworm.search.urls')),
+                       # Search 
+                       (r'^search/', include('bookworm.search.urls')),
                        )
 
 

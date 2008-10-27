@@ -13,6 +13,15 @@ import bookworm.library.models as models
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger('epubindexer')
 
+def index_user_library(user):
+    '''Index all of the books in a user's library. Returns the
+    number of books indexed.'''
+    books = models.EpubArchive.objects.filter(owner=user)
+    for b in books:
+        index_epub(user.username, b)
+    return len(books)
+    
+
 
 def index_epub(username, epub, chapter=None):
     '''Index parts of an epub book as a searchable document.
@@ -22,18 +31,21 @@ def index_epub(username, epub, chapter=None):
     book_title = epub.title
     chapters = []
     if chapter is None:
-        chapters = [c for c in models.HTMLFile.filter(archive=epub)]
+        chapters = [c for c in models.HTMLFile.objects.filter(archive=epub)]
     if chapter is not None:
         chapters.append(chapter)
+
+    database = index.create_book_database(username, book_id)
+    user_database = index.create_user_database(username)
+
     for c in chapters:
         content = c.render()
         clean_content = get_searchable_content(content)
         doc = index.create_search_document(book_id, book_title, clean_content,
                                            c.id, c.title)
         index.index_search_document(doc, clean_content)
-        database = index.create_book_database(username, book_id)
+
         index.add_search_document(database, doc)
-        user_database = index.create_user_database(username)
         index.add_search_document(user_database, doc)
 
 def get_searchable_content(content):

@@ -84,7 +84,7 @@ TEMPLATE_DIRS = (
     '%s/library/templates/auth' % ROOT_PATH,    
     '%s/library/templates' % ROOT_PATH,
     '%s/library/templates/includes' % ROOT_PATH,    
-
+    '%s/search/templates' % ROOT_PATH,    
 )
 
 INSTALLED_APPS = (

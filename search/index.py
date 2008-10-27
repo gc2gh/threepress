@@ -32,7 +32,6 @@ def index_search_document(doc, content):
 def create_user_database(username):
     '''Create a database that will hold all of the search content for an entire user'''
     user_db = get_user_database_path(username)
-    log.debug("Creating user database at '%s'" % user_db)
     return xapian.WritableDatabase(user_db, xapian.DB_CREATE_OR_OPEN)
 
 def delete_user_database(username):
