@@ -1,7 +1,12 @@
 import os, logging, os.path, shutil
 import xapian
+
 from django.core.management import setup_environ
 import bookworm.settings
+from django.core.urlresolvers import reverse
+
+from django.utils.http import urlquote_plus
+
 import bookworm.search.constants as constants
 from bookworm.search import index
 
@@ -68,7 +73,7 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     return results
 
 
-class Result:
+class Result(object):
     highlighted_content = None
     def __init__(self, xapian_id, xapian_document):
         self.xapian_id = xapian_id
@@ -90,3 +95,6 @@ class Result:
     def chapter_title(self):
         return self.xapian_document.get_value(constants.SEARCH_CHAPTER_TITLE)
 
+    @property
+    def url(self):
+        return reverse('view_chapter', args=[urlquote_plus(self.title), str(self.id), str(self.chapter_id)])

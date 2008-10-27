@@ -13,6 +13,12 @@ log = logging.getLogger('epubindexerer')
 def index_user_library(user):
     '''Indexer all of the books in a user's library. Returns the
     number of books indexered.'''
+    try:
+        indexer.delete_user_database(user.username)
+    except indexer.IndexingError:
+        log.warn("Existing user database for user %s wasn't there; ignoring" % (user.username))
+
+    indexer.create_user_database(user.username)    
     books = models.EpubArchive.objects.filter(owner=user)
     for b in books:
         index_epub(user.username, b)
@@ -33,11 +39,13 @@ def index_epub(username, epub, chapter=None):
     database = indexer.create_book_database(username, book_id)
     user_database = indexer.create_user_database(username)
 
-    for c in chapters:
+    for index, c in enumerate(chapters):
         content = c.render()
         clean_content = get_searchable_content(content)
+
+        chapter_title = c.title if c.title is not None and c.title is not u'' else 'Chapter %d' % index
         doc = indexer.create_search_document(book_id, book_title, clean_content,
-                                           c.id, c.title)
+                                           c.filename, chapter_title)
         indexer.index_search_document(doc, clean_content)
 
         indexer.add_search_document(database, doc)

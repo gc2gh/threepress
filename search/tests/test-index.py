@@ -112,6 +112,7 @@ class TestEpubIndex(object):
 
     def test_user_library(self):
         username1 = 'test_user_library'
+        indexer.create_user_database(username)
         user = User(username=username1)
         user.save()
         create_document(title='test1', username=username1)        

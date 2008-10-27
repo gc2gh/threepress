@@ -13,7 +13,7 @@ stemmer = xapian.Stem("english")
 indexer.set_stemmer(stemmer)
 
 
-def create_search_document(book_id, book_title, content, chapter_id, chapter_title=''):
+def create_search_document(book_id, book_title, content, chapter_id, chapter_title='Untitled chapter'):
     doc = xapian.Document()
     doc.set_data(content)
     doc.add_value(constants.SEARCH_BOOK_ID, unicode(book_id))
@@ -37,7 +37,10 @@ def create_user_database(username):
 def delete_user_database(username):
     user_db = get_user_database_path(username)
     log.warn("Deleting user database at '%s'" % user_db)
-    shutil.rmtree(user_db)
+    try:
+        shutil.rmtree(user_db)
+    except OSError,e:
+        raise IndexingError(e)
 
 def create_book_database(username, book_id):
     create_user_database(username)
@@ -66,3 +69,6 @@ def get_book_database_path(username, book_id):
     user_db = get_user_database_path(username)
     book_db = os.path.join(user_db, str(book_id))
     return book_db
+
+class IndexingError(Exception):
+    pass
