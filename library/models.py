@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from lxml import etree as ET
-from lxml.etree import XMLSyntaxError
 import lxml.html
 from zipfile import ZipFile
 from StringIO import StringIO
@@ -12,7 +11,6 @@ import cssutils
 
 from django.utils.http import urlquote_plus
 from django.db import models
-from django.db.models import permalink
 from django.contrib.auth.models import User
 from django.utils.encoding import smart_str
 

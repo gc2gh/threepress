@@ -1,4 +1,5 @@
-from lxml import etree
+import lxml
+from lxml.html.soupparser import fromstring
 import os, sys, logging, subprocess, os.path, shutil
 import xapian
 from django.core.management import setup_environ
@@ -12,3 +13,38 @@ import bookworm.library.models as models
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger('epubindexer')
 
+
+def index_epub(username, epub, chapter=None):
+    '''Index parts of an epub book as a searchable document.
+    If an HTMLFile object is passed, index only that chapter;
+    otherwise index all chapters.'''
+    book_id = epub.id
+    book_title = epub.title
+    chapters = []
+    if chapter is None:
+        chapters = [c for c in models.HTMLFile.filter(archive=epub)]
+    if chapter is not None:
+        chapters.append(chapter)
+    for c in chapters:
+        content = c.render()
+        clean_content = get_searchable_content(content)
+        doc = index.create_search_document(book_id, book_title, clean_content,
+                                           c.id, c.title)
+        index.index_search_document(doc, clean_content)
+        database = index.create_book_database(username, book_id)
+        index.add_search_document(database, doc)
+
+def get_searchable_content(content):
+    '''Returns the content of a chapter as a searchable field'''
+    html = fromstring(content)
+    temp_para = [ p.xpath('.//text()') for p in html.iter(tag='{http://www.w3.org/1999/xhtml}p')]
+
+    if len(temp_para) == 0 or None in temp_para:
+        temp_para = [ p.xpath('.//text()') for p in html.iter(tag='p')]
+    paragraphs = []
+    for p in temp_para:
+        paragraphs.append(''.join([i.strip().replace('\n','') for i in p]))
+    return '\n'.join(paragraphs)
+
+                                     
+    

@@ -1,17 +1,28 @@
 from nose.tools import with_setup, assert_not_equals, assert_true, assert_equals, assert_false
-import shutil, os.path
+import shutil, os.path, logging
+
 from django.core.management import setup_environ
 import bookworm.settings
 setup_environ(bookworm.settings)
-from bookworm.search import index, epubindexer, constants
+
+from django.contrib.auth.models import User
+
+from bookworm.search import index, epubindexer, constants, search
+from bookworm.library.models import EpubArchive, HTMLFile
 
 bookworm.settings.SEARCH_ROOT = os.path.join(bookworm.settings.ROOT_PATH, 'search', 'tests', 'dbs')
+
+log = logging.getLogger('search.test-index')
 
 username = 'testuser'
 book_name = 'book'
 
+test_data_dir = os.path.join(bookworm.settings.ROOT_PATH, 'search', 'tests', 'test-data')
+
 def setup(self):
     pass
+
+
 
 def teardown(self):
     if os.path.exists(bookworm.settings.SEARCH_ROOT):
@@ -60,4 +71,51 @@ class TestIndex(object):
         index.add_search_document(db, doc)
         
 class TestEpubIndex(object):
-    pass
+
+    def test_get_searchable_content(self):
+        f = open(os.path.join(test_data_dir, 'valid-xhtml.html')).read()
+        paras = epubindexer.get_searchable_content(f)
+        assert_not_equals(None, paras)
+        assert_true(len(paras) > 0)
+        assert_true('humane' in paras)
+        assert_false('<p' in paras)
+
+    def test_index_epub(self):
+        epub_id = create_document()
+        epub = EpubArchive.objects.get(id=epub_id)
+        chapter = HTMLFile.objects.get(archive=epub)
+        epubindexer.index_epub(username, epub, chapter)
+
+
+class TestEpubSearch(object):
+    def test_search(self):
+        epub_id = create_document()
+        epub = EpubArchive.objects.get(id=epub_id)
+        chapter = HTMLFile.objects.get(archive=epub)
+        epubindexer.index_epub(username, epub, chapter)
+        results = search.search('content', username, book=epub)
+        assert_not_equals(None, results)
+        assert_true(len(results) > 0)
+        content = ''.join([r.highlighted_content for r in results])
+        assert_true('content' in content)
+        assert_true('class="match"' in content)
+        assert_false('foobar' in content)
+
+def create_user(username=username):
+    user = User.objects.get_or_create(username=username)[0]
+    user.save()
+    return user
+
+def create_document(title='test', 
+                    content='<p>This is some content</p>',
+                    chapter_title='Chapter 1'):
+    user = create_user()
+    epub = EpubArchive(title=title,
+                       owner=user)
+    epub.save()
+    html = HTMLFile(processed_content=content,
+                    archive=epub,
+                    title=chapter_title)
+    html.save()
+    return epub.id
+        
