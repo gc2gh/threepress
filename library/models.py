@@ -81,7 +81,7 @@ class EpubArchive(BookwormModel):
 
     # Metadata fields
     language = models.CharField(max_length=255, default='', db_index=True)
-    rights = models.CharField(max_length=255, default='', db_index=True)
+    rights = models.CharField(max_length=300, default='', db_index=True)
     identifier = models.CharField(max_length=255, default='', db_index=True)
     
     # MTM fields
@@ -124,7 +124,7 @@ class EpubArchive(BookwormModel):
             super(EpubArchive, self).delete()
         except blob.DoesNotExist:
             log.error('Could not find associated epubblob, maybe deleted from file system?')
-            
+            super(EpubArchive, self).delete()            
 
 
     def set_content(self, c):
@@ -158,9 +158,10 @@ class EpubArchive(BookwormModel):
         text = []
         alltext = self._parsed_metadata.findall('.//{%s}%s' % (NS['dc'], metadata_tag))
         if as_string:
-            return ', '.join([t.text for t in alltext])
+            return ', '.join([t.text.strip() for t in alltext if t.text])
         for t in alltext:
-            text.append(t.text)
+            if t.text is not None:
+                text.append(t.text)
         if len(text) == 1:
             t = (text[0], ) if plural else text[0]
             return t
@@ -171,13 +172,13 @@ class EpubArchive(BookwormModel):
         if self.subjects.count() > 0:
             return self.subjects
         value = self._get_metadata(constants.DC_SUBJECT_TAG, self.opf, plural=True)
-        if hasattr(value, '__iter__'):
-            for s in value:
-                subject = Subject.objects.get_or_create(name=s)[0]
-                subject.save()
-                self.subjects.add(subject)
-        else:
-            subject = Subject.objects.get_or_create(name=value)[0]
+        for s in value:        
+            is_lcsh = False
+            if 'lcsh' or 'lcss' in s:
+                s = s.replace('lcsh:', '').replace('lcsh', '').replace('lcc', '')
+                is_lcsh=True
+            subject = Subject.objects.get_or_create(name=s)[0]
+            subject.is_lcsh=is_lcsh
             subject.save()
             self.subjects.add(subject)
         self.save()
@@ -186,7 +187,9 @@ class EpubArchive(BookwormModel):
     def get_rights(self):
         if self.rights is not u'':
             return self.rights
-        self.rights = self._get_metadata(constants.DC_RIGHTS_TAG, self.opf, as_string=True)
+        rights = self._get_metadata(constants.DC_RIGHTS_TAG, self.opf, as_string=True)
+        print rights
+        self.rights = rights
         self.save()
         return self.rights
 
@@ -198,21 +201,16 @@ class EpubArchive(BookwormModel):
         return self.language
 
     def get_publisher(self):
-        if self.publishers.count() > 0:
-            return self.publishers
-        value = self._get_metadata(constants.DC_PUBLISHER_TAG, self.opf)
+#        if self.publishers.count() > 0:
+#            return self.publishers
+        value = self._get_metadata(constants.DC_PUBLISHER_TAG, self.opf, plural=True)
+        print value
         if not value:
             return None
-        if hasattr(value, '__iter__'):
-            for s in value:
-                publisher = EpubPublisher.objects.get_or_create(name=s)[0]
-                publisher.save()
-                self.publishers.add(publisher)
-        else:
-            publisher = EpubPublisher.objects.get_or_create(name=value)[0]
+        for s in value:
+            publisher = EpubPublisher.objects.get_or_create(name=s)[0]
             publisher.save()
             self.publishers.add(publisher)
-
         self.save()
         return self.publishers
 
@@ -530,11 +528,16 @@ class BookwormFile(BookwormModel):
 
 class Subject(BookwormModel):
     '''Represents a DC:Subject value'''
-    name = models.CharField(max_length=255, default='',  db_index=True)
-
+    name = models.CharField(max_length=255, unique=True, default='', db_index=True)
+    is_lcsh = models.BooleanField(default=False)
+    def __unicode__(self):
+        return self.name
+        
 class EpubPublisher(BookwormModel):
     '''Represents a publisher'''
     name = models.CharField(max_length=255, default='', db_index=True)
+    def __unicode__(self):
+        return self.name
     
 class HTMLFile(BookwormFile):
     '''Usually an individual page in the ebook'''
@@ -784,7 +787,7 @@ class BinaryBlob(BookwormFile):
         storage = self._get_storage()
         f = self._get_file()
         if not os.path.exists(f.encode('utf8')):
-            log.warn('Tried to delete non-existent file %s in %s' % (self.filename, storage))         
+            log.warn(u'Tried to delete non-existent file %s in %s' % (self.filename, storage))         
         else:
             os.remove(f)
         super(BinaryBlob, self).delete()
@@ -793,7 +796,7 @@ class BinaryBlob(BookwormFile):
         '''Return the data for this file, as a string of bytes (output from read())'''
         f = self._get_file()
         if not os.path.exists(f.encode('utf8')):
-            log.warn("Tried to open file %s but it wasn't there (storage dir %s)" % (f, self._get_storage()))
+            log.warn(u"Tried to open file %s but it wasn't there (storage dir %s)" % (f, self._get_storage()))
             return None
         return open(f.encode('utf8')).read()
 
@@ -801,21 +804,21 @@ class BinaryBlob(BookwormFile):
         return u'storage'
 
     def _get_storage_dir(self):
-        return u'%s/%s' % (os.path.dirname(__file__), self._get_pathname())   
+        return os.path.join(unicode(os.path.dirname(__file__)), self._get_pathname())   
 
 
     def _get_file(self):
         storage = self._get_storage()
         if not os.path.exists(storage):
             storage = self._get_storage_deprecated()
-        return u'%s/%s' % (storage.encode('utf8'), self.filename)
+        return os.path.join(storage, self.filename)
 
     def _get_storage(self):
-        return u'%s/%s' % (self._get_storage_dir(), self.archive.id)
+        return os.path.join(self._get_storage_dir(), unicode(self.archive.id))
 
     def _get_storage_deprecated(self):
         log.warn('Using old method of file retrieval; this should be removed!')
-        return u'%s/%s' % (self._get_storage_dir(), self.archive.name)
+        return os.path.join(self._get_storage_dir(), self.archive.name)
 
     class Meta:
         abstract = True

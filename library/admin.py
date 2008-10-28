@@ -1,9 +1,9 @@
 from django.contrib import admin
-from models import EpubArchive, BookAuthor,HTMLFile,StylesheetFile, ImageFile, UserPref
+from models import EpubArchive, BookAuthor,HTMLFile,StylesheetFile, ImageFile, UserPref, EpubPublisher, Subject
 
 
 class EpubArchiveAdmin(admin.ModelAdmin):
-    fields=('title','name','owner','orderable_author','toc', 'opf')
+    fields=('title','name','owner','orderable_author','toc', 'opf', 'created_time')
     list_filter=('orderable_author',)
     search_fields = ['title']
     ordering = ('title', '-created_time')
@@ -22,6 +22,12 @@ class StylesheetFileAdmin(admin.ModelAdmin):
 class ImageFileAdmin(admin.ModelAdmin):    
     fields=('filename','path', 'content_type')
 
+class EpubPublisherAdmin(admin.ModelAdmin):
+    pass
+
+class SubjectAdmin(admin.ModelAdmin):
+    pass
+
 class UserPrefAdmin(admin.ModelAdmin):
     pass
 
@@ -31,5 +37,6 @@ admin.site.register(HTMLFile, HTMLFileAdmin)
 admin.site.register(StylesheetFile, StylesheetFileAdmin)
 admin.site.register(ImageFile, ImageFileAdmin)
 admin.site.register(UserPref, UserPrefAdmin)
-
+admin.site.register(EpubPublisher, EpubPublisherAdmin)
+admin.site.register(Subject, SubjectAdmin)
 
