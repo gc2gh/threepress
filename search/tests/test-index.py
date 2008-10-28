@@ -125,6 +125,32 @@ class TestEpubIndex(object):
         num_indexed = epubindexer.index_user_library(user)
         assert_equals(3, num_indexed)
 
+    def test_get_stemmer(self):
+        lang = 'english'
+        stemmer = indexer.get_stemmer(lang)
+        assert_true('english' in stemmer.get_description())
+
+        lang = 'french'
+        stemmer = indexer.get_stemmer(lang)
+        assert_true('french' in stemmer.get_description())
+
+        lang = 'de'
+        stemmer = indexer.get_stemmer(lang)
+        assert_true('german' in stemmer.get_description())
+
+        lang = 'es-SP'
+        stemmer = indexer.get_stemmer(lang)
+        assert_true('spanish' in stemmer.get_description())
+
+        lang = 'es_SP'
+        stemmer = indexer.get_stemmer(lang)
+        assert_true('spanish' in stemmer.get_description())
+
+        # Unknown languages should stem to English
+        lang = 'unknown'
+        stemmer = indexer.get_stemmer(lang)
+        assert_true('english' in stemmer.get_description())
+
 class TestEpubSearch(object):
     def setup(self):
         pass

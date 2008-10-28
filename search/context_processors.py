@@ -9,10 +9,8 @@ def count_books(user):
     return EpubArchive.objects.filter(owner=user).count()
  
 def search(request):
-
-    if count_books(request.user) > 0:
+    form = None
+    if (not request.user.is_anonymous) and count_books(request.user) > 0:
         form = EpubSearchForm()
-    else:
-        form = None
     return {'search_form': form }
     

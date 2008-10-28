@@ -79,6 +79,15 @@ class EpubArchive(BookwormModel):
     # Has this epub been indexed for search?
     indexed = models.BooleanField(default=False)
 
+    # Metadata fields
+    language = models.CharField(max_length=255, default='', db_index=True)
+    rights = models.CharField(max_length=255, default='', db_index=True)
+    identifier = models.CharField(max_length=255, default='', db_index=True)
+    
+    # MTM fields
+    subjects = models.ManyToManyField('Subject')
+    publishers = models.ManyToManyField('EpubPublisher')
+
     _CONTAINER = constants.CONTAINER     
     _parsed_metadata = None
     _parsed_toc = None
@@ -141,12 +150,15 @@ class EpubArchive(BookwormModel):
             return a[0].name
         return a[0].name + '...'
 
-    def _get_metadata(self, metadata_tag, opf, plural=False):
-        '''Returns a metdata item's text content by tag name, or a list if mulitple names match'''
+    def _get_metadata(self, metadata_tag, opf, plural=False, as_string=False):
+        '''Returns a metdata item's text content by tag name, or a list if mulitple names match.
+        If as_string is set to True, then always return a comma-delimited string.'''
         if self._parsed_metadata is None:
             self._parsed_metadata = util.xml_from_string(opf)
         text = []
         alltext = self._parsed_metadata.findall('.//{%s}%s' % (NS['dc'], metadata_tag))
+        if as_string:
+            return ', '.join([t.text for t in alltext])
         for t in alltext:
             text.append(t.text)
         if len(text) == 1:
@@ -154,21 +166,62 @@ class EpubArchive(BookwormModel):
             return t
         return text
 
+    # Deprecated; use model field
     def get_subjects(self):
-        return self._get_metadata(constants.DC_SUBJECT_TAG, self.opf, plural=True)
-    
+        if self.subjects.count() > 0:
+            return self.subjects
+        value = self._get_metadata(constants.DC_SUBJECT_TAG, self.opf, plural=True)
+        if hasattr(value, '__iter__'):
+            for s in value:
+                subject = Subject.objects.get_or_create(name=s)[0]
+                subject.save()
+                self.subjects.add(subject)
+        else:
+            subject = Subject.objects.get_or_create(name=value)[0]
+            subject.save()
+            self.subjects.add(subject)
+        self.save()
+        return self.subjects
+
     def get_rights(self):
-        return self._get_metadata(constants.DC_RIGHTS_TAG, self.opf)
+        if self.rights is not u'':
+            return self.rights
+        self.rights = self._get_metadata(constants.DC_RIGHTS_TAG, self.opf, as_string=True)
+        self.save()
+        return self.rights
 
     def get_language(self):
-        '''@todo expand into full form '''
-        return self._get_metadata(constants.DC_LANGUAGE_TAG, self.opf)        
+        if self.language is not u'':
+            return self.language
+        self.language = self._get_metadata(constants.DC_LANGUAGE_TAG, self.opf, as_string=True)        
+        self.save()
+        return self.language
 
     def get_publisher(self):
-        return self._get_metadata(constants.DC_PUBLISHER_TAG, self.opf)
+        if self.publishers.count() > 0:
+            return self.publishers
+        value = self._get_metadata(constants.DC_PUBLISHER_TAG, self.opf)
+        if not value:
+            return None
+        if hasattr(value, '__iter__'):
+            for s in value:
+                publisher = EpubPublisher.objects.get_or_create(name=s)[0]
+                publisher.save()
+                self.publishers.add(publisher)
+        else:
+            publisher = EpubPublisher.objects.get_or_create(name=value)[0]
+            publisher.save()
+            self.publishers.add(publisher)
+
+        self.save()
+        return self.publishers
 
     def get_identifier(self):
-        return self._get_metadata(constants.DC_IDENTIFIER_TAG, self.opf)
+        if self.identifier is not u'':
+            return self.identifier
+        self.identifier = self._get_metadata(constants.DC_IDENTIFIER_TAG, self.opf, as_string=True)
+        self.save()
+        return self.identifier
 
     def get_top_level_toc(self):
         t = self.get_toc()
@@ -475,6 +528,14 @@ class BookwormFile(BookwormModel):
     def __unicode__(self):
         return u"%s [%s]" % (self.filename, self.archive.title)
 
+class Subject(BookwormModel):
+    '''Represents a DC:Subject value'''
+    name = models.CharField(max_length=255, default='',  db_index=True)
+
+class EpubPublisher(BookwormModel):
+    '''Represents a publisher'''
+    name = models.CharField(max_length=255, default='', db_index=True)
+    
 class HTMLFile(BookwormFile):
     '''Usually an individual page in the ebook'''
     title = models.CharField(max_length=5000)

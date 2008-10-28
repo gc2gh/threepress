@@ -6,14 +6,9 @@ import bookworm.search.constants as constants
 setup_environ(bookworm.settings)
 
 logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger('index')
+log = logging.getLogger('search.indexer')
 
-indexer = xapian.TermGenerator()
-stemmer = xapian.Stem("english")
-indexer.set_stemmer(stemmer)
-
-
-def create_search_document(book_id, book_title, content, chapter_id, chapter_title='Untitled chapter', ns='', author_name=''):
+def create_search_document(book_id, book_title, content, chapter_id, chapter_title='Untitled chapter', ns='', author_name='', language='en'):
     doc = xapian.Document()
     doc.set_data(content)
     doc.add_value(constants.SEARCH_BOOK_ID, unicode(book_id))
@@ -22,16 +17,39 @@ def create_search_document(book_id, book_title, content, chapter_id, chapter_tit
     doc.add_value(constants.SEARCH_CHAPTER_TITLE, unicode(chapter_title))
     doc.add_value(constants.SEARCH_NAMESPACE, ns)
     doc.add_value(constants.SEARCH_AUTHOR_NAME, unicode(author_name))
-
+    doc.add_value(constants.SEARCH_LANGUAGE_VALUE, unicode(language))
     return doc
 
 def add_search_document(database, doc):
     database.add_document(doc)
 
 def index_search_document(doc, content):
+    indexer = xapian.TermGenerator()
+    stemmer = get_stemmer(doc.get_value(constants.SEARCH_LANGUAGE_VALUE))
+
+    indexer.set_stemmer(stemmer)
     indexer.set_document(doc)
     indexer.index_text(content)
 
+def get_stemmer(lang_value):
+    '''Converts from a variety of language values into a
+    supported stemmer'''
+    if '-' in lang_value:
+        # We only want the first part in a multi-value lang, e.g. 'en' in 
+        # 'en-US'
+        language = lang_value.split('-')[0]
+    elif '_' in lang_value:
+        language = lang_value.split('_')[0]
+    else:
+        language = lang_value
+    try:
+        stemmer = xapian.Stem(language)    
+    except xapian.InvalidArgumentError:
+        log.warn("Got unknown language value '%s'; going to default lang '%s'" % 
+                 (lang_value, constants.DEFAULT_LANGUAGE_VALUE))
+        stemmer = xapian.Stem(constants.DEFAULT_LANGUAGE_VALUE)
+    return stemmer
+    
 def create_user_database(username):
     '''Create a database that will hold all of the search content for an entire user'''
     user_db = get_user_database_path(username)

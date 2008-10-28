@@ -338,7 +338,7 @@ class TestModels(unittest.TestCase):
     def testMetadata(self):
         '''All metadata should be returned using the public methods'''
         opf_file = 'all-metadata.opf'
-        document = MockEpubArchive(name=opf_file)
+        document = MockEpubArchive(name=opf_file, owner=self.user)
         opf = _get_file(opf_file)
 
         self.assertEquals('en-US', document.get_metadata(DC_LANGUAGE_TAG, opf))
@@ -348,6 +348,34 @@ class TestModels(unittest.TestCase):
         self.assertEquals('Subject 1', document.get_metadata(DC_SUBJECT_TAG, opf)[0])
         self.assertEquals('Subject 2', document.get_metadata(DC_SUBJECT_TAG, opf)[1])
         self.assertEquals('Subject 3', document.get_metadata(DC_SUBJECT_TAG, opf)[2])
+
+        self.assertEquals('en-US', document.get_language())
+        self.assertEquals('Public Domain', document.get_rights())
+        self.assertEquals('threepress.org', document.get_publisher().all()[0].name)
+
+        document.get_subjects()
+
+        # Test new database methods
+        self.assertEquals('en-US', document.language)
+        self.assertEquals('Public Domain', document.rights)
+        self.assertEquals('threepress.org', document.publishers.all()[0].name)
+        self.assertEquals('Subject 1', document.subjects.get(name='Subject 1').name)
+        self.assertEquals('Subject 2', document.subjects.get(name='Subject 2').name)
+        self.assertEquals('Subject 3', document.subjects.get(name='Subject 3').name)
+    
+    def test_publishers(self):
+        name = 'Oxford University Press'
+        p = EpubPublisher.objects.get_or_create(name=name)[0]
+        p.save()
+        p2 = EpubPublisher.objects.get(name=name)
+        self.assertEquals(p2.name, name)
+
+    def test_subjects(self):
+        name = 'Health'
+        s = Subject.objects.get_or_create(name=name)[0]
+        s.save()
+        s2 = Subject.objects.get(name=name)
+        self.assertEquals(s2.name, name)
 
 
     def testInvalidXHTML(self):
