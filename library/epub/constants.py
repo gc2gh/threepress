@@ -25,4 +25,10 @@ DC_PUBLISHER_TAG = 'publisher'
 DC_IDENTIFIER_TAG = 'identifier'
 
 BW_BOOK_CLASS = '#bw-book-content'
-  
+
+# Types for various dc:identifiers  
+IDENTIFIER_URL = 'url'
+IDENTIFIER_ISBN = 'isbn'
+IDENTIFIER_UUID = 'uuid'
+IDENTIFIER_ISBN_MAYBE = 'isbn_maybe'
+IDENTIFIER_UNKNOWN = 'unknown'

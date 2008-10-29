@@ -3,7 +3,8 @@ from models import EpubArchive, BookAuthor,HTMLFile,StylesheetFile, ImageFile, U
 
 
 class EpubArchiveAdmin(admin.ModelAdmin):
-    fields=('title','name','owner','orderable_author','toc', 'opf', 'created_time')
+    fields=('title','name','owner','orderable_author','toc', 'opf', 'publishers', 'subjects', 'language', 'identifier', 'rights')
+    list_display=('title','created_time','identifier','orderable_author')
     list_filter=('orderable_author',)
     search_fields = ['title']
     ordering = ('title', '-created_time')
@@ -23,10 +24,10 @@ class ImageFileAdmin(admin.ModelAdmin):
     fields=('filename','path', 'content_type')
 
 class EpubPublisherAdmin(admin.ModelAdmin):
-    pass
+    ordering=('name',)
 
 class SubjectAdmin(admin.ModelAdmin):
-    pass
+    ordering=('name',)
 
 class UserPrefAdmin(admin.ModelAdmin):
     pass

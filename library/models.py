@@ -3,7 +3,7 @@ from lxml import etree as ET
 import lxml.html
 from zipfile import ZipFile
 from StringIO import StringIO
-import logging, datetime, sys, os, os.path
+import logging, datetime, sys, os, os.path, re
 from urllib import unquote_plus
 from xml.parsers.expat import ExpatError
 import cssutils
@@ -53,7 +53,7 @@ def get_file_by_item(item, document) :
     
 class BookwormModel(models.Model):
     '''Base class for all models'''
-    created_time = models.DateTimeField('date created', default=datetime.datetime.now())
+    created_time = models.DateTimeField('date created', auto_now_add=True)
 
     def key(self):
         '''Backwards compatibility with templates'''
@@ -74,6 +74,7 @@ class EpubArchive(BookwormModel):
     opf = models.TextField()
     toc = models.TextField()
     has_stylesheets = models.BooleanField(default=False)
+
     last_chapter_read = models.ForeignKey('HTMLFile', null=True)
 
     # Has this epub been indexed for search?
@@ -83,7 +84,7 @@ class EpubArchive(BookwormModel):
     language = models.CharField(max_length=255, default='', db_index=True)
     rights = models.CharField(max_length=300, default='', db_index=True)
     identifier = models.CharField(max_length=255, default='', db_index=True)
-    
+
     # MTM fields
     subjects = models.ManyToManyField('Subject')
     publishers = models.ManyToManyField('EpubPublisher')
@@ -188,7 +189,6 @@ class EpubArchive(BookwormModel):
         if self.rights is not u'':
             return self.rights
         rights = self._get_metadata(constants.DC_RIGHTS_TAG, self.opf, as_string=True)
-        print rights
         self.rights = rights
         self.save()
         return self.rights
@@ -201,10 +201,9 @@ class EpubArchive(BookwormModel):
         return self.language
 
     def get_publisher(self):
-#        if self.publishers.count() > 0:
-#            return self.publishers
+        if self.publishers.count() > 0:
+            return self.publishers
         value = self._get_metadata(constants.DC_PUBLISHER_TAG, self.opf, plural=True)
-        print value
         if not value:
             return None
         for s in value:
@@ -220,6 +219,22 @@ class EpubArchive(BookwormModel):
         self.identifier = self._get_metadata(constants.DC_IDENTIFIER_TAG, self.opf, as_string=True)
         self.save()
         return self.identifier
+
+    def identifier_type(self):
+        if 'isbn' in self.identifier:
+            return constants.IDENTIFIER_ISBN
+        if 'uuid' in self.identifier:
+            return constants.IDENTIFIER_UUID
+        if 'http' in self.identifier:
+            return constants.IDENTIFIER_URL
+        if len(self.identifier) == 9 or len(self.identifier) == 13:
+            try:
+                int(self.identifier)
+                return constants.IDENTIFIER_ISBN_MAYBE
+            except ValueError:
+                return constants.IDENTIFIER_UNKNOWN
+        return constants.IDENTIFIER_UNKNOWN
+
 
     def get_top_level_toc(self):
         t = self.get_toc()
@@ -842,3 +857,4 @@ class DRMEpubException(InvalidEpubException):
 order_fields = { 'title': 'book title',
                  'orderable_author': 'first author',
                  'created_time' : 'date added to your library' }
+
