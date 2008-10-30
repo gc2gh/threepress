@@ -77,40 +77,7 @@ class TestIndex(object):
         i = indexer.index_search_document(doc, data)
         indexer.add_to_index(i, 'this is more content', weight=2)
 
-    def test_add_to_search(self):
-        book_id = '99'
-        username2 = 'newuser'
-        data = 'Hello world.  This is test content.  Also other words.'
-        db = indexer.create_database(username2)
-        doc = indexer.create_search_document(book_id, 'hello', data, '2', 'this is a chapter_title')
-        i = indexer.index_search_document(doc, data)
 
-        # DB should be empty now
-        assert_equals(db.get_doccount(), 0)
-
-        # Add the document
-        indexer.add_search_document(db, doc)
-
-        # Make sure our document in there
-        assert_equals(db.get_doccount(), 1)
-
-        terms = [t.term for t in db.allterms()]
-        
-        # There should be twice as many terms in there -- stemmed and unstemmed forms
-        assert_true('test' in terms)
-
-#        res = results.search('test', username2)
-#        assert_equals(len(res), 1)
-
-        res = results.search('more', username2)
-        assert_equals(len(res), 0)
-
-        indexer.add_to_index(i, 'this is more content', weight=2)
-        res = results.search('more', username2)
-        assert_equals(len(res), 1)
-        res = results.search('some', username2)
-        assert_equals(len(res), 1)
-        
 class TestEpubIndex(object):
     def setup(self):
         pass
@@ -246,6 +213,36 @@ class TestEpubSearch(object):
         res = results.search('Kitty', username)
         assert_equals(len(res), 1)
 
+    def test_stemmed_search(self):
+        epub_id = create_document(content='<p>I like dogs</p>')
+        epub = EpubArchive.objects.get(id=epub_id)
+        epubindexer.index_epub(username, epub)
+        res = results.search('dogs', username)
+        assert_equals(len(res), 1)
+
+        res = results.search('dog', username)
+        assert_equals(len(res), 1)
+
+        res = results.search('dogz', username)
+        assert_equals(len(res), 0)
+
+        epub_id = create_document(content="<p>aimer</p>", language='fr')
+        epub = EpubArchive.objects.get(id=epub_id)
+        epubindexer.index_epub(username, epub)
+        res = results.search('aimer', username, language='fr')
+        assert_equals(len(res), 1)
+
+        res = results.search('aime', username, language='fr')
+        assert_equals(len(res), 1)
+
+        res = results.search('aimes', username, language='fr')
+        assert_equals(len(res), 1)
+
+        res = results.search('aimez', username, language='fr')
+        assert_equals(len(res), 1)
+
+        res = results.search('aimez', username, language='en')
+        assert_equals(len(res), 0)
 
 
 def create_user(username=username):
@@ -256,10 +253,12 @@ def create_user(username=username):
 def create_document(title='test', 
                     content='<p>This is some content</p>',
                     chapter_title='Chapter 1',
-                    username='test'):
+                    username='test',
+                    language='en'):
     user = create_user(username)
     epub = EpubArchive(title=title,
                        owner=user)
+    epub.language = language
     epub.save()
     html = HTMLFile(processed_content=content,
                     archive=epub,

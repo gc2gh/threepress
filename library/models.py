@@ -168,7 +168,6 @@ class EpubArchive(BookwormModel):
             return t
         return text
 
-    # Deprecated; use model field
     def get_subjects(self):
         if self.subjects.count() > 0:
             return self.subjects

@@ -40,13 +40,16 @@ def index_epub(username, epub, chapter=None):
     database = indexer.create_book_database(username, book_id)
     user_database = indexer.create_user_database(username)
 
+    language = epub.get_language()
+
     for index, c in enumerate(chapters):
         content = c.render()
         clean_content = get_searchable_content(content)
-        
+
         chapter_title = c.title if c.title is not None and c.title is not u'' else 'Chapter %d' % index
         doc = indexer.create_search_document(book_id, book_title, clean_content,
-                                           c.filename, chapter_title, author_name=epub.orderable_author)
+                                           c.filename, chapter_title, author_name=epub.orderable_author,
+                                             language=language)
         indexer.index_search_document(doc, clean_content)
 
         indexer.add_search_document(database, doc)

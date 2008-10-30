@@ -28,6 +28,7 @@ def index_search_document(doc, content, weight=1):
     run the index, and return the indexer'''
     indexer = xapian.TermGenerator()
     stemmer = get_stemmer(doc.get_value(constants.SEARCH_LANGUAGE_VALUE))
+    log.debug("Using stemmer %s" % stemmer.get_description())
 
     indexer.set_stemmer(stemmer)
     indexer.set_document(doc)

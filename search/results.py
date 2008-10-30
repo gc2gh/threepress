@@ -16,7 +16,7 @@ setup_environ(bookworm.settings)
 
 log = logging.getLogger('search.results')
 
-def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE, sort=constants.SORT_RELEVANCE):
+def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE, sort=constants.SORT_RELEVANCE, language='en'):
 
     database = indexer.get_database(username, book_id)
 
@@ -26,7 +26,9 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     # Parse the query string to produce a Xapian::Query object.
     qp = xapian.QueryParser()
     qp.set_database(database)
-    #qp.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
+    #log.debug([t.term for t in database.allterms()])
+    qp.set_stemmer(indexer.get_stemmer(language))
+    qp.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
     query = qp.parse_query(term)
     log.debug("Parsed query is: %s" % query.get_description())
 
