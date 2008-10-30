@@ -244,6 +244,28 @@ class TestEpubSearch(object):
         res = results.search('aimez', username, language='en')
         assert_equals(len(res), 0)
 
+    def test_stemmed_epub(self):
+        user = User.objects.get_or_create(username=username)[0]
+        user.save()
+        f = open(os.path.join(test_data_dir, 'french.epub')).read()
+        epub = EpubArchive(name='french.epub',
+                           owner=user)
+        epub.save()
+        epub.set_content(f)
+
+        epub.explode()
+        epubindexer.index_epub(username, epub)
+
+        res = results.search('parler', username, language='fr')
+        french_results = len(res)
+        assert_true(french_results > 0)
+
+        res = results.search('parler', username, language='en')
+        english_results = len(res)
+        assert_true(french_results > english_results)
+        
+        
+        
 
 def create_user(username=username):
     user = User.objects.get_or_create(username=username)[0]
