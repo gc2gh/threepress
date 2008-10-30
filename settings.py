@@ -64,6 +64,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.doc.XViewMiddleware',
     'django_authopenid.middleware.OpenIDMiddleware',
@@ -72,6 +73,23 @@ MIDDLEWARE_CLASSES = (
 #    'django.contrib.csrf.middleware.CsrfMiddleware'
     
 )
+
+# Only allow the list of languages available in Xapian
+LANGUAGES = ( ('da', 'Danish'), 
+              ('nl', 'Dutch'),
+              ('en', 'English'),
+              ('fi', 'Finnish'),
+              ('fr', 'French'),
+              ('de', 'German'),
+              ('hu', 'Hungarian'),
+              ('it', 'Italian'),
+              ('no', 'Norwegian'),
+              ('pt', 'Portuguese'),
+              ('ro', 'Romanian'),
+              ('ru', 'Russian'),
+              ('es', 'Spanish'),
+              ('sv', 'Swedish'),
+              ('tr', 'Turkish'))
 
 ROOT_URLCONF = 'urls'
 

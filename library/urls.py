@@ -40,7 +40,6 @@ urlpatterns = patterns('library.views',
                        # User profile
                        url(r'^account/profile/$', 'profile', name='profile'),
                        url(r'^account/profile/delete/$', 'profile_delete', name='profile_delete'),
-
 )
 
 urlpatterns += patterns('django.views.generic.simple',
@@ -56,4 +55,7 @@ urlpatterns += patterns('django.views.generic.simple',
                             {'template': 'help.html'}, name='help'),
                         url(r'^about/openid$', 'direct_to_template',
                             {'template': 'openid.html'}, name='openid'),
+                        url(r'^account/profile/language/$', 'direct_to_template',
+                           { 'template': 'auth/language.html'},
+                           name='profile_language'),
                         )

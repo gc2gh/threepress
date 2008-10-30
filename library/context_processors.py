@@ -19,6 +19,8 @@ def profile(request):
     userprefs = None
     try:
         userprefs = request.user.get_profile()
+        request.session[settings.LANGUAGE_COOKIE_NAME] = userprefs.language
+
     except AttributeError:
         # Occurs when this is called on an anonymous user; ignore
         pass
@@ -27,4 +29,5 @@ def profile(request):
         # Create a preference object for this user
         userprefs = UserPref(user=request.user)
         userprefs.save()
+
     return { 'profile': userprefs }

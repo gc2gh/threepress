@@ -16,7 +16,10 @@ urlpatterns = patterns('',
 
                        # Sitemaps
                        (r'^sitemap.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}),
-                       
+
+                       # Language setting
+                       (r'^i18n/', include('django.conf.urls.i18n')),
+
                        # Auth
                        (r'^account/', include('django_authopenid.urls')),                       
                        

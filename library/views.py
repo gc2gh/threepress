@@ -112,12 +112,18 @@ def profile(request):
             uprofile.fullname = sreg['fullname']
         if sreg.has_key('nickname'):
             uprofile.nickname = sreg['nickname']
-        if sreg.has_key('timezone'):
+
+        # These should only be updated if they haven't already been changed
+        if uprofile.timezone is None and sreg.has_key('timezone'):
             uprofile.timezone = sreg['timezone']
-        if sreg.has_key('language'):
+        if uprofile.language is None and sreg.has_key('language'):
             uprofile.language = sreg['language']
-        if sreg.has_key('country'):
+        if uprofile.country is None and sreg.has_key('country'):
             uprofile.country = sreg['country']
+        uprofile.save()
+    
+    if settings.LANGUAGE_COOKIE_NAME in request.session:
+        uprofile.language = request.session.get(settings.LANGUAGE_COOKIE_NAME)
         uprofile.save()
 
     if request.method == 'POST':
@@ -134,6 +140,7 @@ def profile(request):
     return direct_to_template(request,
                               'auth/profile.html', 
                               {'form':form, 'prefs':uprofile, 'message':message})
+
 
 @login_required
 def view(request, title, key, first=False, resume=False):
