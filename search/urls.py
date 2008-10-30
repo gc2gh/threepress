@@ -7,7 +7,7 @@ urlpatterns = patterns('search.views',
 
 urlpatterns += patterns('django.views.generic.simple',
                         url(r'^help$', 'direct_to_template',
-                            {'template': 'help.html'}, name='search_help'),
+                            {'template': 'search_help.html'}, name='search_help'),
                         url(r'^language$', 'direct_to_template',
                             {'template': 'languages.html'}, name='search_language'),
                         )

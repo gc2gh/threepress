@@ -95,8 +95,15 @@ def get_database(username, book_id=None):
     else:
         path = get_user_database_path(username)
     log.debug("Returning database at '%s'" % path)
-    return xapian.Database(path)
-        
+    try:
+        db = xapian.Database(path)
+    except xapian.DatabaseOpeningError:
+        # We should have a database, but we don't.  This will
+        # end up with no results, but create one anyway
+        # because that's better than an exception.
+        db = create_database(username, book_id)
+    return db
+
 def get_user_database_path(username):
     if not os.path.exists(bookworm.settings.SEARCH_ROOT):
         log.debug("Creating search root path at '%s'" % bookworm.settings.SEARCH_ROOT)

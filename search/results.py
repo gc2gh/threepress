@@ -26,6 +26,8 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     # Parse the query string to produce a Xapian::Query object.
     qp = xapian.QueryParser()
     qp.set_database(database)
+    qp.set_default_op(xapian.Query.OP_AND)
+
     #log.debug([t.term for t in database.allterms()])
     log.debug("Using language %s" % language)
     qp.set_stemmer(indexer.get_stemmer(language))

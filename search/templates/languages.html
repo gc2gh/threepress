@@ -39,7 +39,7 @@
   will be found.  This usually provides a more satisfying search experience.
 </p>
 <p>
-  <strong>Changing your search language will not affect what ePubs are searched .</strong>
+  <strong>Changing your search language will not affect which ePubs are searched .</strong>
   Not all ePubs correctly indicate what language they're in, so your search will
   always be across all of your books, not just the ones in the language you specified.
   Instead, the language setting determines which stemming rules will apply to your
@@ -59,6 +59,12 @@
   If you primarily read ePubs in languages other than English, you will likely
   benefit from <a href="{% url profile_language %}">changing your default language</a>. 
 </p>
+<h3>Disabling stemming</h3>
+<p>
+  If you want to search for a word and have it <em>not</em> stem, enclose it in
+  quotation marks.  Quotation marks can also be used to perform phrase searches.
+</p>
+
 <h3>Languages with stemmers</h3>
 <p>
   Bookworm uses the <a href="http://xapian.org">Xapian</a> search engine, which in turn uses the 
