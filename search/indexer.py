@@ -23,13 +23,21 @@ def create_search_document(book_id, book_title, content, chapter_id, chapter_tit
 def add_search_document(database, doc):
     database.add_document(doc)
 
-def index_search_document(doc, content):
+def index_search_document(doc, content, weight=1):
+    '''Create a new index and stemmer from the given document, 
+    run the index, and return the indexer'''
     indexer = xapian.TermGenerator()
     stemmer = get_stemmer(doc.get_value(constants.SEARCH_LANGUAGE_VALUE))
 
     indexer.set_stemmer(stemmer)
     indexer.set_document(doc)
-    indexer.index_text(content)
+    indexer.index_text(content, weight)
+    return indexer
+
+def add_to_index(indexer, content, weight=1):
+    '''Add one or more terms to an existing index.'''
+    indexer.index_text(content, weight)
+    return indexer
 
 def get_stemmer(lang_value):
     '''Converts from a variety of language values into a
@@ -53,6 +61,7 @@ def get_stemmer(lang_value):
 def create_user_database(username):
     '''Create a database that will hold all of the search content for an entire user'''
     user_db = get_user_database_path(username)
+    log.debug("Creating user database at '%s'" % user_db)
     return xapian.WritableDatabase(user_db, xapian.DB_CREATE_OR_OPEN)
 
 def delete_user_database(username):
@@ -63,9 +72,15 @@ def delete_user_database(username):
     except OSError,e:
         raise IndexingError(e)
 
+def create_database(username, book_id=None):
+    if book_id:
+        return create_book_database(username, book_id)
+    return create_user_database(username)
+
 def create_book_database(username, book_id):
     create_user_database(username)
     book_db = get_book_database_path(username, book_id)
+    log.debug("Creating book database at '%s'" % book_db)
     return xapian.WritableDatabase(book_db, xapian.DB_CREATE_OR_OPEN)    
 
 def delete_book_database(username, book_id):
@@ -78,6 +93,7 @@ def get_database(username, book_id=None):
         path = get_book_database_path(username, book_id)
     else:
         path = get_user_database_path(username)
+    log.debug("Returning database at '%s'" % path)
     return xapian.Database(path)
         
 def get_user_database_path(username):

@@ -70,6 +70,47 @@ class TestIndex(object):
         doc = indexer.create_search_document(book_id, 'hello', data, '2', 'this is a chapter_title')
         indexer.add_search_document(db, doc)
         
+    def test_add_to_index(self):
+        book_id = '1'
+        data = 'This is some test content'
+        doc = indexer.create_search_document(book_id, 'hello', data, '2', 'this is a chapter_title')
+        i = indexer.index_search_document(doc, data)
+        indexer.add_to_index(i, 'this is more content', weight=2)
+
+    def test_add_to_search(self):
+        book_id = '99'
+        username2 = 'newuser'
+        data = 'Hello world.  This is test content.  Also other words.'
+        db = indexer.create_database(username2)
+        doc = indexer.create_search_document(book_id, 'hello', data, '2', 'this is a chapter_title')
+        i = indexer.index_search_document(doc, data)
+
+        # DB should be empty now
+        assert_equals(db.get_doccount(), 0)
+
+        # Add the document
+        indexer.add_search_document(db, doc)
+
+        # Make sure our document in there
+        assert_equals(db.get_doccount(), 1)
+
+        terms = [t.term for t in db.allterms()]
+        
+        # There should be twice as many terms in there -- stemmed and unstemmed forms
+        assert_true('test' in terms)
+
+#        res = results.search('test', username2)
+#        assert_equals(len(res), 1)
+
+        res = results.search('more', username2)
+        assert_equals(len(res), 0)
+
+        indexer.add_to_index(i, 'this is more content', weight=2)
+        res = results.search('more', username2)
+        assert_equals(len(res), 1)
+        res = results.search('some', username2)
+        assert_equals(len(res), 1)
+        
 class TestEpubIndex(object):
     def setup(self):
         pass

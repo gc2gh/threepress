@@ -10,28 +10,23 @@ from django.core.urlresolvers import reverse
 from django.utils.http import urlquote_plus
 
 import bookworm.search.constants as constants
-from bookworm.search import index
+from bookworm.search import indexer
 
 setup_environ(bookworm.settings)
 
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger('index')
-
-indexer = xapian.TermGenerator()
-stemmer = xapian.Stem("english")
-indexer.set_stemmer(stemmer)
-
+log = logging.getLogger('search.results')
 
 def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE, sort=constants.SORT_RELEVANCE):
-    database = index.get_database(username, book_id)
+
+    database = indexer.get_database(username, book_id)
 
     # Start an enquire session.
     enquire = xapian.Enquire(database)
+
     # Parse the query string to produce a Xapian::Query object.
     qp = xapian.QueryParser()
-    qp.set_stemmer(stemmer)
     qp.set_database(database)
-    qp.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
+    #qp.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
     query = qp.parse_query(term)
     log.debug("Parsed query is: %s" % query.get_description())
 
@@ -47,7 +42,6 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     # Display the results.
     page_size = matches.size()
     total_results = matches.get_matches_estimated()
-
     results = [Result(match.docid, match.document, term, total_results, page_size) for match in matches]
     for r in results:
         words = []
@@ -55,6 +49,7 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
         for word in r.xapian_document.get_data().split(" "):
             term = word.replace('?', '').replace('"', '').replace('.', '').replace(',', '').replace('-', ' ')
             term = term.lower()
+            stemmer = indexer.get_stemmer(r.language)
             if "Z%s" % stemmer(term) in terms or term in terms:
                 word = '<%s class="%s">%s</span>' % (constants.RESULT_ELEMENT, constants.RESULT_ELEMENT_CLASS, word)
             words.append(word)
@@ -93,6 +88,10 @@ class Result(object):
     @property
     def author(self):
         return self.xapian_document.get_value(constants.SEARCH_AUTHOR_NAME)
+
+    @property
+    def language(self):
+        return self.xapian_document.get_value(constants.SEARCH_LANGUAGE_VALUE)
 
     @property
     def namespace(self):

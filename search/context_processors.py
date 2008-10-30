@@ -10,7 +10,7 @@ def count_books(user):
  
 def search(request):
     form = None
-    if (not request.user.is_anonymous) and count_books(request.user) > 0:
+    if (not request.user.is_anonymous()) and count_books(request.user) > 0:
         form = EpubSearchForm()
     return {'search_form': form }
     
