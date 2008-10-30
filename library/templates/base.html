@@ -10,6 +10,15 @@
               <h3>Search your library</h3>
               <form action="{% url search %}" method="get">
                 {{ search_form.q }}
+                <div id="bw-search-lang-message">
+                  <p>Your current search language is {{ current_search_language|capfirst }}. 
+                  <a href="#">Change this</a>.
+                  </p>
+                </div>
+                <div id="bw-search-lang-selection">
+                {{ search_form.language }}
+                <p>More about the <a href="{% url search_language %}">language support in Bookworm</a>.</p>
+                </div>
               </form>
             </div>
           {% endif %}

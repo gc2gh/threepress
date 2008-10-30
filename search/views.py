@@ -12,6 +12,7 @@ from django.conf import settings
 import results
 import epubindexer
 import constants
+from forms import EpubSearchForm
 
 log = logging.getLogger('search.views')
 
@@ -21,12 +22,17 @@ def search(request, book_id=None):
     if not 'q' in request.GET:
         return direct_to_template(request, 'results.html')
 
-    term = request.GET['q']
+    form = EpubSearchForm(request.GET)
+
+    if not form.is_valid():
+        return direct_to_template(request, 'results.html', { 'search_form': form })     
+
+   
     start = int(request.GET['start']) if request.GET.has_key('start') else 1
     end = int(request.GET['end']) if request.GET.has_key('end') else constants.RESULTS_PAGESIZE
-    res = results.search(term, request.user.username, book_id, start=start)
+    res = results.search(form.cleaned_data['q'], request.user.username, book_id, start=start, language=form.cleaned_data['language'])
     if len(res) == 0:
-        return direct_to_template(request, 'results.html')        
+        return direct_to_template(request, 'results.html', { 'term': form.cleaned_data['q'] } )        
 
     total_results = res[0].total_results
     page_size = res[0].page_size
@@ -57,7 +63,7 @@ def search(request, book_id=None):
                                 'show_next': show_next,
                                 'show_previous': show_previous,
                                 'page_size':page_size,
-                                'term':term})
+                                'term':form.cleaned_data['q']})
 
 @login_required
 def index(request, book_id=None):

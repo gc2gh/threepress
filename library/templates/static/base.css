@@ -316,3 +316,17 @@ h3.bw-upload-message {
  margin:0;
  width: 140px;
 }
+#bw-search-lang-message {
+ font-size: smaller;
+ color: gray;
+}
+
+#bw-search-lang-selection {
+ font-size: smaller;
+ color: gray;
+}
+#bw-search-box ul {
+ list-style-type: none;
+ margin:0;
+ padding:0;
+}

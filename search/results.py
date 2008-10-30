@@ -27,6 +27,7 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     qp = xapian.QueryParser()
     qp.set_database(database)
     #log.debug([t.term for t in database.allterms()])
+    log.debug("Using language %s" % language)
     qp.set_stemmer(indexer.get_stemmer(language))
     qp.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
     query = qp.parse_query(term)

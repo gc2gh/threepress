@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" href="/static/results.css"></link>
 {% endblock head %}
 
+
 {% block main %}
 <div id="bw-content">
   
@@ -43,8 +44,17 @@
   {% endif %}
 
   {% else %}
-    <h2>No results were found</h2>
-    <p>No results were found for your search.</p>
+    {% if term %}
+      <h2>No results were found</h2>
+      <p>No results were found for <em>&lsquo;{{ term }} &rsquo;</em> in <em>{{ current_search_language }}</em>.
+      Get <a href="{% url search_help %}">help with searching Bookworm</a>.
+      </p>
+     {% else %}
+      <p>Enter a search term on the left to begin searching, or get 
+        <a href="{% url search_help %}">help with searching Bookworm</a>.
+      </p>
+   {% endif %}
+
   {% endif %}
  
 </div>
