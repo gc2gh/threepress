@@ -12,8 +12,8 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger('epubindexerer')
 
 def index_user_library(user):
-    '''Indexer all of the books in a user's library. Returns the
-    number of books indexered.'''
+    '''Index all of the books in a user's library. Returns the
+    number of books indexed.'''
     try:
         indexer.delete_user_database(user.username)
     except indexer.IndexingError:
@@ -26,9 +26,9 @@ def index_user_library(user):
     return len(books)
     
 def index_epub(username, epub, chapter=None):
-    '''Indexer parts of an epub book as a searchable document.
-    If an HTMLFile object is passed, indexer only that chapter;
-    otherwise indexer all chapters.'''
+    '''Index parts of an epub book as a searchable document.
+    If an HTMLFile object is passed, index only that chapter;
+    otherwise index all chapters.'''
     book_id = epub.id
     book_title = epub.title
     chapters = []

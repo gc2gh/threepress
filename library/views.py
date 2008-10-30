@@ -442,7 +442,7 @@ def _delete_document(request, document):
     document.delete()
 
 def _get_document(request, title, key, override_owner=False):
-    '''Return a document by Google key and owner.  Setting override_owner
+    '''Return a document by id and owner.  Setting override_owner
     will search regardless of ownership, for use with admin accounts.'''
     user = request.user
 

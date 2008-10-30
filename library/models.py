@@ -577,19 +577,28 @@ class HTMLFile(BookwormFile):
         try:
             xhtml = ET.XML(f, ET.XMLParser())
             body = xhtml.find('{%s}body' % NS['html'])
+            if body is None:
+                body = xhtml.find('{%s}book' % NS['dtbook'])
+                if body is None:
+                    raise UnknownContentException()
+        except ExpatError:
+            raise UnknownContentException()
         except ET.XMLSyntaxError:
             # Use the HTML parser
             log.warn('Falling back to html parser')
             xhtml = ET.parse(StringIO(f), ET.HTMLParser())
             body = xhtml.find('body')
-        except ExpatError:
+            if body is None:
+                raise UnknownContentException()
+        except UnknownContentException:
             log.warn('Was not valid XHTML; trying with BeautifulSoup')
             html = lxml.html.soupparser.fromstring(f)
             body = html.find('.//body')
 
             #self.processed_content = f
             #return f 
-
+        if body is None:
+            print f
         body = self._clean_xhtml(body)
         div = ET.Element('div')
         div.attrib['id'] = 'bw-book-content'
@@ -852,7 +861,9 @@ class InvalidBinaryException(InvalidEpubException):
 class DRMEpubException(InvalidEpubException):
     pass
 
-
+class UnknownContentException(Exception):
+    # We weren't sure how to parse the body content here
+    pass
 
 order_fields = { 'title': 'book title',
                  'orderable_author': 'first author',
