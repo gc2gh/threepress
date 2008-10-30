@@ -22,8 +22,8 @@
   </ol>
 </p>
 <p>
-  Updating your language here will affect the default language in which you search,
-  but nothing else.
+  Updating your language here will affect stemming in default language in which you search,
+  but nothing else.  More about <a href="{% url search_language %}">multi-lingual support in Bookworm</a>.
 </p>
 <form action="/i18n/setlang/" method="post">
   <input name="next" type="hidden" value="{% url profile %}" />

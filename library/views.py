@@ -123,6 +123,7 @@ def profile(request):
         uprofile.save()
     
     if settings.LANGUAGE_COOKIE_NAME in request.session:
+        log.debug("Updating language to %s" % request.session.get(settings.LANGUAGE_COOKIE_NAME))
         uprofile.language = request.session.get(settings.LANGUAGE_COOKIE_NAME)
         uprofile.save()
 

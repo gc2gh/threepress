@@ -73,23 +73,24 @@ MIDDLEWARE_CLASSES = (
 #    'django.contrib.csrf.middleware.CsrfMiddleware'
     
 )
+ugettext = lambda s: s
 
 # Only allow the list of languages available in Xapian
-LANGUAGES = ( ('da', 'Danish'), 
-              ('nl', 'Dutch'),
-              ('en', 'English'),
-              ('fi', 'Finnish'),
-              ('fr', 'French'),
-              ('de', 'German'),
-              ('hu', 'Hungarian'),
-              ('it', 'Italian'),
-              ('no', 'Norwegian'),
-              ('pt', 'Portuguese'),
-              ('ro', 'Romanian'),
-              ('ru', 'Russian'),
-              ('es', 'Spanish'),
-              ('sv', 'Swedish'),
-              ('tr', 'Turkish'))
+LANGUAGES = ( ('da', ugettext('Danish')), 
+              ('nl', ugettext('Dutch')),
+              ('en', ugettext('English')),
+              ('fi', ugettext('Finnish')),
+              ('fr', ugettext('French')),
+              ('de', ugettext('German')),
+              ('hu', ugettext('Hungarian')),
+              ('it', ugettext('Italian')),
+              ('no', ugettext('Norwegian')),
+              ('pt', ugettext('Portuguese')),
+              ('ro', ugettext('Romanian')),
+              ('ru', ugettext('Russian')),
+              ('es', ugettext('Spanish')),
+              ('sv', ugettext('Swedish')),
+              ('tr', ugettext('Turkish')))
 
 ROOT_URLCONF = 'urls'
 

@@ -19,7 +19,8 @@ def profile(request):
     userprefs = None
     try:
         userprefs = request.user.get_profile()
-        request.session[settings.LANGUAGE_COOKIE_NAME] = userprefs.language
+        if not settings.LANGUAGE_COOKIE_NAME in request.session:
+            request.session[settings.LANGUAGE_COOKIE_NAME] = userprefs.language
 
     except AttributeError:
         # Occurs when this is called on an anonymous user; ignore

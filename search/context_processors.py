@@ -12,23 +12,28 @@ def count_books(user):
  
 def search(request):
     form = None
-    current_search_language = 'english'
+    current_search_language = 'English'
     if (not request.user.is_anonymous()) and count_books(request.user) > 0:
-        if 'language' in request.GET:
-            current_search_language = request.GET['language']
-        elif request.user.get_profile().language is not None:
-            current_search_language = _get_name_for_language(request.user.get_profile().language)
-        else:
-            if 'language_name' in request.session:
-                current_search_language = request.session.get('language_name')
-            else:
-                current_search_language = _get_name_for_language(request.session.get(settings.LANGUAGE_COOKIE_NAME))
-                request.session.set('language_name', current_search_language)
 
+        # Did we just update the setting?
+        if 'language' in request.GET:
+            language_value = request.GET['language']
+
+        # Otherwise get language from the session
+        elif settings.LANGUAGE_COOKIE_NAME in request.session:
+            language_value = request.session[settings.LANGUAGE_COOKIE_NAME]
+
+        # or from the user's profile
+        elif request.user.get_profile().language is not None:
+            language_value = request.user.get_profile().language
+
+        if language_value:
+            current_search_language = _get_name_for_language(language_value)
+            
         if 'q' in request.GET:
-            form = EpubSearchForm(request.GET, lang=current_search_language)
+            form = EpubSearchForm(request.GET, lang=language_value)
         else:
-            form = EpubSearchForm(lang=current_search_language)
+            form = EpubSearchForm(lang=language_value)
 
     return {'search_form': form,
             'current_search_language': current_search_language}
