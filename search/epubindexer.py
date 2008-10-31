@@ -62,13 +62,21 @@ def get_searchable_content(content):
     '''Returns the content of a chapter as a searchable field'''
     html = fromstring(content)
     ns = get_namespace(content)
+    headers = ('h1', 'h2', 'h3', 'h4', 'h5', 'h6')
     if ns is not None:
         temp_para = [ p.xpath('.//text()') for p in html.iter(tag='{%s}p' % ns)]
+        for h in headers:
+            temp_para += [ p.xpath('.//text()') for p in html.iter(tag='{%s}%s' % (ns, h))]
     else:
         temp_para = [ p.xpath('.//text()') for p in html.iter(tag='p')]
+        for h in headers:
+            temp_para += [ p.xpath('.//text()') for p in html.iter(tag='%s' % h)]
     paragraphs = []
     for p in temp_para:
-        paragraphs.append(' '.join([i.strip().replace('\n',' ') for i in p]))
+        if p is not None:
+            paragraphs.append(' '.join([i.strip().replace('\n',' ') for i in p]))
+
+
     return '\n'.join(paragraphs)
 
 def get_namespace(content):

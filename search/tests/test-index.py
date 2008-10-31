@@ -181,6 +181,18 @@ class TestEpubSearch(object):
         assert_true('class="bw-match"' in content)
         assert_false('foobar' in content)
 
+    def test_header_search(self):
+        epub_id = create_document(content='<h1>Hello</h1><p>I am some content</p>')
+        epub = EpubArchive.objects.get(id=epub_id)
+        chapter = HTMLFile.objects.get(archive=epub)
+        epubindexer.index_epub(username, epub, chapter)
+        res = results.search('hello', username, book_id=epub_id)
+        assert_not_equals(None, res)
+        assert_true(len(res) == 1)
+        content = ''.join([r.highlighted_content for r in res])
+        assert_true('Hello' in content)
+        assert_false('foobar' in content)
+
     def test_result_object(self):
         epub_id = create_document(title='test title', chapter_title='chapter one')
         epub = EpubArchive.objects.get(id=epub_id)
