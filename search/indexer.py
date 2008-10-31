@@ -8,12 +8,13 @@ setup_environ(bookworm.settings)
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger('search.indexer')
 
-def create_search_document(book_id, book_title, content, chapter_id, chapter_title='Untitled chapter', ns='', author_name='', language='en'):
+def create_search_document(book_id, book_title, content, chapter_id, chapter_filename, chapter_title='Untitled chapter', ns='', author_name='', language='en'):
     doc = xapian.Document()
     doc.set_data(content)
     doc.add_value(constants.SEARCH_BOOK_ID, unicode(book_id))
     doc.add_value(constants.SEARCH_BOOK_TITLE, unicode(book_title))
     doc.add_value(constants.SEARCH_CHAPTER_ID, unicode(chapter_id))
+    doc.add_value(constants.SEARCH_CHAPTER_FILENAME, unicode(chapter_filename))
     doc.add_value(constants.SEARCH_CHAPTER_TITLE, unicode(chapter_title))
     doc.add_value(constants.SEARCH_NAMESPACE, ns)
     doc.add_value(constants.SEARCH_AUTHOR_NAME, unicode(author_name))
@@ -21,7 +22,11 @@ def create_search_document(book_id, book_title, content, chapter_id, chapter_tit
     return doc
 
 def add_search_document(database, doc):
-    database.add_document(doc)
+    # Create the document with a generated unique chapter+book id
+    unique_id = "%d%d" % (int(doc.get_value(constants.SEARCH_BOOK_ID)),
+                          int(doc.get_value(constants.SEARCH_CHAPTER_ID)))
+
+    database.replace_document(int(unique_id), doc)
 
 def index_search_document(doc, content, weight=1):
     '''Create a new index and stemmer from the given document, 
@@ -63,7 +68,8 @@ def create_user_database(username):
     '''Create a database that will hold all of the search content for an entire user'''
     user_db = get_user_database_path(username)
     log.debug("Creating user database at '%s'" % user_db)
-    return xapian.WritableDatabase(user_db, xapian.DB_CREATE_OR_OPEN)
+    db = xapian.WritableDatabase(user_db, xapian.DB_CREATE_OR_OPEN)
+    return db
 
 def delete_user_database(username):
     user_db = get_user_database_path(username)
@@ -79,7 +85,9 @@ def create_database(username, book_id=None):
     return create_user_database(username)
 
 def create_book_database(username, book_id):
-    create_user_database(username)
+    user_path = get_user_database_path(username)
+    if not os.path.exists(user_path):
+        os.mkdir(user_path)
     book_db = get_book_database_path(username, book_id)
     log.debug("Creating book database at '%s'" % book_db)
     return xapian.WritableDatabase(book_db, xapian.DB_CREATE_OR_OPEN)    
@@ -101,6 +109,7 @@ def get_database(username, book_id=None):
         # We should have a database, but we don't.  This will
         # end up with no results, but create one anyway
         # because that's better than an exception.
+        log.warn("lost database from path %s" % path)
         db = create_database(username, book_id)
     return db
 

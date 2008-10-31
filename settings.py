@@ -1,6 +1,20 @@
 import os
 import logging, logging.handlers
 
+# Live site settings (others should override in locals.py)
+
+DEBUG = False
+TEMPLATE_DEBUG = DEBUG
+   
+DATABASE_ENGINE = 'mysql' 
+DATABASE_NAME = 'bookworm'
+DATABASE_USER = 'threepress'   
+DATABASE_PASSWORD = '3press'   
+DATABASE_HOST = ''             
+DATABASE_PORT = ''             
+
+SITE_ID = 2
+
 # Django settings for bookworm project.
 
 ADMINS = (
@@ -146,6 +160,9 @@ TEST_DATABASE_CHARSET = 'utf8'
 
 SEARCH_ROOT = os.path.join(ROOT_PATH, 'search', 'dbs')
 
+
+CACHE_BACKEND = 'file:///tmp/django_cache'
+
 # Access time, filename/function#line-number message
 log_formatter = logging.Formatter("[%(asctime)s %(filename)s/%(funcName)s#%(lineno)d] %(message)s")
 
@@ -160,5 +177,8 @@ try:
 
 except IOError:
     pass
-from local import *
+try:
+    from local import *
+except:
+    pass
 

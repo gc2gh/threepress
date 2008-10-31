@@ -16,8 +16,13 @@ log.setLevel(logging.DEBUG)
 
 # Update all of the metadata in all of the objects on the
 # site
+admin = User.objects.get(username='liza')
 
-for e in EpubArchive.objects.all():
+langs = [l[0] for l in settings.LANGUAGES]
+
+log.info("Will index documents in languages: %s" % langs)
+
+for e in EpubArchive.objects.all().order_by('id'):
     if e.indexed:
         continue
 
@@ -35,9 +40,11 @@ for e in EpubArchive.objects.all():
     # Get the user for this epub
     user = e.owner
 
-    # Index it
-    epubindexer.index_epub(user.username, e)
+    # Index it if it's in a language we can handle
+    lang = e.get_major_language()
+    if lang in langs:
+        log.debug("Indexing with lang=%s" % lang)
+        epubindexer.index_epub([user.username, admin.username], e)
+    else:
+        log.warn("skipping %s with lang=%s" % (e.title, lang)
 
-    # Also index it for the admin users
-    admin = User.objects.get(username='liza')
-    epubindexer.index_epub(admin.username, e)    

@@ -22,10 +22,10 @@ def index_user_library(user):
     indexer.create_user_database(user.username)    
     books = models.EpubArchive.objects.filter(owner=user)
     for b in books:
-        index_epub(user.username, b)
+        index_epub([user.username], b)
     return len(books)
     
-def index_epub(username, epub, chapter=None):
+def index_epub(usernames, epub, chapter=None):
     '''Index parts of an epub book as a searchable document.
     If an HTMLFile object is passed, index only that chapter;
     otherwise index all chapters.'''
@@ -37,10 +37,14 @@ def index_epub(username, epub, chapter=None):
     if chapter is not None:
         chapters.append(chapter)
 
-    database = indexer.create_book_database(username, book_id)
-    user_database = indexer.create_user_database(username)
-
     language = epub.get_language()
+
+    databases = []
+
+    for username in usernames:
+        log.debug("Creating databases for '%s'" % username)
+        databases.append(indexer.create_user_database(username))
+        databases.append(indexer.create_book_database(username, book_id))
 
     for index, c in enumerate(chapters):
         content = c.render()
@@ -48,13 +52,14 @@ def index_epub(username, epub, chapter=None):
 
         chapter_title = c.title if c.title is not None and c.title is not u'' else 'Chapter %d' % index
         doc = indexer.create_search_document(book_id, book_title, clean_content,
-                                           c.filename, chapter_title, author_name=epub.orderable_author,
+                                             c.id, c.filename, chapter_title, author_name=epub.orderable_author,
                                              language=language)
         indexer.index_search_document(doc, clean_content)
 
-        indexer.add_search_document(database, doc)
-        indexer.add_search_document(user_database, doc)
+        for db in databases:
+            indexer.add_search_document(db, doc)
 
+    del databases
     epub.indexed = True
     epub.save()
 

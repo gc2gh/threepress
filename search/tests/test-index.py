@@ -117,14 +117,13 @@ class TestEpubIndex(object):
         epub = EpubArchive.objects.get(id=epub_id)
         assert_false(epub.indexed)
         chapter = HTMLFile.objects.get(archive=epub)
-        epubindexer.index_epub(username, epub, chapter)
+        epubindexer.index_epub([username], epub, chapter)
 
         epub = EpubArchive.objects.get(id=epub_id)
         assert_true(epub.indexed)
         
     def test_user_library(self):
         username1 = 'test_user_library'
-        indexer.create_user_database(username)
         user = User(username=username1)
         user.save()
         create_document(title='test1', username=username1)        
@@ -172,10 +171,29 @@ class TestEpubSearch(object):
         epub_id = create_document()
         epub = EpubArchive.objects.get(id=epub_id)
         chapter = HTMLFile.objects.get(archive=epub)
-        epubindexer.index_epub(username, epub, chapter)
+        epubindexer.index_epub([username], epub, chapter)
         res = results.search('content', username, book_id=epub_id)
         assert_not_equals(None, res)
         assert_true(len(res) == 1)
+        content = ''.join([r.highlighted_content for r in res])
+        assert_true('content' in content)
+        assert_true('class="bw-match"' in content)
+        assert_false('foobar' in content)
+
+    def test_multiple_users(self):
+        epub_id = create_document()
+        user2 = User.objects.get_or_create(username='user2')[0]
+        user2.save()
+        epub = EpubArchive.objects.get(id=epub_id)
+        chapter = HTMLFile.objects.get(archive=epub)
+        epubindexer.index_epub([username, user2.username], epub, chapter)
+
+        # Index it twice and we shouldn't create two entries
+        epubindexer.index_epub([username, user2.username], epub, chapter)
+
+        res = results.search('content', username, book_id=epub_id)
+        assert_not_equals(None, res)
+        assert_equals(len(res), 1)
         content = ''.join([r.highlighted_content for r in res])
         assert_true('content' in content)
         assert_true('class="bw-match"' in content)
@@ -185,7 +203,7 @@ class TestEpubSearch(object):
         epub_id = create_document(content='<h1>Hello</h1><p>I am some content</p>')
         epub = EpubArchive.objects.get(id=epub_id)
         chapter = HTMLFile.objects.get(archive=epub)
-        epubindexer.index_epub(username, epub, chapter)
+        epubindexer.index_epub([username], epub, chapter)
         res = results.search('hello', username, book_id=epub_id)
         assert_not_equals(None, res)
         assert_true(len(res) == 1)
@@ -197,7 +215,7 @@ class TestEpubSearch(object):
         epub_id = create_document(title='test title', chapter_title='chapter one')
         epub = EpubArchive.objects.get(id=epub_id)
         chapter = HTMLFile.objects.get(archive=epub)
-        epubindexer.index_epub(username, epub, chapter)
+        epubindexer.index_epub([username], epub, chapter)
         res = results.search('content', username, book_id=epub_id)[0]
         assert_equals(res.title, 'test title')
         assert_equals(res.chapter_title, 'chapter one')
@@ -216,8 +234,8 @@ class TestEpubSearch(object):
         epub2 = EpubArchive.objects.get(id=epub_id2)
         chapter2 = HTMLFile.objects.get(archive=epub2)
 
-        epubindexer.index_epub(username, epub1, chapter1)
-        epubindexer.index_epub(username, epub2, chapter2)
+        epubindexer.index_epub([username], epub1, chapter1)
+        epubindexer.index_epub([username], epub2, chapter2)
         
         res = results.search('the', username)
         assert_equals(len(res), 2)
@@ -228,7 +246,7 @@ class TestEpubSearch(object):
     def test_stemmed_search(self):
         epub_id = create_document(content='<p>I like dogs</p>')
         epub = EpubArchive.objects.get(id=epub_id)
-        epubindexer.index_epub(username, epub)
+        epubindexer.index_epub([username], epub)
         res = results.search('dogs', username)
         assert_equals(len(res), 1)
 
@@ -240,7 +258,7 @@ class TestEpubSearch(object):
 
         epub_id = create_document(content="<p>aimer</p>", language='fr')
         epub = EpubArchive.objects.get(id=epub_id)
-        epubindexer.index_epub(username, epub)
+        epubindexer.index_epub([username], epub)
         res = results.search('aimer', username, language='fr')
         assert_equals(len(res), 1)
 
@@ -264,9 +282,10 @@ class TestEpubSearch(object):
                            owner=user)
         epub.save()
         epub.set_content(f)
-
         epub.explode()
-        epubindexer.index_epub(username, epub)
+        epub.save()
+
+        epubindexer.index_epub([username], epub)
 
         res = results.search('parler', username, language='fr')
         french_results = len(res)

@@ -199,6 +199,13 @@ class EpubArchive(BookwormModel):
         self.save()
         return self.language
 
+    def get_major_language(self):
+        lang = self.get_language()
+        for div in ('-', '_'):
+            if div in lang:
+                return lang.split(div)[0]
+        return lang
+
     def get_publisher(self):
         if self.publishers.count() > 0:
             return self.publishers
@@ -584,13 +591,13 @@ class HTMLFile(BookwormFile):
             raise UnknownContentException()
         except ET.XMLSyntaxError:
             # Use the HTML parser
-            log.warn('Falling back to html parser')
+            #log.warn('Falling back to html parser')
             xhtml = ET.parse(StringIO(f), ET.HTMLParser())
             body = xhtml.find('body')
             if body is None:
                 raise UnknownContentException()
         except UnknownContentException:
-            log.warn('Was not valid XHTML; trying with BeautifulSoup')
+            #log.warn('Was not valid XHTML; trying with BeautifulSoup')
             html = lxml.html.soupparser.fromstring(f)
             body = html.find('.//body')
 

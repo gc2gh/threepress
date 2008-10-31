@@ -33,7 +33,7 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     qp.set_stemmer(indexer.get_stemmer(language))
     qp.set_stemming_strategy(xapian.QueryParser.STEM_SOME)
     query = qp.parse_query(term)
-    log.debug("Parsed query is: %s" % query.get_description())
+    #log.debug("Parsed query is: %s" % query.get_description())
 
     enquire.set_query(query)
 
