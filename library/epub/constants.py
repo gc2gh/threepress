@@ -5,6 +5,7 @@ MIMETYPE='application/epub+zip'
 STYLESHEET_MIMETYPE='text/css'
 XHTML_MIMETYPE='application/xhtml+xml'
 SVG_MIMETYPE='image/svg+xml'
+DTBOOK_MIMETYPE = 'application/x-dtbook+xml'
 
 NAMESPACES = { 'container': 'urn:oasis:names:tc:opendocument:xmlns:container',
                'opf': 'http://www.idpf.org/2007/opf',

@@ -163,6 +163,9 @@ SEARCH_ROOT = os.path.join(ROOT_PATH, 'search', 'dbs')
 
 CACHE_BACKEND = 'file:///tmp/django_cache'
 
+XSLT_DIR = os.path.join(ROOT_PATH, 'library', 'xsl')
+DTBOOK2XHTML = os.path.join(XSLT_DIR, 'dtbook2xhtml.xsl')
+
 # Access time, filename/function#line-number message
 log_formatter = logging.Formatter("[%(asctime)s %(filename)s/%(funcName)s#%(lineno)d] %(message)s")
 

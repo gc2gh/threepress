@@ -44,6 +44,6 @@ for e in EpubArchive.objects.all().order_by('id'):
     lang = e.get_major_language()
     if lang in langs:
         log.debug("Indexing with lang=%s" % lang)
-        epubindexer.index_epub([user.username, admin.username], e)
+        epubindexer.index_epub([user.username], e)
     else:
         log.warn("skipping %s with lang=%s" % (e.title, lang))

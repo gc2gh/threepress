@@ -44,10 +44,10 @@ def index_epub(usernames, epub, chapter=None):
     for username in usernames:
         log.debug("Creating databases for '%s'" % username)
         databases.append(indexer.create_user_database(username))
-        databases.append(indexer.create_book_database(username, book_id))
+        #databases.append(indexer.create_book_database(username, book_id))
 
     for index, c in enumerate(chapters):
-        content = c.render()
+        content = c.render(mark_as_read=False)
         clean_content = get_searchable_content(content)
 
         chapter_title = c.title if c.title is not None and c.title is not u'' else 'Chapter %d' % index
@@ -60,7 +60,6 @@ def index_epub(usernames, epub, chapter=None):
             if db is not None:
                 indexer.add_search_document(db, doc)
 
-    del databases
     epub.indexed = True
     epub.save()
 

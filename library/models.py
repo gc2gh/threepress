@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from lxml import etree as ET
+from lxml import etree
 import lxml.html
 from zipfile import ZipFile
 from StringIO import StringIO
@@ -12,9 +12,10 @@ from django.utils.http import urlquote_plus
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.encoding import smart_str
+from django.conf import settings
 
 from library.epub import constants, InvalidEpubException
-from library.epub.constants import ENC, BW_BOOK_CLASS, STYLESHEET_MIMETYPE, XHTML_MIMETYPE
+from library.epub.constants import ENC, BW_BOOK_CLASS, STYLESHEET_MIMETYPE, XHTML_MIMETYPE, DTBOOK_MIMETYPE
 from library.epub.constants import NAMESPACES as NS
 from library.epub.toc import NavPoint, TOC
 import library.epub.util as util
@@ -35,7 +36,8 @@ def unsafe_name(name):
 
 def get_file_by_item(item, document) :
     '''Accepts an Item and uses that to find the related file in the database'''
-    if item.media_type == XHTML_MIMETYPE or 'text' in item.media_type:
+    log.debug("Checking for id %s" % item.id)
+    if item.media_type == XHTML_MIMETYPE or item.media_type == DTBOOK_MIMETYPE or 'text' in item.media_type:
         # Allow semi-broken documents with media-type of 'text/html' or any text type
         # to be treated as html
         html = HTMLFile.objects.filter(idref=item.id, archive=document)
@@ -568,31 +570,34 @@ class HTMLFile(BookwormFile):
     content_type = models.CharField(max_length=100, default="application/xhtml")
     is_read = models.BooleanField(default=False)
 
-    def render(self):
+    def render(self, mark_as_read=True):
         '''If we don't have any processed content, process it and cache the
         results in the database.'''
 
-        # Mark this chapter as last-read
-        self.read()
-
+        # Mark this chapter as last-read if selected
+        # (this is overridden during indexing)
+        if mark_as_read:
+            self.read()
         if self.processed_content:
             return self.processed_content
         
         f = smart_str(self.file, encoding=ENC)
-
         try:
-            xhtml = ET.XML(f, ET.XMLParser())
+            xhtml = etree.XML(f, etree.XMLParser())
             body = xhtml.find('{%s}body' % NS['html'])
             if body is None:
                 body = xhtml.find('{%s}book' % NS['dtbook'])
+                # This is DTBook; process it
+
+                body = self._process_dtbook(xhtml)
                 if body is None:
                     raise UnknownContentException()
         except ExpatError:
             raise UnknownContentException()
-        except ET.XMLSyntaxError:
+        except etree.XMLSyntaxError:
             # Use the HTML parser
             #log.warn('Falling back to html parser')
-            xhtml = ET.parse(StringIO(f), ET.HTMLParser())
+            xhtml = etree.parse(StringIO(f), etree.HTMLParser())
             body = xhtml.find('body')
             if body is None:
                 raise UnknownContentException()
@@ -600,13 +605,10 @@ class HTMLFile(BookwormFile):
             #log.warn('Was not valid XHTML; trying with BeautifulSoup')
             html = lxml.html.soupparser.fromstring(f)
             body = html.find('.//body')
-
-            #self.processed_content = f
-            #return f 
         if body is None:
             print f
         body = self._clean_xhtml(body)
-        div = ET.Element('div')
+        div = etree.Element('div')
         div.attrib['id'] = 'bw-book-content'
         children = body.getchildren()
         for c in children:
@@ -619,9 +621,6 @@ class HTMLFile(BookwormFile):
         except: 
             log.error("Could not cache processed document, error was: " + sys.exc_value)
 
-        # Mark this chapter as last-read
-
-
         return body_content
 
     def read(self):
@@ -630,6 +629,19 @@ class HTMLFile(BookwormFile):
         self.archive.save()
         self.is_read = True
         self.save()
+
+    def _process_dtbook(self, xhtml):
+        '''Turn DTBook content into XHTML'''
+        xslt = etree.parse(settings.DTBOOK2XHTML)
+        transform = etree.XSLT(xslt)
+        result = transform(xhtml)
+        # If the DTBook transform failed, throw an exception
+        # and return to the standard XHTML pipeline
+        if result is not None:
+            log.debug("Got result, returning body content")
+            body = result.find('{%s}body' % NS['html'])        
+            return body
+        log.warn("Got None from dtbook transform")
 
     def _clean_xhtml(self, xhtml):
         '''This is only run the first time the user requests the HTML file; the processed HTML is then cached'''
@@ -644,7 +656,7 @@ class HTMLFile(BookwormFile):
             # make them work in most browsers
             if element.tag == 'img' and 'svg' in element.get('src'):
                 p = element.getparent()         
-                e = ET.fromstring("""<a class="svg" href="%s">[ View linked image in SVG format ]</a>""" % element.get('src'))
+                e = etree.fromstring("""<a class="svg" href="%s">[ View linked image in SVG format ]</a>""" % element.get('src'))
                 p.remove(element)
                 p.append(e)
             

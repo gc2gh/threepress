@@ -14,8 +14,9 @@ class BookAuthorAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 class HTMLFileAdmin(admin.ModelAdmin):
-    fields=('title','filename','processed_content','is_read')
+    fields=('title','filename','processed_content','is_read', 'idref')
     ordering = ('title','path')
+    search_fields = ['title', 'filename']
 
 class StylesheetFileAdmin(admin.ModelAdmin):
     fields=('filename','path')

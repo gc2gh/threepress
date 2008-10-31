@@ -5,6 +5,7 @@ from os.path import isfile, isdir
 
 from django.contrib.auth.models import User
 from django.test import TestCase as DjangoTestCase
+from bookworm.search import epubindexer
 
 from models import *
 from testmodels import *
@@ -1006,13 +1007,21 @@ class TestViews(DjangoTestCase):
         self.assertTemplateUsed(response, 'view.html')        
         self.assertEquals(first_page, response.content)        
 
+    def test_dtbook(self):
+        '''We should be able to parse and expand out a DTBook-format
+        book'''
+        self._upload('hauy.epub')
+        response = self.client.get('/view/dtbook/1/')
+        self.assertTemplateUsed(response, 'view.html')        
+        self.assertContains(response, 'Enlightenment')
+        
+
 
     def test_search_form(self):
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         self._upload(name)
-        from bookworm.search import epubindexer
         epub = EpubArchive.objects.get(name=name)
-        epubindexer.index_epub(self.user.username, epub)
+        epubindexer.index_epub([self.user.username], epub)
         res = self.client.get('/search/', { 'q' : 'lizzy',
                                             'language': 'en'})
         self.assertTemplateUsed(res, 'results.html')
@@ -1023,6 +1032,19 @@ class TestViews(DjangoTestCase):
                                             'end': '40'})        
         self.assertTemplateUsed(res, 'results.html')
         self.assertContains(res, 'dearest')        
+
+        # Test searching DTbook content
+        name = 'hauy.epub'
+        self._upload(name)
+
+        epub = EpubArchive.objects.get(name=name)
+        epubindexer.index_epub([self.user.username], epub)
+        res = self.client.get('/search/', { 'q' : 'modification',
+                                            'language': 'en'})
+        self.assertTemplateUsed(res, 'results.html')
+        self.assertContains(res, 'original')
+
+
 class TestTwill(DjangoTestCase):
     def setUp(self):
         os.environ["DJANGO_SETTINGS_MODULE"] = "settings"
