@@ -1007,7 +1007,22 @@ class TestViews(DjangoTestCase):
         self.assertEquals(first_page, response.content)        
 
 
-    
+    def test_search_form(self):
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+        from bookworm.search import epubindexer
+        epub = EpubArchive.objects.get(name=name)
+        epubindexer.index_epub(self.user.username, epub)
+        res = self.client.get('/search/', { 'q' : 'lizzy',
+                                            'language': 'en'})
+        self.assertTemplateUsed(res, 'results.html')
+        self.assertContains(res, 'My dear')
+        res = self.client.get('/search/', { 'q' : 'lizzy',
+                                            'language': 'en',
+                                            'start': '20',
+                                            'end': '40'})        
+        self.assertTemplateUsed(res, 'results.html')
+        self.assertContains(res, 'dearest')        
 class TestTwill(DjangoTestCase):
     def setUp(self):
         os.environ["DJANGO_SETTINGS_MODULE"] = "settings"

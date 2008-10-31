@@ -19,7 +19,7 @@ log = logging.getLogger('search.views')
 @login_required
 def search(request, book_id=None):
 
-    if not 'q' in request.GET:
+    if not 'q' in request.GET and not 'lang' in request.GET:
         return direct_to_template(request, 'results.html')
 
     form = EpubSearchForm(request.GET)
@@ -51,6 +51,7 @@ def search(request, book_id=None):
 
     return direct_to_template(request, 'results.html', 
                               { 'results':res,
+                                'language':request.GET['language'],
                                 'start':start,
                                 'end': end,
                                 'total_results': total_results,
