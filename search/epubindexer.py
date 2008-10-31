@@ -57,7 +57,8 @@ def index_epub(usernames, epub, chapter=None):
         indexer.index_search_document(doc, clean_content)
 
         for db in databases:
-            indexer.add_search_document(db, doc)
+            if db is not None:
+                indexer.add_search_document(db, doc)
 
     del databases
     epub.indexed = True
