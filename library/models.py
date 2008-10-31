@@ -36,7 +36,6 @@ def unsafe_name(name):
 
 def get_file_by_item(item, document) :
     '''Accepts an Item and uses that to find the related file in the database'''
-    log.debug("Checking for id %s" % item.id)
     if item.media_type == XHTML_MIMETYPE or item.media_type == DTBOOK_MIMETYPE or 'text' in item.media_type:
         # Allow semi-broken documents with media-type of 'text/html' or any text type
         # to be treated as html
@@ -569,7 +568,7 @@ class HTMLFile(BookwormFile):
     processed_content = models.TextField()
     content_type = models.CharField(max_length=100, default="application/xhtml")
     is_read = models.BooleanField(default=False)
-
+ 
     def render(self, mark_as_read=True):
         '''If we don't have any processed content, process it and cache the
         results in the database.'''
@@ -588,7 +587,6 @@ class HTMLFile(BookwormFile):
             if body is None:
                 body = xhtml.find('{%s}book' % NS['dtbook'])
                 # This is DTBook; process it
-
                 body = self._process_dtbook(xhtml)
                 if body is None:
                     raise UnknownContentException()

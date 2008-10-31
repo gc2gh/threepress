@@ -1,5 +1,5 @@
 from lxml.html.soupparser import fromstring
-import logging, os.path
+import logging, xapian
 from django.core.management import setup_environ
 import bookworm.settings
 setup_environ(bookworm.settings)
@@ -9,7 +9,25 @@ import bookworm.library.models as models
 import bookworm.search.constants as constants
 
 logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger('epubindexerer')
+log = logging.getLogger('search.epubindexer')
+
+
+def delete_epub(epub):
+    '''Delete all the information in the index about a given epub'''
+    username = epub.owner.username
+
+    # Delete from the book's own database
+    indexer.delete_book_database(username, epub.id)
+    user_db = indexer.create_user_database(username)
+    # Also delete from the user's database
+    for c in models.HTMLFile.objects.filter(archive=epub):
+        book_id = c.id
+        try:
+            user_db.delete_document(book_id)
+        except xapian.DocNotFoundError:
+            log.warn("Couldn't find doc %s in search index" % epub.name)
+        
+    user_db.flush()
 
 def index_user_library(user):
     '''Index all of the books in a user's library. Returns the
@@ -44,7 +62,7 @@ def index_epub(usernames, epub, chapter=None):
     for username in usernames:
         log.debug("Creating databases for '%s'" % username)
         databases.append(indexer.create_user_database(username))
-        #databases.append(indexer.create_book_database(username, book_id))
+        databases.append(indexer.create_book_database(username, book_id))
 
     for index, c in enumerate(chapters):
         content = c.render(mark_as_read=False)

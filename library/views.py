@@ -16,6 +16,7 @@ from django.conf import settings
 
 from django_authopenid.views import signin
 
+from search import epubindexer
 from library.models import EpubArchive, HTMLFile, StylesheetFile, ImageFile, SystemInfo, get_file_by_item, order_fields, DRMEpubException
 from library.forms import EpubValidateForm, ProfileForm
 from library.epub import constants as epub_constants
@@ -306,7 +307,7 @@ def download_epub(request, title, key):
 
 @login_required
 def upload(request):
-    '''Uploads a new document and stores it in the datastore'''
+    '''Uploads a new document and stores it in the database'''
     document = None 
     
     if request.method == 'POST':
@@ -428,6 +429,9 @@ def upload(request):
     return direct_to_template(request, 'upload.html', {'form':form})
 
 def _delete_document(request, document):
+    # Delete the index before we've deleted the actual book
+    epubindexer.delete_epub(document)
+
     # Delete the chapters of the book 
     toc = HTMLFile.objects.filter(archive=document)
     if toc:

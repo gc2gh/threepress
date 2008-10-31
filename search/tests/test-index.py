@@ -158,6 +158,20 @@ class TestEpubIndex(object):
         stemmer = indexer.get_stemmer(lang)
         assert_true('english' in stemmer.get_description())
 
+
+    def test_delete_from_index(self):
+        epub_id = create_document(username=username)
+        epub = EpubArchive.objects.get(id=epub_id)
+        epubindexer.index_epub([username], epub)
+
+        res = results.search('content', username, book_id=epub_id)
+        assert_true(len(res) == 1)
+
+        epubindexer.delete_epub(epub)
+        res = results.search('content', username, book_id=epub_id)
+        assert_true(len(res) == 0)
+
+
 class TestEpubSearch(object):
     def setup(self):
         pass

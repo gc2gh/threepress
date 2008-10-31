@@ -24,7 +24,6 @@ def create_search_document(book_id, book_title, content, chapter_id, chapter_fil
 def add_search_document(database, doc):
     # Create the document with a generated unique chapter+book id
     unique_id =  int(doc.get_value(constants.SEARCH_CHAPTER_ID))
-
     database.replace_document(unique_id, doc)
 
 def index_search_document(doc, content, weight=1):
@@ -98,10 +97,14 @@ def create_book_database(username, book_id):
 
 def delete_book_database(username, book_id):
     book_db = get_book_database_path(username, book_id)
-    log.warn("Deleting book database at '%s'" % book_db)
-    shutil.rmtree(book_db)    
+    if os.path.exists(book_db):
+        log.warn("Deleting book database at '%s'" % book_db)
+        shutil.rmtree(book_db)    
+    else:
+        log.warn("Tried to delete non-existent book db at '%s'" % book_db)
 
-def get_database(username, book_id=None):
+
+def get_database(username, book_id=None, create_if_missing=True):
     if book_id:
         path = get_book_database_path(username, book_id)
     else:
@@ -113,8 +116,14 @@ def get_database(username, book_id=None):
         # We should have a database, but we don't.  This will
         # end up with no results, but create one anyway
         # because that's better than an exception.
-        log.warn("lost database from path %s" % path)
-        db = create_database(username, book_id)
+        # 
+        # If create_if_missing is overridden to be false,
+        # then ignore this (the db had never been created)
+        if create_if_missing:
+            log.warn("lost database from path %s" % path)
+            db = create_database(username, book_id)
+        else:
+            return None
     return db
 
 def get_user_database_path(username):
