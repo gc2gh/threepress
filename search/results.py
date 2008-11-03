@@ -91,6 +91,10 @@ class Result(object):
         return self.xapian_document.get_value(constants.SEARCH_CHAPTER_TITLE)
 
     @property
+    def chapter_filename(self):
+        return self.xapian_document.get_value(constants.SEARCH_CHAPTER_FILENAME)
+
+    @property
     def author(self):
         return self.xapian_document.get_value(constants.SEARCH_AUTHOR_NAME)
 
@@ -107,7 +111,9 @@ class Result(object):
 
     @property
     def url(self):
-        return reverse('view_chapter', args=[urlquote_plus(self.title), str(self.id), str(self.chapter_id)])
+        # It would be nice if this didn't violate DRY by invoking EpubArchive's 
+        # get_absolute_url
+        return reverse('view_chapter', args=[urlquote_plus(self.title), str(self.id), str(self.chapter_filename)])
 
     def set_content(self, content):
         self.highlighted_content = content

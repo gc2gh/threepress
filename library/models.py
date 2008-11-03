@@ -577,6 +577,7 @@ class HTMLFile(BookwormFile):
         # (this is overridden during indexing)
         if mark_as_read:
             self.read()
+
         if self.processed_content:
             return self.processed_content
         
