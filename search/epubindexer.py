@@ -1,3 +1,4 @@
+import os.path
 from lxml.html.soupparser import fromstring
 import logging, xapian
 from django.core.management import setup_environ
@@ -18,6 +19,10 @@ def delete_epub(epub):
 
     # Delete from the book's own database
     indexer.delete_book_database(username, epub.id)
+    user_db_location = indexer.get_user_database_path(username)
+    if not os.path.exists(user_db_location):
+        return
+    
     user_db = indexer.create_user_database(username)
     # Also delete from the user's database
     for c in models.HTMLFile.objects.filter(archive=epub):
@@ -51,7 +56,7 @@ def index_epub(usernames, epub, chapter=None):
     book_title = epub.title
     chapters = []
     if chapter is None:
-        chapters = [c for c in models.HTMLFile.objects.filter(archive=epub)]
+        chapters = [c for c in models.HTMLFile.objects.filter(archive=epub).order_by('id')]
     if chapter is not None:
         chapters.append(chapter)
 
@@ -72,12 +77,20 @@ def index_epub(usernames, epub, chapter=None):
         doc = indexer.create_search_document(book_id, book_title, clean_content,
                                              c.id, c.filename, chapter_title, author_name=epub.orderable_author,
                                              language=language)
+        if doc is None:
+            continue
+
         indexer.index_search_document(doc, clean_content)
 
         for db in databases:
             if db is not None:
                 indexer.add_search_document(db, doc)
+            else:
+                log.warn("Got db with None value")
 
+    for db in databases:
+        if db is not None:
+            db.flush()    
     epub.indexed = True
     epub.save()
 

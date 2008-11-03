@@ -13,5 +13,5 @@ def setup():
     connection.creation.create_test_db(verbosity=1, autoclobber=True)
 
 def teardown():
-    connection.creation.destroy_test_db('bookworm')
+    connection.creation.destroy_test_db('bookworm2')
     #teardown_test_environment()

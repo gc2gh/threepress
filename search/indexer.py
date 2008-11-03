@@ -10,6 +10,9 @@ log = logging.getLogger('search.indexer')
 
 def create_search_document(book_id, book_title, content, chapter_id, chapter_filename, chapter_title='Untitled chapter', ns='', author_name='', language='en'):
     doc = xapian.Document()
+    if not content:
+        log.warn("Skipping blank content with id %s" % chapter_id)
+        return None
     doc.set_data(content)
     doc.add_value(constants.SEARCH_BOOK_ID, unicode(book_id))
     doc.add_value(constants.SEARCH_BOOK_TITLE, unicode(book_title))
@@ -22,9 +25,10 @@ def create_search_document(book_id, book_title, content, chapter_id, chapter_fil
     return doc
 
 def add_search_document(database, doc):
-    # Create the document with a generated unique chapter+book id
+    # Create the document with a generated unique chapter id
     unique_id =  int(doc.get_value(constants.SEARCH_CHAPTER_ID))
     database.replace_document(unique_id, doc)
+
 
 def index_search_document(doc, content, weight=1):
     '''Create a new index and stemmer from the given document, 

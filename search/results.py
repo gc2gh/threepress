@@ -27,7 +27,9 @@ def search(term, username, book_id=None, start=1, end=constants.RESULTS_PAGESIZE
     qp = xapian.QueryParser()
     qp.set_database(database)
     qp.set_default_op(xapian.Query.OP_AND)
-
+    terms = [t.term for t in database.allterms()]
+    if len(terms) == 0:
+        log.warn("NO TERMS found in database %s/%s" % (username,  book_id))
     #log.debug([t.term for t in database.allterms()])
     log.debug("Using language %s" % language)
     qp.set_stemmer(indexer.get_stemmer(language))
