@@ -23,8 +23,8 @@ langs = [l[0] for l in settings.LANGUAGES]
 log.info("Will index documents in languages: %s" % langs)
 
 for e in EpubArchive.objects.all().order_by('id'):
-#    if e.indexed:
-#        continue
+    if e.indexed:
+        continue
 
     log.info("Updating %s (%s)" % (e.title, e.name))
     if e.opf is None or e.opf == '':
@@ -47,3 +47,21 @@ for e in EpubArchive.objects.all().order_by('id'):
         epubindexer.index_epub([user.username], e)
     else:
         log.warn("skipping %s with lang=%s" % (e.title, lang))
+
+import os
+import os.path
+import stat
+
+perms = stat.S_IREAD | stat.S_IWRITE | stat.S_IROTH | stat.S_IWOTH | stat.S_IRGRP | stat.S_IWGRP
+dir_perms = stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC | stat.S_IROTH | stat.S_IXOTH | stat.S_IWOTH | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP
+
+# Update all the permissions
+for users in os.listdir(settings.SEARCH_ROOT):
+    os.chmod(os.path.join(settings.SEARCH_ROOT, users), dir_perms)
+    for f in os.listdir(os.path.join(settings.SEARCH_ROOT, users)):
+        os.chmod(os.path.join(settings.SEARCH_ROOT, users, f), dir_perms)
+        if os.path.isdir(os.path.join(settings.SEARCH_ROOT, users, f)):
+            for i in os.listdir(os.path.join(settings.SEARCH_ROOT, users, f)):
+                os.chmod(os.path.join(settings.SEARCH_ROOT, users, f, i), perms)
+        else:
+            os.chmod(os.path.join(settings.SEARCH_ROOT, users, f), perms)            

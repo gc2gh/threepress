@@ -83,7 +83,7 @@ class EpubArchive(BookwormModel):
 
     # Metadata fields
     language = models.CharField(max_length=255, default='', db_index=True)
-    rights = models.CharField(max_length=300, default='', db_index=True)
+    rights = models.CharField(max_length=300, default='', db_index=False)
     identifier = models.CharField(max_length=255, default='', db_index=True)
 
     # MTM fields

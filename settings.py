@@ -161,7 +161,7 @@ TEST_DATABASE_CHARSET = 'utf8'
 SEARCH_ROOT = os.path.join(ROOT_PATH, 'search', 'dbs')
 
 
-CACHE_BACKEND = 'file:///tmp/django_cache'
+CACHE_BACKEND = 'file:///tmp/bookworm/django_cache'
 
 XSLT_DIR = os.path.join(ROOT_PATH, 'library', 'xsl')
 DTBOOK2XHTML = os.path.join(XSLT_DIR, 'dtbook2xhtml.xsl')
