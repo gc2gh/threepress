@@ -22,3 +22,9 @@
   font-size: small;
   color: gray;
 }
+.bw-search-previous {
+ float:left;
+}
+.bw-search-next{
+ float:right;
+}

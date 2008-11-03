@@ -44,7 +44,7 @@
 
   {% if multiple_pages %}
   <div class="bw-search-results-nav">
-    <div class="bw-search-previous">{% if show_previous %} <a href="/search?search={{ search }}&amp;start={{ previous_start }}&amp;end={{ previous_end }}">← previous</a> {% endif %} </div>
+    <div class="bw-search-previous">{% if show_previous %} <a href="{% url search %}?q={{ term }}&amp;language={{ language }}&amp;start={{ previous_start }}&amp;end={{ previous_end }}">← previous</a> {% endif %} </div>
     <div class="bw-search-next">
     {% if show_next %} <a href="{% url search %}?q={{ term }}&amp;language={{ language }}&amp;start={{ next_start }}&amp;end={{ next_end }}">next →</a> {% endif %} 
     </div>
