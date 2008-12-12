@@ -88,7 +88,10 @@ class LibraryThingWork(object):
     def _field(self, fieldname):
         '''Return a field with a single fact'''
         info = self.info
-        t = info.xpath('//lt:field[@name="%s"]//lt:fact' % fieldname, namespaces={'lt':LT_NS})[0].text
+        t = info.xpath('//lt:field[@name="%s"]//lt:fact' % fieldname, namespaces={'lt':LT_NS})
+        if not t or len(t) == 0:
+            return None
+        t = t[0].text
         # Remove when LibraryThing fixes this
         t = t.replace('<![CDATA[ ', '')
         t = t.replace(']]>', '')

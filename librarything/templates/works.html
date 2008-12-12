@@ -2,19 +2,26 @@
 
 <h2>Editions {% if works.0.canonical_title %} of <em>{{ works.0.canonical_title }}</em> {% endif %} found in <a href="http://www.librarything.org/">LibraryThing</a></h2>
 
+{% if works.0.first_words %}
 <h3>First words</h3>
-<blockquote>{{ works.0.first_words }}</blockquote>
+<blockquote>{{ works.0.first_words|safe }}</blockquote>
+{% endif %}
 
-<h3>Major characters</h3>
-<p>Click on a character name to find occurrences of that character in the work.</p>
 
-<ul>
-{% for character in works.0.character_names %}
-<li> <a href="{% url search %}?q={{ character }}">{{ character }}</a></li>
-{% endfor %}
-</ul>
+{% if works.0.character_names  %}
 
+  <h3>Major characters</h3>
+   <p>Click on a character name to find occurrences of that character in the work.</p>
+  <ul>
+    {% for character in works.0.character_names  %}
+      <li> <a href="{% url search %}?q={{ character }}">{{ character }}</a></li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% if works.0.originalpublicationdate %}
 <h3>Originally published in {{ works.0.originalpublicationdate }}</h3>
+{% endif %}
 
 <div class="pics" id="bw-librarything-images">
 {% for work in works %}
@@ -24,6 +31,6 @@
 {% endfor %}
 </div>
 
-<p>Cover images may not be available for all editions.</p>
+<p>Click to cycle through covers. Cover images may not be available for all editions.</p>
 
 {% endif %}
