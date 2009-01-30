@@ -687,10 +687,18 @@ class EpubPublisher(BookwormModel):
         return self.name
     
 class HTMLFile(BookwormFile):
-    '''Usually an individual page in the ebook'''
+    '''Usually an individual page in the ebook.'''
     title = models.CharField(max_length=5000)
     order = models.PositiveSmallIntegerField(default=1)
+
+    # XHTML content that has been sanitized.  This isn't done until
+    # the user requests to access the file or until the automated
+    # process hits it, whichever occurs first
     processed_content = models.TextField()
+
+    # Only the words in the document; this is used for full-text indexing
+    words = models.TextField()
+
     content_type = models.CharField(max_length=100, default="application/xhtml")
  
     def render(self, user=None):
