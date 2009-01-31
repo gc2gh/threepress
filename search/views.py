@@ -38,7 +38,7 @@ def search(request):
             pass
 
 
-    res = Paginator([Result(r, form.cleaned_data['q']) for r in html_res], constants.RESULTS_PER_PAGE)
+    res = Paginator(html_res, constants.RESULTS_PER_PAGE)
     
     return direct_to_template(request, 'results.html', 
                               { 'results':res,

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load results %}
 
 {% block title %}Search results{% endblock %}
 
@@ -27,14 +28,7 @@
 
     <ol id="bw-search-results" start="{{ page.start_index}}">
       {% for result in page.object_list %}
-      <li><a href="{{ result.url }}"><span class="bw-search-results-book-title">{{ result.chapter_title }}</span>{% if result.chapter_title %} ~ {% endif %}<span class="bw-search-results-title">{{ result.title }}</span></a>
-      {% if result.archive.author %}
-        <div class="bw-search-results-author">by {{ result.archive.author }}</div>
-      {% endif %}
-      {% if result.result_fragment %}
-        <div class="bw-search-results-fragment">... {{ result.result_fragment|safe }} ...</div>
-      {% endif %}
-      </li>
+        {% display_result result term %}
       {% endfor %}
     </ol>
 
