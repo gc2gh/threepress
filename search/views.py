@@ -7,7 +7,6 @@ from django.core.paginator import Paginator
 
 import bookworm.search.epubindexer as epubindexer
 import bookworm.search.constants as constants
-from bookworm.search.results import Result
 from bookworm.search.forms import EpubSearchForm
 from bookworm.library.models import HTMLFile
 

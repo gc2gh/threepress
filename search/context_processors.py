@@ -1,8 +1,8 @@
 import logging
 from django.conf import settings
 
-from forms import EpubSearchForm
-from library.models import EpubArchive
+from bookworm.search.forms import EpubSearchForm
+from bookworm.library.models import EpubArchive
 
 
 log = logging.getLogger('context_processors')
@@ -13,7 +13,8 @@ def count_books(user):
 def search(request):
     form = None
     current_search_language = 'English'
-    form = EpubSearchForm()
+    if not request.user.is_anonymous():
+        form = EpubSearchForm()
     return {'search_form': form,
             'current_search_language': current_search_language}
     
