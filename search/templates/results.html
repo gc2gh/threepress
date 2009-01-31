@@ -2,17 +2,14 @@
 {% load humanize %}
 {% load results %}
 
-{% block title %}Search results{% endblock %}
+{% block title %}Search results {% if term %} for '{{ term }}' {% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="/static/results.css"></link>
 {% endblock head %}
 
-
 {% block leftnav %}
-
 <p><a href="{% url search_help %}">About searching</a></p>
-
 {% endblock leftnav %}
 
 {% block main %}
@@ -31,7 +28,6 @@
         {% display_result result term %}
       {% endfor %}
     </ol>
-
 
 
   {% if page.has_other_pages %}
