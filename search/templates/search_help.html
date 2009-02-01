@@ -43,13 +43,17 @@
 </p>
 <h3>Boolean operators</h3>
 <p>
-  Unlike Google, the default boolean operator is OR, meaning that in a
-  multi-word search, any of the words can appear to produce a result.
- You can change this behavior by
-  appending plus or minus signs to terms in your search:
+  Like Google, the default boolean operator is AND, meaning that in a
+  multi-word search, all of the words must appear to produce a result.
+  Bookworm does this by automatically appending a '+' character to all your
+  search terms.  
+  You can change this behavior by appending plus or minus signs to terms in your search,
+  or including quotation marks, which overrides the default.
   <ul>
-    <li> <em>+white +house</em> &mdash; Both terms are required (like Google).</li>
-    <li> <em>white house</em> &mdash; Find ePubs with either word</li>
+    <li> <em>white house</em> &mdash; Both terms are required (like Google).</li>
+    <li> <em>+white +house</em> &mdash; Same as above.</li>
+    <li> <em>"white" "house"</em> &mdash; Find ePubs with either word</li>
+    <li> <em>"white house"</em> &mdash; Find the exact phrase</li>
     <li> <em>white -house</em> &mdash; This is a good way to find ePubs that <em>don't</em> contain the phrase "White House" but do contain the word "white"</li>
   </ul>
 </p>

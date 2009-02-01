@@ -23,7 +23,17 @@ def search(request):
     if not form.is_valid():
         return direct_to_template(request, 'results.html', { 'search_form': form })     
 
-    html_res = HTMLFile.objects.filter(words__search=form.cleaned_data['q'],
+    search_terms = form.cleaned_data['q'].split(' ')
+    final_search_terms = []
+    for t in search_terms:
+        if not t.startswith('+') and not t.startswith('-') and not t.startswith('"'):
+            t = '+' + t
+        final_search_terms.append(t)
+            
+    cleaned_search_term = ' '.join(final_search_terms)
+    log.debug("Final search term: %s"  % cleaned_search_term)
+
+    html_res = HTMLFile.objects.filter(words__search=cleaned_search_term,
                                        archive__user_archive__user=request.user).distinct()
     if len(html_res) == 0:
         return direct_to_template(request, 'results.html', { 'term': form.cleaned_data['q'] } )        
