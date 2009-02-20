@@ -717,7 +717,9 @@ class TestViews(DjangoTestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser",email="test@example.com",password="testuser")
         self.user.save()        
+
         profile = UserPref(user=self.user)
+        profile.language = 'en'
         profile.save()
 
     def tearDown(self):
@@ -1008,6 +1010,16 @@ class TestViews(DjangoTestCase):
                              target_status_code=200)   
         self.assertFalse(self.client.login(username='registertest', password='registertest'))                
 
+    def test_uprofile_safes_language(self):
+        uprofile = UserPref.objects.get(user=self.user)
+        self.assertEqual(uprofile.language,'en')
+        uprofile.open_to_last_chapter = True
+        uprofile.language = 'en'
+        self.assertEqual(uprofile.language,'en')
+        uprofile.save()
+
+        uprofile_ = UserPref.objects.get(user=self.user)
+        self.assertEqual(uprofile_.language,'en')
 
     def test_open_to_last_chapter(self):
         self._upload('Pride-and-Prejudice_Jane-Austen.epub')
