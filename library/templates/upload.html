@@ -1,0 +1,65 @@
+{% extends "base.html" %} 
+{% load i18n %}
+
+{% block title %}{{ _("Add a book") }}{% endblock title %}
+{% block header %}{{ _("Add a book") }}{% endblock header %}
+{% block head %}
+<link rel="stylesheet" href="/static/about.css"></link>
+<style type="text/css">
+dl { color: grey }
+dt { font-weight: bold; color: #2E4560;}
+dd { margin:0 0 1em 0; padding:0 10px 0 0; }
+li { padding-bottom: .5em; }
+.document_title a { text-decoration: none }
+#upload_form label { display:none }
+</style>
+{% endblock head %}
+
+{% block leftnav %}
+{% url help as helpurl %}
+{% url about as abouturl %}
+
+
+<h2>{{ _("Need help?") }}</h2>
+<p>
+  {% blocktrans %}Try reading the <a href="{{ helpurl }}">Help</a> or <a href="{{ abouturl }}">About</a> pages for more information, or email <a href="mailto:{{ ADMIN_EMAIL }}">{{ ADMIN_EMAIL }}</a> for assistance.{% endblocktrans %}
+</p>
+<p style="font-size:smaller">{% blocktrans %}If you get an error that you don't understand, please email <a href="mailto:{{ ADMIN_EMAIL }}">{{ ADMIN_EMAIL }}</a> with a description of the problem.{% endblocktrans %}
+</p>
+{% include "includes/about.html" %}
+
+{% endblock %}
+
+{% block main %}
+{% url help as helpurl %}
+{% url about as abouturl %}
+
+{% if message %}
+<p class="bw-message"><strong>{{ message|safe }}</strong></p>
+{% endif %}
+
+<p id="bw-about-description">
+{% blocktrans %}To read an ebook on Bookworm, you must have first purchased or acquired it from a publisher or online book source, and downloaded that book to your computer. Use this form to add it to Bookworm.{% endblocktrans %}</p>  
+
+<p>
+  {% blocktrans %}The ebook must be in the ePub format and have a filename ending in <strong>.epub</strong>.If you don't know what that is, please see the <a href="{{ abouturl }}">About</a> page for more information.{% endblocktrans %}
+</p>
+{% if form.errors %}
+<p class="bw-message">
+  {% blocktrans %}You need to click on the &lsquo;Browse&rsquo; button and select an ebook to add.{% endblocktrans %}
+</p>
+{% endif %}
+
+<div class="bw-info-box">
+<form action="{% url upload %}" method="post" enctype="multipart/form-data">
+  <div id="bw-upload_form">
+    <strong>{% blocktrans %}Add an ePub from your computer by clicking on &lsquo;Browse&rsquo;:{% endblocktrans %}</strong>
+    <p>{{ form.epub }}</p>
+    <p><input type="submit" value="{{ _("Add to my library") }}" /></p>
+  </div>
+ 
+</form>
+</div>
+
+
+{% endblock %}

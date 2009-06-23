@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Link your OpenID with an account{% endblock %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/static/auth.css" ></link>
+{% endblock %}
+
+{% block leftnav %}
+<p>{% trans "If you're new to Bookworm, link your OpenID with a new account. If you're already a Bookworm member, link it with your existing account." %}</p>
+
+{% endblock leftnav %}
+
+{% block main %}
+
+<div id="bw-content">
+<h2>{% trans "Link an OpenID with your existing Bookworm account" %}</h2>
+
+
+
+{% if form1.errors %}
+<p class="bw-message">{% trans "Please correct errors below:" %}<br />
+  {% if form1.username.errors %} 
+  <span class="bw-error">{{ form1.username.errors|join:", " }}</span>
+  {% endif %}
+  {% if form1.email.errors %} 
+  <span class="bw-error">{{ form1.email.errors|join:", " }}</span>
+  {% endif %}
+</p>
+{% endif %}
+{% if form2.errors %}
+<p class="bw-message">{% trans "Please correct errors below:" %}<br />
+  {% if form2.username.errors %} 
+  <span class="bw-error">{{ form2.username.errors|join:", " }}</span>
+  {% endif %}
+  {% if form2.password.errors %} 
+  <span class="bw-error">{{ form2.password.errors|join:", " }}</span>
+  {% endif %}
+</p>
+{% endif %}
+
+<div class="bw-login" >
+  <form name="fregister" action="{{ action }}" method="POST">
+    {{ form.next }}
+    <fieldset>
+      <legend>{% trans "I'm new here" %}</legend>
+      <label for="id_username">{% trans "Username" %}</label>{{ form1.username }}
+      <label for="id_email">{% trans "Email" %}</label>{{ form1.email }}
+      <input type="submit" name="bnewaccount" value="{{ _("Create a new Bookworm account") }}" />
+    </fieldset>
+  </form>
+</div>
+
+
+
+<div class="bw-login">
+  <h3></h3>
+  <form name="fverify" action="{{ action }}" method="POST">
+    {{ form.next }}
+    <fieldset>
+      <legend>{% trans "I already have a Bookworm account" %}</legend>
+      <label for="id_username">{% trans "Screen name" %}</label>{{ form2.username }}
+      <label for="id_passwordl">{% trans "Password" %}</label>{{ form2.password }}
+      <input type="submit" name="bverify" value="{{ _("Associate with my OpenID") }}" />
+    </fieldset>
+  </form>
+</div>
+
+</div>
+
+{% endblock %}
+
+	
+

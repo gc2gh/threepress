@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Change the default language for" %}{{ request.user.username }}{% endblock %}
+
+{% block searcharea %}{% endblock %} 
+{% block main %}
+
+
+<h2>{% trans "Change your Bookworm language" %}</h2>
+
+<p>
+{% blocktrans %}
+  Bookworm is available in multiple languages.  To change the language
+  used when you log in, select from one of the translations listed here.
+{% endblocktrans %}
+</p>
+<p>
+{% blocktrans %}If you don't see your preferred language, <a href="mailto:{{ ADMIN_EMAIL }}">let us know if you're willing to help translate</a>.  Bookworm can be translated into <a href="http://code.djangoproject.com/browser/django/trunk/django/conf/global_settings.py#L43">any of the languages supported by the Django framework</a>.{% endblocktrans %}
+</p>
+
+<p>
+{% blocktrans %}Information on translating Bookworm is available on <a href="http://labs.oreilly.com/2009/03/how-to-contribute-translations-to-bookworm.html">O'Reilly Labs</a>{% endblocktrans %}
+</p>
+<form action="/i18n/setlang/" method="post">
+  <input name="next" type="hidden" value="{% url profile %}" />
+  <select name="language">
+
+    {% for lang in LANGUAGES %}
+    <option value="{{ lang.0 }}" {% ifequal lang.0 request.session.django_language %}selected="selected"{% endifequal %}>{{ lang.1 }}</option>
+    {% endfor %}
+  </select>
+  <input type="submit" value="{{ _("Change the language setting") }}" />
+</form>
+
+{% endblock %}

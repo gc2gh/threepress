@@ -1,0 +1,41 @@
+{% extends "shell.html" %}
+{% load i18n %}
+
+{% block center %}
+
+    <table id="bw-shell-table">
+      <tr><td valign="top" id="bw-shell-left">
+        <div id="bw-leftnav">
+          {% block searcharea %}
+          {% if search_form and not request.user.get_profile.simple_reading_mode %}
+            <div id="bw-search-box">
+              <h3>{% trans "Search your library" %}</h3>
+              <form action="{% url search %}" method="get">
+                <fieldset style="border:0;margin:0;padding:0">
+                {{ search_form.q }}
+                <div style="padding-top:1em"><input type="submit" value="{% trans "search" %}" style="width:6em" /></div>
+                </fieldset>
+              </form>
+            </div>
+          {% endif %}
+          {% endblock searcharea %}
+          {% block leftnav %}
+          {% endblock leftnav %}
+        </div>
+      </td>
+      <td valign="top" id="bw-shell-table-content">
+        <!-- Content -->
+        <div id="bw-main">
+          {% block main %}{% endblock main %}
+          {% block content %}{% endblock content %}
+        </div>
+      </td>
+      <td valign="top" id="bw-shell-right">
+        <div id="bw-rightnav">
+          {% block rightnav %}{% endblock rightnav %}
+        </div>
+      </td>
+      </tr>
+    </table>
+
+{% endblock center %}
