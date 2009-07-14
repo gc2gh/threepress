@@ -1,0 +1,12 @@
+{% load i18n %}
+{% trans "Thank you for registering with Bookworm." %}
+
+{% trans "Your account details are" %}:
+
+  {% trans "Username" %}: {{ username }}
+  {% trans "Password" %}: [not emailed]
+
+{% trans "You can now sign in" %}:
+{{ site_url }}/
+
+
