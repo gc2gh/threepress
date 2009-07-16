@@ -209,6 +209,13 @@ OFFLINE = False
 # Google Analytics key
 ANALYTICS_KEY = 'UA-162955-4'
 
+# The email addresses of the users who should receive an error email 
+# (should be a list)
+ERROR_EMAIL_RECIPIENTS = (ADMINS[0][1], )
+
+# The URL for the epubcheck webservice
+EPUBCHECK_WEBSERVICE = 'http://threepress.org/epubcheck-service/' 
+
 try:
     from local import *
 except:
