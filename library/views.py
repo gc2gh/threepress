@@ -506,8 +506,7 @@ def upload(request, title=None, key=None):
                 
             return HttpResponseRedirect(successful_redirect)
 
-        return direct_to_template(request, 'upload.html', {
-                'form':form})
+        return direct_to_template(request, 'upload.html', {'form':form})
 
 
     else:

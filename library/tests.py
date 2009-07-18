@@ -853,13 +853,14 @@ class TestViews(DjangoTestCase):
         self.assertContains(response, 'agrees that')
         self.assertContains(response, 'toc-doesnt-exist.ncx is missing')
 
-    def test_rights_document(self):
+    def xxx_test_rights_document(self):
         '''Assert that we correctly recognize a rights-managed epub and email the admin'''
+        '''Removed in infrastructure; don't bother sending email now '''
         filename = 'invalid-rights-managed.epub'
         self._upload(filename)
 
         assert len(mail.outbox) == 1
-        assert mail.outbox[0].to[0] == settings.ADMINS[0][1]
+        assert mail.outbox[0].to[0] == settings.ERROR_EMAIL_RECIPIENTS
         assert 'DRM' in mail.outbox[0].subject
 
     def test_content_visible(self):
