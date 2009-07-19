@@ -37,7 +37,7 @@ DATA_DIR = unicode(os.path.abspath('./library/test-data/data'))
 # but not in the svn repository
 PRIVATE_DATA_DIR = u'%s/private' % DATA_DIR
 
-STORAGE_DIR = os.path.abspath('./library/test-data/storage')
+STORAGE_DIR = os.path.abspath(settings.MEDIA_ROOT)
 
 class TestModels(unittest.TestCase):
 
@@ -466,8 +466,7 @@ class TestModels(unittest.TestCase):
         imagename = 'alice01a.gif'
         image = _get_file(imagename)
 
-        for i in MockImageBlob.objects.filter(idref=imagename):
-            i.delete()
+        [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
 
         image_obj = MockImageFile.objects.create(idref=imagename,
                                                  archive=document)
@@ -481,6 +480,93 @@ class TestModels(unittest.TestCase):
         self.assertTrue(i2.get_data() is not None)
         self.assertEquals(image, i2.get_data())
         i2.delete()
+
+    def test_binary_storage_exists(self):
+        '''Test that we correctly implement the required 'exists()' method for Django Storage'''
+        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+        imagename = 'alice01a.gif'
+        image = _get_file(imagename)
+        [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
+        image_obj = MockImageFile.objects.create(idref=imagename,
+                                                 archive=document)
+        i = MockImageBlob.objects.create(archive=document,
+                                         idref=imagename,
+                                         image=image_obj,
+                                         data=image,
+                                         filename=imagename)
+
+        i2 = MockImageBlob.objects.get(idref=imagename)
+        assert i2.exists()
+
+        os.remove(i2._get_file())
+
+        # Now this should fail 
+        assert not i2.exists()                  
+
+    def test_binary_storage_size(self):
+        '''Test that we correctly implement the required 'size()' method for Django Storage'''
+        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+        imagename = 'alice01a.gif'
+        image = _get_file(imagename)
+        [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
+        image_obj = MockImageFile.objects.create(idref=imagename,
+                                                 archive=document)
+        i = MockImageBlob.objects.create(archive=document,
+                                         idref=imagename,
+                                         image=image_obj,
+                                         data=image,
+                                         filename=imagename)
+
+        i2 = MockImageBlob.objects.get(idref=imagename)
+        assert i2.size() == os.path.getsize(_get_filepath(imagename))
+
+    def test_binary_storage_url(self):
+        '''Test that we correctly implement the required 'url()' method for Django Storage'''
+        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+        imagename = 'alice01a.gif'
+        image = _get_file(imagename)
+        [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
+        image_obj = MockImageFile.objects.create(idref=imagename,
+                                                 archive=document)
+        i = MockImageBlob.objects.create(archive=document,
+                                         idref=imagename,
+                                         image=image_obj,
+                                         data=image,
+                                         filename=imagename)
+
+        i2 = MockImageBlob.objects.get(idref=imagename)
+        assert image_obj.get_absolute_url() == i2.url()
+        assert '/view/Pride+and+Prejudice/' in i2.url()
+        assert 'alice01a.gif' in i2.url()
+
+    def test_binary_storage_open(self):
+        '''Test that we correctly implement the required 'open()' method for Django Storage'''
+        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
+        document = self.create_document(filename)
+        document.explode()
+        document.save()
+        imagename = 'alice01a.gif'
+        image = _get_file(imagename)
+        [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
+        image_obj = MockImageFile.objects.create(idref=imagename,
+                                                 archive=document)
+        i = MockImageBlob.objects.create(archive=document,
+                                         idref=imagename,
+                                         image=image_obj,
+                                         data=image,
+                                         filename=imagename)
+
+        i2 = MockImageBlob.objects.get(idref=imagename)
+        assert i2.open().read() == _get_filehandle(imagename).read()
 
     def test_binary_image_autosave(self):
         '''Test that an ImageFile creates a blob and can retrieve it'''
@@ -1039,6 +1125,24 @@ class TestViews(DjangoTestCase):
         self.assertContains(response, 'date added')
         self.assertContains(response, 'by date')
         self.assertContains(response, 'descending')
+
+        # Test that the next page preserves this and generates the right link
+        response = self.client.get('/page/2/order/created_time/dir/desc')
+        self.assertContains(response, 'Page 2 of 2')
+        self.assertContains(response, 'date added')
+        self.assertContains(response, 'by date')
+        self.assertContains(response, 'descending')
+        
+        self.assertContains(response, '<a href="/page/1/order/created_time/dir/desc">← previous </a>')
+
+        # Test that the prev page preserves this and generates the right link
+        response = self.client.get('/page/1/order/created_time/dir/desc')
+        self.assertContains(response, 'Page 1 of 2')
+        self.assertContains(response, 'date added')
+        self.assertContains(response, 'by date')
+        self.assertContains(response, 'descending')
+        
+        self.assertContains(response, '<a href="/page/2/order/created_time/dir/desc">next →</a>')
 
 
 

@@ -2,6 +2,7 @@ import os
 import logging, logging.handlers
 
 # Live site settings (others should override in locals.py)
+ROOT_PATH = os.path.dirname(__file__)
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -40,7 +41,7 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = os.path.join(ROOT_PATH, 'library', 'storage')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -108,8 +109,6 @@ LANGUAGES = (
 )
 
 ROOT_URLCONF = 'urls'
-
-ROOT_PATH = os.path.dirname(__file__)
 
 TEMPLATE_DIRS = (
     '%s/library/templates/auth' % ROOT_PATH,    
@@ -179,6 +178,8 @@ LOG_NAME = 'bookworm.log'
 
 TEST_DATABASE_CHARSET = 'utf8'
 TEST_DATABASE_COLLATION='utf8_unicode_ci'
+
+APPEND_SLASH = False
 
 SEARCH_ROOT = os.path.join(ROOT_PATH, 'search', 'dbs')
 
