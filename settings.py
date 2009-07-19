@@ -179,8 +179,6 @@ LOG_NAME = 'bookworm.log'
 TEST_DATABASE_CHARSET = 'utf8'
 TEST_DATABASE_COLLATION='utf8_unicode_ci'
 
-APPEND_SLASH = False
-
 SEARCH_ROOT = os.path.join(ROOT_PATH, 'search', 'dbs')
 
 CACHE_BACKEND = 'file:///tmp/bookworm/django_cache'
@@ -216,6 +214,9 @@ ERROR_EMAIL_RECIPIENTS = (ADMINS[0][1], )
 
 # The URL for the epubcheck webservice
 EPUBCHECK_WEBSERVICE = 'http://threepress.org/epubcheck-service/' 
+
+# Apps to test
+TEST_APPS = ('library',)
 
 try:
     from local import *

@@ -31,13 +31,13 @@ except:
     pass
 
 # Data for public epub documents
-DATA_DIR = unicode(os.path.abspath('./library/test-data/data'))
+DATA_DIR = unicode(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test-data/data'))
+
+STORAGE_DIR = settings.MEDIA_ROOT
 
 # Local documents should be added here and will be included in tests,
 # but not in the svn repository
 PRIVATE_DATA_DIR = u'%s/private' % DATA_DIR
-
-STORAGE_DIR = os.path.abspath(settings.MEDIA_ROOT)
 
 class TestModels(unittest.TestCase):
 
