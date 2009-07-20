@@ -1701,6 +1701,26 @@ class TestViews(DjangoTestCase):
         response = self.client.get('/account/')
         self.assertTemplateUsed(response, 'auth/profile.html')
 
+    def test_add_by_url_not_found(self):
+        '''Test trying to acquire a non-existent ePub'''
+        self._login()
+        response = self.client.get('/add/')
+        assert response.status_code == 404
+
+        response = self.client.get('/add/', { 'epub':'http://idontexist-asdasdsad.com/'})
+        assert response.status_code != 404
+        assert 'The address you provided does not ' in response.content
+
+        response = self.client.get('/add/', { 'epub':'http://example.com/test.epub'})
+        assert response.status_code != 404
+        assert 'The address you provided does not ' in response.content
+
+        response = self.client.get('/add/', { 'epub':'http://www.threepress.org/static/epub/Sense-and-Sensibility_Jane-Austen.epub'})
+        assert response.status_code != 404
+        self.assertRedirects(response, '/library/')
+        response = self.client.get('/library/')
+        assert 'Sensibility' in response.content
+        
     def _login(self):
         self.assertTrue(self.client.login(username='testuser', password='testuser'))
         
