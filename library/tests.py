@@ -1154,13 +1154,14 @@ class TestViews(DjangoTestCase):
 
         # Make sure it's in the list
         response = self.client.get('/library/')
-        self.assertContains(response, 'Sherlock')
+        self.assertContains(response, '/view/The+Adventures+of+Sherlock')
 
     def test_delete_with_utf8(self):
         response = self._upload('The-Adventures-of-Sherlock-Holmes_Arthur-Conan-Doyle.epub')
         # Make sure it's in the list
         response = self.client.get('/library/')
-        self.assertContains(response, 'Sherlock')
+        self.assertContains(response, '/view/The+Adventures+of+Sherlock')
+
 
         response = self.client.post('/delete/', { 'title':'The+Adventures+of+Sherlock+Holmes',
                                        'key':'1'})
@@ -1168,7 +1169,7 @@ class TestViews(DjangoTestCase):
                              status_code=302, 
                              target_status_code=200)   
         response = self.client.get('/library/')
-        self.assertNotContains(response, 'Sherlock')
+        self.assertNotContains(response, '/view/The+Adventures+of+Sherlock')
 
 
     def test_upload_with_entities(self):
@@ -1701,7 +1702,7 @@ class TestViews(DjangoTestCase):
         response = self.client.get('/account/')
         self.assertTemplateUsed(response, 'auth/profile.html')
 
-    def test_add_by_url_not_found(self):
+    def test_add_by_url(self):
         '''Test trying to acquire a non-existent ePub'''
         self._login()
         response = self.client.get('/add/')
@@ -1720,7 +1721,13 @@ class TestViews(DjangoTestCase):
         self.assertRedirects(response, '/library/')
         response = self.client.get('/library/')
         assert 'Sensibility' in response.content
-        
+
+    def test_feedbooks(self):
+        '''Test that we get a list of feedbooks books from the main page'''
+        self._login()
+        response = self.client.get('/library/')
+        assert 'feedbooks.com/book' in response.content
+
     def _login(self):
         self.assertTrue(self.client.login(username='testuser', password='testuser'))
         

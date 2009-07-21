@@ -679,3 +679,11 @@ table.bw-pagination {
   color: black;
   font-weight:normal;
 }
+#bw-feedbooks {
+  display:none;
+}
+#bw-feedbooks ol {
+  font-size: medium;
+  line-height: 1.5em;
+  list-style-type: none;
+}

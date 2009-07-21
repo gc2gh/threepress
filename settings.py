@@ -218,7 +218,8 @@ EPUBCHECK_WEBSERVICE = 'http://threepress.org/epubcheck-service/'
 # Apps to test
 TEST_APPS = ('library',)
 
-
+# Feedbooks OPDS feed
+FEEDBOOKS_OPDS_FEED = 'http://feedbooks.com/books/top.atom'
 try:
     from local import *
 except:
