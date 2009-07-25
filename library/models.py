@@ -960,7 +960,10 @@ class HTMLFile(BookwormFile):
             if element.tag == 'script':
                 p = element.getparent()
                 p.remove(element)
-                
+            # So are links which have javascript: in them
+            if element.get('href') and 'javascript:' in element.get('href'):
+                element.set('href', '#')
+
         return xhtml
 
     _head_extra = None

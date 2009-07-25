@@ -595,29 +595,6 @@ class TestModels(unittest.TestCase):
         self.assertEquals(image, i2.get_data())
         i2.delete()
         
-    def test_binary_image_autodelete(self):
-        '''Test that an ImageFile can delete its associated blob'''
-        filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
-        document.explode()
-        document.save()
-
-        imagename = 'alice2.gif'
-
-        for i in MockImageFile.objects.filter(idref=imagename):
-            i.delete()
-
-        image = _get_file(imagename)
-        image_obj = MockImageFile.objects.create(idref=imagename,
-                                  archive=document,
-                                  data=image)
-        i2 = MockImageFile.objects.get(idref=imagename)
-        storage = i2._blob()._get_file()
-        self.assert_(storage)
-        i2.delete()
-        self.assert_(not os.path.exists(storage))
-
-
     def test_image_with_path_info(self):
         filename = 'alice-fromAdobe.epub'
         document = self.create_document(filename)
@@ -872,7 +849,17 @@ class TestModels(unittest.TestCase):
         '''Return a proper exception if this OPF has no spine (checked in model)'''
         document = self.create_document('invalid-no-spine.epub')
         self.assertRaises(InvalidEpubException, document.explode)
-        
+
+
+    def test_unsafe_javascript(self):
+        '''Test that Javascript links are not preserved'''
+        document = self.create_document('unsafe-javascript-link.epub')
+        document.explode()
+        c = HTMLFile.objects.get(archive=document,
+                                 filename='chapter-1.html')
+        assert 'javascript:' not in c.render()
+        assert '<a href="#">' in c.render()
+
     def create_document(self, document, identifier=''):
         epub = MockEpubArchive(name=document)
         epub.identifier = identifier

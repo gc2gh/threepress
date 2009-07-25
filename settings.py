@@ -130,11 +130,11 @@ INSTALLED_APPS = (
     'django.contrib.sitemaps',
     'django.contrib.humanize',
     'django_authopenid',
-#    'django_evolution',
     'bookworm.minidetector',
     'bookworm.library',
     'bookworm.search',
     'bookworm.librarything',
+    'bookworm.mobile',
     )
 
 AUTH_PROFILE_MODULE = "library.userpref"

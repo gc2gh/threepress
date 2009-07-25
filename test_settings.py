@@ -7,8 +7,6 @@ DATABASE_NAME = ':memory:'             # Or path to database file if using sqlit
 
 MEDIA_ROOT = os.path.join(ROOT_PATH, 'library', 'test-data', 'storage')
 
-INSTALLED_APPS = [i for i in INSTALLED_APPS if i != 'django_evolution']
-
 DEBUG=False
 log.setLevel(logging.ERROR)
 SITE_ID = 1
