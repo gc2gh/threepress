@@ -220,6 +220,10 @@ TEST_APPS = ('library',)
 
 # Feedbooks OPDS feed
 FEEDBOOKS_OPDS_FEED = 'http://feedbooks.com/books/top.atom'
+
+# Always upload files to the filesystem
+FILE_UPLOAD_HANDLERS = ("django.core.files.uploadhandler.TemporaryFileUploadHandler",)
+
 try:
     from local import *
 except:

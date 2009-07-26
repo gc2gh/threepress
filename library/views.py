@@ -2,7 +2,8 @@ from django.utils.translation import ugettext as _
 
 from django.core.mail import EmailMessage
 
-import logging, sys, urllib, urllib2, MySQLdb, cStringIO, os.path, unicodedata, traceback, urlparse
+import logging, sys, urllib, urllib2, MySQLdb, os.path, unicodedata, traceback, urlparse
+from cStringIO import StringIO
 from zipfile import BadZipfile
 from xml.sax.saxutils import escape as xml_escape
 
@@ -408,10 +409,8 @@ def upload(request, title=None, key=None):
         form = EpubValidateForm(request.POST, request.FILES)
 
         if form.is_valid():
-
-            data = cStringIO.StringIO()
-            for c in request.FILES['epub'].chunks():
-                data.write(c)
+            # The temporary file assigned by Django
+            temp_file = request.FILES['epub'].temporary_file_path()
             document_name = form.cleaned_data['epub'].name
             if not key:
                 log.debug("Creating new document: '%s'" % document_name)
@@ -449,7 +448,7 @@ def upload(request, title=None, key=None):
                     document = EpubArchive(name=document_name)                    
                     document.save()
 
-            return _add_data_to_document(request, document, data.getvalue(), form)
+            return _add_data_to_document(request, document, open(temp_file), form)
 
         # The form isn't valid (generally because we didn't actually upload anything)
         return direct_to_template(request, 'upload.html', {'form':form})
@@ -461,7 +460,7 @@ def upload(request, title=None, key=None):
     return direct_to_template(request, 'upload.html', {'form':form})
 
 def _add_data_to_document(request, document, data, form):
-    '''Add epub data (as a string of bytes) to a document, then explode it.
+    '''Add epub data (as a file-like object) to a document, then explode it.
        If this returns True, return a successful redirect; otherwise return an error template.'''
     successful_redirect = reverse('library')
 
@@ -532,6 +531,7 @@ def add_by_url(request):
     epub_url = request.GET['epub']
     try:
         data = urllib2.urlopen(epub_url).read()
+        data = StringIO(data)
     except urllib2.URLError:
         message = _("The address you provided does not point to an ePub book")
         return direct_to_template(request, 'upload.html', {'form':form, 

@@ -1690,7 +1690,7 @@ class TestViews(DjangoTestCase):
         self.assertTemplateUsed(response, 'auth/profile.html')
 
     def test_add_by_url(self):
-        '''Test trying to acquire a non-existent ePub'''
+        '''Test trying to acquire an ePub by URL'''
         self._login()
         response = self.client.get('/add/')
         assert response.status_code == 404
