@@ -859,6 +859,8 @@ class TestModels(unittest.TestCase):
                                  filename='chapter-1.html')
         assert 'javascript:' not in c.render()
         assert '<a href="#">' in c.render()
+        assert not '<script>' in c.render()
+
 
     def create_document(self, document, identifier=''):
         epub = MockEpubArchive(name=document)
