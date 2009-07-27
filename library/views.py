@@ -484,12 +484,12 @@ def _add_data_to_document(request, document, data, form):
         # is passed to MySQL. If you get many of these,
         # increase the value of the MySQL config value
         # max_allowed_packet (> 16M recommended).
-        m = _("We detected a problem with your ebook that is most likely related to it being too big to display safely in a web browser. This can happen with very large images, or with extremely long chapters. Please check with the publisher that the book has been formatted correctly.  Very large pages would require a lot of scrolling and load very slowly, so they are not allowed to be added to Bookworm.")
+        m = _(u"We detected a problem with your ebook that is most likely related to it being too big to display safely in a web browser. This can happen with very large images, or with extremely long chapters. Please check with the publisher that the book has been formatted correctly.  Very large pages would require a lot of scrolling and load very slowly, so they are not allowed to be added to Bookworm.")
         return _report_error(request, document, data, m, form, e, email=True)
 
     except DRMEpubException, e:
         # DRM is evil
-        m = _("It appears that you've uploaded a book which contains DRM (Digital Rights Management).  This is a restriction that is meant to prevent illegal copying but also prevents legitimate owners from reading their ebooks wherever they like. You will probably need to use Adobe Digital Editions to read this ebook, but consider contacting the publisher or bookseller to ask them about releasing DRM-free ebooks.")
+        m = _(u"It appears that you've uploaded a book which contains DRM (Digital Rights Management).  This is a restriction that is meant to prevent illegal copying but also prevents legitimate owners from reading their ebooks wherever they like. You will probably need to use Adobe Digital Editions to read this ebook, but consider contacting the publisher or bookseller to ask them about releasing DRM-free ebooks.")
         return _report_error(request, document, data, m, form, e, email=False)
 
     except Exception, e:
@@ -514,9 +514,10 @@ def _add_data_to_document(request, document, data, form):
         else:
             message.append(_(u"<p><a href='http://code.google.com/p/epubcheck/'>epubcheck</a> agrees that this is not a valid ePub file, so you should check with the publisher or content creator. It returned:"))
             errors = u'<br/>'.join([i.text for i in valid_resp])
-            message.append("<pre class='upload-errors'>%s</pre></p>" % errors)
+            message.append(u"<pre class='upload-errors'>%s</pre></p>" % errors)
+        
         return direct_to_template(request, 'upload.html', {'form':form, 
-                                                           'message':message})                
+                                                           'message':u''.join(message)})                
 
     return HttpResponseRedirect(successful_redirect)
 
