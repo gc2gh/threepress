@@ -137,7 +137,57 @@ class Tests(TestCase):
 
         assert key1 == user.get_profile().get_api_key().key
 
+    def test_api_key_change_on_password_web(self):
+        '''The user's API key should visibly change on the web site after updating their password from the web'''
+        username = 'test_change_name'
+        email = 'test_change_name@example.com'
+        password = 'test_change_name'
+        self._register_standard(username, email, password)
+        user = User.objects.get(username=username)
+        response = self.client.get('/account/profile/')
+        self.assertTemplateUsed(response, 'auth/profile.html')
+        self.assertContains(response, username, status_code=200)        
 
+        # Get this API key
+        key = user.get_profile().get_api_key().key
+        assert key is not None
+        assert len(key) == 32
+        assert key in response.content
+
+        response = self.client.post('/account/password/', { 'oldpw':password,
+                                                            'password1':'registertest2',
+                                                            'password2':'registertest2'})
+        self.assertRedirects(response, '/account/profile/?msg=Password+changed.', 
+                             status_code=302, 
+                             target_status_code=200)           
+        
+        response = self.client.get('/account/profile/')
+
+        key2 = user.get_profile().get_api_key().key
+        assert len(key2) == 32
+        assert key not in response.content
+        assert key2 in response.content
+        assert key2 != key
+
+
+    def test_api_key_change_on_username_web(self):
+        '''The user's API key should visibly change on the web site after updating their username from the web'''
+        pass # There's no method to change a username on Bookworm via the web API
+
+    def _register_standard(self, username, email, password):
+        '''Register a new account using a standard Django account'''
+        response = self.client.post('/account/signup/', { 'username':username,
+                                                          'email':email,
+                                                          'password1':password,
+                                                          'password2':password})
+        self.assertRedirects(response, '/library/', 
+                             status_code=302, 
+                             target_status_code=200)   
+        response = self.client.get('/library/')
+        self.assertTemplateUsed(response, 'index.html')
+        self.assertContains(response, username, status_code=200)
+
+        
     def _reset(self):
         '''Delete any apikey assignments between runs'''        
         [a.delete() for a in models.APIKey.objects.all() ]

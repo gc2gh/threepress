@@ -109,7 +109,7 @@ form input {
     </tr>
     <tr>
       <th>{% trans "Your API key" %}<br /><a href="{% url api_help %}" id="bw-api-help">{% trans "What's this?" %}</a></th>
-      <td>{{ request.user.get_profile.get_api_key.key }}</td>
+      <td id="bw-api-key">{{ request.user.get_profile.get_api_key.key }}</td>
     </tr>
 
 
