@@ -135,6 +135,7 @@ INSTALLED_APPS = (
     'bookworm.search',
     'bookworm.librarything',
     'bookworm.mobile',
+    'bookworm.api',
     )
 
 AUTH_PROFILE_MODULE = "library.userpref"
