@@ -3,6 +3,7 @@ import uuid
 
 from django.db import models
 from django.contrib.auth.models import User
+import  django.db.models.signals as signals
 
 from bookworm.library import models as bookworm_models
 
@@ -45,11 +46,23 @@ class APIKeyManager(models.Manager):
 class APIKey(bookworm_models.BookwormModel):
     '''Stores the user's current API key'''
     user = models.ForeignKey(User, unique=True)
-    key = models.CharField(max_length=2000)
+    key = models.CharField(max_length=2000, unique=True)
     objects = APIKeyManager()
 
     def is_valid(self, key):
         '''Assert whether a key is valid (matches the value in the database)'''
         return self.key == key
 
-    
+def update_api_key(sender, instance, **kwargs):
+    '''Signal handler to update the user's API key if the username or password has changed'''
+    # Get a copy of the user object as it exists in the database
+    try:
+        user = User.objects.get(id=instance.id)
+    except User.DoesNotExist:
+        return
+    if user.username != instance.username or user.password != instance.password:
+        apikey = APIKey.objects.get_or_create(user=user)[0]
+        apikey.key = APIKey.objects.generate_key()
+        apikey.save()
+        
+signals.pre_save.connect(update_api_key, sender=User, weak=False)

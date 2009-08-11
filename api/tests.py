@@ -102,6 +102,40 @@ class Tests(TestCase):
         assert len(key) == 32
 
         assert key in response.content
+        
+    def test_api_key_change_on_username_change(self):
+        '''The user's API key should change when their username is updated'''
+        user = User.objects.create_user(username="usernamechange",email="usernamechange@example.com",password="usernamechange")
+        library_models.UserPref.objects.create(user=user)
+        key1 = user.get_profile().get_api_key().key
+        
+        user.username = 'username2'
+        user.save()
+
+        assert key1 != user.get_profile().get_api_key().key
+
+    def test_api_key_change_on_password_change(self):
+        '''The user's API key should change when their password is updated'''
+        user = User.objects.create_user(username="passwordchange",email="passwordchange@example.com",password="passwordchange")
+        library_models.UserPref.objects.create(user=user)
+        key1 = user.get_profile().get_api_key().key
+        
+        user.password = 'password2'
+        user.save()
+
+        assert key1 != user.get_profile().get_api_key().key
+
+
+    def test_api_key_change_not_on_email_change(self):
+        '''The user's API key should NOT change when their email is updated'''
+        user = User.objects.create_user(username="emailchange",email="emailchange@example.com",password="emailchange")
+        library_models.UserPref.objects.create(user=user)
+        key1 = user.get_profile().get_api_key().key
+        
+        user.email = 'email2@example.com'
+        user.save()
+
+        assert key1 == user.get_profile().get_api_key().key
 
 
     def _reset(self):
