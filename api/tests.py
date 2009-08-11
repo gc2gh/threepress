@@ -10,8 +10,8 @@ class Tests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testapi",email="testapi@example.com",password="testapi")
         self.user2 = User.objects.create_user(username="testapi2",email="testapi2@example.com",password="testapi2")
-        library_models.UserPref.objects.create(user=self.user)
-        library_models.UserPref.objects.create(user=self.user2)
+        self.userpref = library_models.UserPref.objects.create(user=self.user)
+        self.userpref2 = library_models.UserPref.objects.create(user=self.user2)
         Site.objects.get_or_create(id=1)
 
     def _login(self):
@@ -203,6 +203,27 @@ class Tests(TestCase):
         '''The user's API key should visibly change on the web site after updating their username from the web'''
         pass # There's no method to change a username on Bookworm via the web API
 
+    def test_api_fail_anon(self):
+        '''An anonymous user should not be able to log in to the API without an API key'''
+        self.assertRaises(models.APIException, self.client.get, '/api/list/')
+
+    def test_api_fail_logged_in(self):
+        '''A logged-in user should not be able to log in to the API without an API key'''
+        self._login()
+        self.assertRaises(models.APIException, self.client.get, '/api/list/')
+
+    def test_api_fail_bad_key(self):
+        '''A logged-in user should not be able to log in to the API with the wrong API key'''
+        self._login()
+        self.assertRaises(models.APIException, self.client.get, '/api/list/', { 'api_key': 'None'})
+
+    def test_api_list(self):
+        '''A user should be able to log in to the API with the correct API key'''
+        self._login()
+        key = self.userpref.get_api_key().key
+        response = self.client.get('/api/list/', { 'api_key': key})
+        assert '<html' in response.content
+        
     def _register_standard(self, username, email, password):
         '''Register a new account using a standard Django account'''
         response = self.client.post('/account/signup/', { 'username':username,

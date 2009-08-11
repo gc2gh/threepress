@@ -42,7 +42,16 @@ class APIKeyManager(models.Manager):
         except APIKey.DoesNotExist:
             raise APIException("No matching user %s has an API key" % user)
         return apikey.key == key
-
+    
+    def user_for_key(self, key):
+        '''Return the user object for this key, or an APIException if no key matches'''
+        try:
+            apikey = self.get(key=key)
+        except APIKey.DoesNotExist:
+            raise APIException("No matching key for %s" % key)
+        return apikey.user
+        
+       
 class APIKey(bookworm_models.BookwormModel):
     '''Stores the user's current API key'''
     user = models.ForeignKey(User, unique=True)

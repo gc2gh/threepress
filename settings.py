@@ -90,6 +90,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.cache.FetchFromCacheMiddleware',
     'bookworm.minidetector.Middleware',
     'bookworm.middleware.Mobile',
+    'bookworm.api.middleware.SSLRedirect',
+    'bookworm.api.middleware.APIKeyCheck',
 
 
 )
@@ -219,11 +221,16 @@ EPUBCHECK_WEBSERVICE = 'http://threepress.org/epubcheck-service/'
 # Apps to test
 TEST_APPS = ('library',)
 
+TESTING = False
+
 # Feedbooks OPDS feed
 FEEDBOOKS_OPDS_FEED = 'http://feedbooks.com/books/top.atom'
 
 # Always upload files to the filesystem
 FILE_UPLOAD_HANDLERS = ("django.core.files.uploadhandler.TemporaryFileUploadHandler",)
+
+# API key field name
+API_FIELD_NAME = 'api_key'
 
 try:
     from local import *

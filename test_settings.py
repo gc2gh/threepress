@@ -10,7 +10,7 @@ MEDIA_ROOT = os.path.join(ROOT_PATH, 'library', 'test-data', 'storage')
 DEBUG=False
 log.setLevel(logging.ERROR)
 SITE_ID = 1
-
+TESTING = True
 
 
 
