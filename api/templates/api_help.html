@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Profile and preferences for" %} {{ request.user.username }} {% endblock %}
+
+{% block searcharea %}{% endblock %}
+
+{% block main %}
+
+<h2>{% trans "About the Bookworm API" %}</h2>
+
+<p>{% blocktrans %}The Bookworm API (or Application Programming Interface) allows users and developers to access many of the features of Bookworm from other applications.{% endblocktrans %}</p>
+
+{% endblock main %}

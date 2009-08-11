@@ -29,6 +29,9 @@ urlpatterns = patterns('',
                        
                        # Search 
                        (r'^search/', include('bookworm.search.urls')),
+
+                       # API 
+                       (r'^api/', include('bookworm.api.urls')),
 )
 
 if settings.DEBUG:

@@ -1,1 +1,4 @@
-# Create your views here.
+
+
+def api(request):
+    pass
