@@ -139,9 +139,9 @@ class Tests(TestCase):
 
     def test_api_key_change_on_password_web(self):
         '''The user's API key should visibly change on the web site after updating their password from the web'''
-        username = 'test_change_name'
-        email = 'test_change_name@example.com'
-        password = 'test_change_name'
+        username = 'test_change_password'
+        email = 'test_change_password@example.com'
+        password = 'test_change_password'
         self._register_standard(username, email, password)
         user = User.objects.get(username=username)
         response = self.client.get('/account/profile/')
@@ -168,6 +168,35 @@ class Tests(TestCase):
         assert key not in response.content
         assert key2 in response.content
         assert key2 != key
+
+    def test_api_key_change_on_email_web(self):
+        '''The user's API key should NOT visibly change on the web site after updating their email from the web'''
+        username = 'test_change_email'
+        email = 'test_change_email@example.com'
+        password = 'test_change_email'
+        self._register_standard(username, email, password)
+        user = User.objects.get(username=username)
+        response = self.client.get('/account/profile/')
+        self.assertTemplateUsed(response, 'auth/profile.html')
+        self.assertContains(response, username, status_code=200)        
+
+        # Get this API key
+        key = user.get_profile().get_api_key().key
+        assert key is not None
+        assert len(key) == 32
+        assert key in response.content
+
+        response = self.client.post('/account/email/', { 'password':password,
+                                                         'email':'changedemail@example.com'})
+
+        self.assertRedirects(response, '/account/profile/?msg=Email+changed.', 
+                             status_code=302, 
+                             target_status_code=200)           
+        
+        response = self.client.get('/account/profile/')
+        assert 'changedemail@example.com' in response.content
+
+        assert key in response.content
 
 
     def test_api_key_change_on_username_web(self):
