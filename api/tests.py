@@ -4,11 +4,13 @@ from lxml import etree
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.http import HttpResponseNotFound
 
 from bookworm.api import models
 from bookworm.library import models as library_models
 from bookworm.library import test_helper as helper
 
+UNAUTHED_STATUS_CODE = 403
 
 def reset_keys(fn):
     '''Delete any critical data between runs'''        
@@ -231,17 +233,17 @@ class Tests(TestCase):
 
     def test_api_fail_anon(self):
         '''An anonymous user should not be able to log in to the API without an API key'''
-        self.assertRaises(models.APIException, self.client.get, '/api/documents/')
+        self.client.get('/api/documents/', status_code=UNAUTHED_STATUS_CODE)   
 
     def test_api_fail_logged_in(self):
         '''A logged-in user should not be able to log in to the API without an API key'''
         self._login()
-        self.assertRaises(models.APIException, self.client.get, '/api/documents/')
+        self.client.get('/api/documents/', status_code=UNAUTHED_STATUS_CODE)
 
     def test_api_fail_bad_key(self):
         '''A logged-in user should not be able to log in to the API with the wrong API key'''
         self._login()
-        self.assertRaises(models.APIException, self.client.get, '/api/documents/', { 'api_key': 'None'})
+        self.client.get('/api/documents/', { 'api_key': 'None'}, status_code=UNAUTHED_STATUS_CODE)
 
     @reset_books
     def test_api_list_no_results(self):
@@ -352,8 +354,31 @@ class Tests(TestCase):
 
     @reset_books
     def test_api_download(self):
-        '''Documents can be downloading using the API'''
-        pass
+        '''Documents can be downloaded using the API'''
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+
+        self.client.logout()
+
+        # Assert that they can't download using the traditional web UI (because they're not authed)
+        response = self.client.get('/download/epub/test/1/', status_code=404)
+        
+        response = self.client.get('/api/documents/1/', { 'api_key': self.userpref.get_api_key().key})
+        assert 'application/epub+zip' in response._headers['content-type'] 
+
+        # Check that it's the same bytes that we started with
+        assert response.content == helper.get_file(name)
+
+
+    @reset_books
+    def test_api_download_fail(self):
+        '''Documents which aren't authenticated properly should return an unauthored response.'''
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+        self.client.logout()
+        response = self.client.get('/api/documents/1/', { 'api_key': 'Fail'}, status_code=UNAUTHED_STATUS_CODE)
 
 
     def _validate_page(self, response):

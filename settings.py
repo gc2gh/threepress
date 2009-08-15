@@ -93,7 +93,6 @@ MIDDLEWARE_CLASSES = (
     'bookworm.api.middleware.SSLRedirect',
     'bookworm.api.middleware.APIKeyCheck',
 
-
 )
 
 ugettext = lambda s: s

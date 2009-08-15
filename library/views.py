@@ -239,6 +239,8 @@ def download_epub(request, title, key, nonce=None):
     off the storage mechanism (usually this happens in development), return
     a 404 instead of a zero-byte download.'''
     document = _get_document(request, title, key, nonce=nonce)
+    if document is None:
+        raise Http404        
     content = document.get_content().read()
     if content is None:
         raise Http404

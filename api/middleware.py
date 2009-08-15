@@ -7,10 +7,11 @@ __author__ = "Stephen Zabel - sjzabel@gmail.com"
 __contributors__ = "Jay Parlar - parlar@gmail.com"
 
 from django.conf import settings
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, get_host
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, get_host, HttpResponseForbidden
 from django.contrib.auth import login, authenticate
 
 from bookworm.api import models 
+from bookworm.api.models import APIException
 
 SSL = 'SSL'
 
@@ -25,11 +26,17 @@ class APIKeyCheck(object):
             elif settings.API_FIELD_NAME in request.POST:
                 apikey = request.GET[settings.API_FIELD_NAME]
             else:
-                raise models.APIException("api_key was not found in request parameters")
-            user = models.APIKey.objects.user_for_key(apikey)
+                return HttpResponseForbidden("api_key was not found in request parameters")
+            try:
+                user = models.APIKey.objects.user_for_key(apikey)
+            except APIException, e:
+                return HttpResponseForbidden(e.message)                
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(request, user)
             return None
+
+    def process_exception(self, request, APIException):
+        return HttpResponseForbidden()
 
 class SSLRedirect(object):
     
