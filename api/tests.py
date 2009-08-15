@@ -246,7 +246,6 @@ class Tests(TestCase):
     @reset_books
     def test_api_list_no_results(self):
         '''A user should be able to log in to the API with the correct API key and get a valid XHTML page even with no books.'''
-        self._login()
         key = self.userpref.get_api_key().key
         response = self.client.get('/api/documents/', { 'api_key': key})
         self._validate_page(response)
@@ -257,6 +256,8 @@ class Tests(TestCase):
         self._login()
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         self._upload(name)
+
+        self.client.logout()
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
         self._validate_page(response)
         assert name in response.content
@@ -269,6 +270,8 @@ class Tests(TestCase):
         name2 = 'alice-fromAdobe.epub'
         self._upload(name)
         self._upload(name2)
+
+        self.client.logout()
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
         self._validate_page(response)
         assert '<ol>' in response.content
@@ -282,6 +285,8 @@ class Tests(TestCase):
         self._login()
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         self._upload(name)
+
+        self.client.logout()
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
         self._validate_page(response)
         assert 'Pride and Prejudice' in response.content
@@ -292,6 +297,8 @@ class Tests(TestCase):
         self._login()
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         self._upload(name)
+
+        self.client.logout()
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
         self._validate_page(response)
         assert 'Jane Austen' in response.content
@@ -302,6 +309,8 @@ class Tests(TestCase):
         self._login()
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         self._upload(name)
+
+        self.client.logout()
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
         self._validate_page(response)
         document = library_models.EpubArchive.objects.get(name=name)
@@ -315,7 +324,10 @@ class Tests(TestCase):
         self._upload(name)
         name2 = 'alice-fromAdobe.epub'
         self._upload(name2)
+        
+        self.client.logout()
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+
         self._validate_page(response)
         page = etree.fromstring(response.content)
         assert 'Pride' in page.xpath('//xhtml:li[1]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
@@ -325,15 +337,23 @@ class Tests(TestCase):
         [ua.delete() for ua in library_models.UserArchive.objects.all() ]        
         [d.delete() for d in library_models.EpubArchive.objects.all() ]        
 
+        self._login()
         self._upload(name2)
         self._upload(name)
 
+        self.client.logout()
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
         self._validate_page(response)
 
         page = etree.fromstring(response.content)
         assert 'Alice' in page.xpath('//xhtml:li[1]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
         assert 'Pride' in page.xpath('//xhtml:li[2]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
+
+
+    @reset_books
+    def test_api_download(self):
+        '''Documents can be downloading using the API'''
+        pass
 
 
     def _validate_page(self, response):
