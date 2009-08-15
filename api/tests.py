@@ -11,6 +11,7 @@ from bookworm.library import models as library_models
 from bookworm.library import test_helper as helper
 
 UNAUTHED_STATUS_CODE = 403
+EXTERNAL_EPUB_URL = 'http://www.threepress.org/static/epub/Sense-and-Sensibility_Jane-Austen.epub'
 
 def reset_keys(fn):
     '''Delete any critical data between runs'''        
@@ -373,14 +374,42 @@ class Tests(TestCase):
 
     @reset_books
     def test_api_download_fail(self):
-        '''Documents which aren't authenticated properly should return an unauthored response.'''
+        '''Users who aren't authenticated properly should return an unauthored response instead of a document request.'''
         self._login()
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         self._upload(name)
         self.client.logout()
-        response = self.client.get('/api/documents/1/', { 'api_key': 'Fail'}, status_code=UNAUTHED_STATUS_CODE)
+        response = self.client.get('/api/documents/1/', { 'api_key': 'Fail'})
+        assert response.status_code == UNAUTHED_STATUS_CODE
+
+    def test_api_upload_fail_auth(self):
+        '''Users who try to upload without being ren't authenticated properly should return an unauthored response.'''
+        response = self.client.post('/api/upload/', { 'api_key': 'Fail'})
+        assert response.status_code == UNAUTHED_STATUS_CODE
+
+    def test_api_upload_no_param(self):
+        '''Users who are authenticated properly but don't provide an acceptable parameter for uploading should get a failed response'''
+        response = self.client.post('/api/upload/', { 'api_key': self.userpref.get_api_key().key})
+        assert response.status_code == 404
+
+    @reset_books        
+    def test_api_upload_param(self):
+        '''Users who are authenticated properly and provide an epub_url parameter should be able to upload that document.'''
+        response = self.client.post('/api/upload/', { 'api_key': self.userpref.get_api_key().key,
+                                                      'epub_url': EXTERNAL_EPUB_URL })
+        assert response.status_code == 201
+
+        # Check that it's in their API list now
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        assert 'Sense and Sensibility' in response.content
+        
+        # Check that it's in their Bookworm site library too
+        self._login()
+        response = self.client.get('/library/')
+        assert 'Sense and Sensibility' in response.content
 
 
+    
     def _validate_page(self, response):
         '''Validate that this response contains a valid XHTML result'''
         page = etree.fromstring(response.content)

@@ -11,7 +11,6 @@ from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, get
 from django.contrib.auth import login, authenticate
 
 from bookworm.api import models 
-from bookworm.api.models import APIException
 
 SSL = 'SSL'
 
@@ -24,19 +23,20 @@ class APIKeyCheck(object):
             if settings.API_FIELD_NAME in request.GET:
                 apikey = request.GET[settings.API_FIELD_NAME]
             elif settings.API_FIELD_NAME in request.POST:
-                apikey = request.GET[settings.API_FIELD_NAME]
+                apikey = request.POST[settings.API_FIELD_NAME]
             else:
                 return HttpResponseForbidden("api_key was not found in request parameters")
             try:
                 user = models.APIKey.objects.user_for_key(apikey)
-            except APIException, e:
+            except models.APIException, e:
                 return HttpResponseForbidden(e.message)                
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(request, user)
             return None
 
-    def process_exception(self, request, APIException):
-        return HttpResponseForbidden()
+    def process_exception(self, request, exception):
+        if isinstance(exception, models.APIException):
+            return HttpResponseForbidden(exception.message)
 
 class SSLRedirect(object):
     
