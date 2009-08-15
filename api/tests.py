@@ -9,8 +9,25 @@ from bookworm.api import models
 from bookworm.library import models as library_models
 from bookworm.library import test_helper as helper
 
+
+def reset_keys(fn):
+    '''Delete any critical data between runs'''        
+    def f(*args):
+        [a.delete() for a in models.APIKey.objects.all() ]
+        return fn(*args)
+    return f
+
+def reset_books(fn):
+    '''Delete any critical data between runs'''        
+    def f(*args):
+        [ua.delete() for ua in library_models.UserArchive.objects.all() ]        
+        [d.delete() for d in library_models.EpubArchive.objects.all() ]
+        return fn(*args)
+    return f
+
+
 class Tests(TestCase):
-    
+
     def setUp(self):
         # Set up users
         self.user = User.objects.create_user(username="testapi",email="testapi@example.com",password="testapi")
@@ -26,44 +43,41 @@ class Tests(TestCase):
         schema = etree.parse(schema_file)
         self.relaxng = etree.RelaxNG(schema)
 
-    def _login(self):
-        self.assertTrue(self.client.login(username='testapi', password='testapi'))
-
+    @reset_keys
     def test_generate_key(self):
         '''The system should be able to generate a random key'''
-        self._reset()
         k = models.APIKey.objects.create(user=self.user)
         assert k.key is not None
         # Does it seem vaguely uuid4-ish?
         assert len(k.key) == 32
-    
+
+    @reset_keys
     def test_generate_key_unique(self):
         '''Keys should be unique UUIDs'''
-        self._reset()
         k = models.APIKey.objects.create(user=self.user)
         k2 = models.APIKey.objects.create(user=self.user2)
         assert k.key != k2.key
 
+    @reset_keys
     def test_generate_key_once(self):
         '''Keys should persist once created'''
-        self._reset()
         (k, created1) = models.APIKey.objects.get_or_create(user=self.user)
         assert created1
         (k2, created2) = models.APIKey.objects.get_or_create(user=self.user)
         assert not created2
         assert k.key == k2.key
-        
+
+    @reset_keys        
     def test_authenticate_key(self):
         '''It should be possible to test whether an API key is correct'''
-        self._reset()
         k = models.APIKey.objects.create(user=self.user)
         key = k.key
         assert k.is_valid(key)
         assert not k.is_valid('Not valid')
 
+    @reset_keys        
     def test_authenticate_key_by_user(self):
         '''It should be possible to test whether an API key is correct for any named user'''
-        self._reset()
         k = models.APIKey.objects.create(user=self.user)
         k2 = models.APIKey.objects.create(user=self.user2)
         key = k.key
@@ -229,6 +243,7 @@ class Tests(TestCase):
         self._login()
         self.assertRaises(models.APIException, self.client.get, '/api/documents/', { 'api_key': 'None'})
 
+    @reset_books
     def test_api_list_no_results(self):
         '''A user should be able to log in to the API with the correct API key and get a valid XHTML page even with no books.'''
         self._login()
@@ -236,6 +251,7 @@ class Tests(TestCase):
         response = self.client.get('/api/documents/', { 'api_key': key})
         self._validate_page(response)
 
+    @reset_books
     def test_api_list_results(self):
         '''A user should be able to log in to the API with the correct API key and get a valid XHTML listing of their books..'''        
         self._login()
@@ -245,8 +261,9 @@ class Tests(TestCase):
         self._validate_page(response)
         assert name in response.content
 
-    def test_api_list_results_unordered(self):
-        '''API Documents should be presented in an unordered list.'''
+    @reset_books
+    def test_api_list_results_ordered(self):
+        '''API Documents should be presented in an ordered list.'''
         self._login()
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         name2 = 'alice-fromAdobe.epub'
@@ -254,11 +271,12 @@ class Tests(TestCase):
         self._upload(name2)
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
         self._validate_page(response)
-        assert '<ul>' in response.content
+        assert '<ol>' in response.content
         assert '<li>' in response.content
         assert name in response.content
         assert name2 in response.content
 
+    @reset_books
     def test_api_list_results_title(self):
         '''API Documents should include their title.'''
         self._login()
@@ -268,6 +286,7 @@ class Tests(TestCase):
         self._validate_page(response)
         assert 'Pride and Prejudice' in response.content
 
+    @reset_books
     def test_api_list_results_author(self):
         '''API Documents should include their author.'''
         self._login()
@@ -277,6 +296,7 @@ class Tests(TestCase):
         self._validate_page(response)
         assert 'Jane Austen' in response.content
 
+    @reset_books
     def test_api_list_results_date_added(self):
         '''API Documents should include the date the epub was added.'''
         self._login()
@@ -287,7 +307,34 @@ class Tests(TestCase):
         document = library_models.EpubArchive.objects.get(name=name)
         assert str(document.created_time) in response.content
 
-        
+    @reset_books
+    def test_api_list_ordering(self):
+        '''API document lists should be ordered by date added'''
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+        name2 = 'alice-fromAdobe.epub'
+        self._upload(name2)
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        self._validate_page(response)
+        page = etree.fromstring(response.content)
+        assert 'Pride' in page.xpath('//xhtml:li[1]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
+        assert 'Alice' in page.xpath('//xhtml:li[2]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
+
+        # Delete the books and add in the opposite order
+        [ua.delete() for ua in library_models.UserArchive.objects.all() ]        
+        [d.delete() for d in library_models.EpubArchive.objects.all() ]        
+
+        self._upload(name2)
+        self._upload(name)
+
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        self._validate_page(response)
+
+        page = etree.fromstring(response.content)
+        assert 'Alice' in page.xpath('//xhtml:li[1]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
+        assert 'Pride' in page.xpath('//xhtml:li[2]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
+
 
     def _validate_page(self, response):
         '''Validate that this response contains a valid XHTML result'''
@@ -315,6 +362,6 @@ class Tests(TestCase):
         response = self.client.post('/upload/', {'epub':fh})
         return response
         
-    def _reset(self):
-        '''Delete any apikey assignments between runs'''        
-        [a.delete() for a in models.APIKey.objects.all() ]
+    def _login(self):
+        self.assertTrue(self.client.login(username='testapi', password='testapi'))
+

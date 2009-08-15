@@ -8,7 +8,7 @@
 
   {% if documents %}
   <!-- Document list -->
-    <ul>
+    <ol>
       {% for document in documents %}
       <li> 
         <span class="document-title">{{ document.title }}</span>
@@ -18,7 +18,7 @@
         <!-- {{ document }} -->
       </li>
       {% endfor %}
-    </ul>
+    </ol>
     {% else %}
   {% endif %}
 
