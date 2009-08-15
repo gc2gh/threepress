@@ -14,6 +14,7 @@ from bookworm.library.models import *
 from bookworm.library.testmodels import *
 from bookworm.library.epub.toc import TOC
 from bookworm.library.epub.constants import *
+from bookworm.library.test_helper as helper
 
 from twill import get_browser
 from twill.errors import TwillAssertionError
@@ -30,24 +31,15 @@ try:
 except:
     pass
 
-# Data for public epub documents
-DATA_DIR = unicode(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test-data/data'))
-
-STORAGE_DIR = settings.MEDIA_ROOT
-
-# Local documents should be added here and will be included in tests,
-# but not in the svn repository
-PRIVATE_DATA_DIR = u'%s/private' % DATA_DIR
-
 class TestModels(unittest.TestCase):
 
     def setUp(self):
 
         # Add all our test data
-        self.documents = [d for d in os.listdir(DATA_DIR) if '.epub' in d and isfile('%s/%s' % (DATA_DIR, d))]
+        self.documents = [d for d in os.listdir(helper.DATA_DIR) if '.epub' in d and isfile('%s/%s' % (helper.DATA_DIR, d))]
 
-        if isdir(PRIVATE_DATA_DIR):
-            self.documents += [d for d in os.listdir(PRIVATE_DATA_DIR) if '.epub' in d and isfile('%s/%s' % (PRIVATE_DATA_DIR, d))] 
+        if isdir(helper.PRIVATE_helper.DATA_DIR):
+            self.documents += [d for d in os.listdir(helper.PRIVATE_helper.DATA_DIR) if '.epub' in d and isfile('%s/%s' % (helper.PRIVATE_helper.DATA_DIR, d))] 
 
         
         self.user = User(username='testuser')
@@ -57,8 +49,8 @@ class TestModels(unittest.TestCase):
 
     def tearDown(self):
         self.user.delete()
-        for d in os.listdir(STORAGE_DIR):
-            shutil.rmtree("%s/%s" % (STORAGE_DIR, d))
+        for d in os.listdir(helper.STORAGE_DIR):
+            shutil.rmtree("%s/%s" % (helper.STORAGE_DIR, d))
 
     def test_all_documents(self):
         '''Run through all the documents at a high level'''
@@ -67,14 +59,14 @@ class TestModels(unittest.TestCase):
                 # Test bad documents here?
                 pass
             else:
-                doc = self.create_document(d)
+                doc = self._create_document(d)
                 doc.explode()
 
     def test_title(self):
         '''Did we get back the correct title?'''
         title = u'Pride and Prejudice'
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         self.assertEquals(title, document.title)
 
@@ -82,7 +74,7 @@ class TestModels(unittest.TestCase):
         '''Did we get a single author from our author() method?'''
         author = u'Jane Austen'
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         self.assertEquals(author, document.author)        
 
@@ -91,7 +83,7 @@ class TestModels(unittest.TestCase):
         expected_authors = [u'First Author', u'Second Author']
         opf_file = 'two-authors.opf'
         document = MockEpubArchive(name=opf_file)
-        opf = util.xml_from_string(_get_file(opf_file))
+        opf = util.xml_from_string(helper.get_file(opf_file))
         authors = [a.name for a in document.get_authors(opf)]
         self.assertEquals(expected_authors, authors)
 
@@ -101,7 +93,7 @@ class TestModels(unittest.TestCase):
         expected_authors = [u'First Author', u'Second Author']
         document = MockEpubArchive(name=opf_file)
         document.save()
-        opf = util.xml_from_string(_get_file(opf_file))
+        opf = util.xml_from_string(helper.get_file(opf_file))
         
         fuzz = 4
         len_first_author = len(expected_authors[0])
@@ -115,26 +107,26 @@ class TestModels(unittest.TestCase):
         no_author_document = MockEpubArchive(name=no_author_opf_file)
         no_author_document.save()
 
-        opf = util.xml_from_string(_get_file(no_author_opf_file))
+        opf = util.xml_from_string(helper.get_file(no_author_opf_file))
 
         author = no_author_document.get_author(opf)
         self.failIf(author)
 
     def test_no_author_document(self):
         '''A full document should still pass explode() if there is an empty author'''
-        a = self.create_document('No-Author.epub')
+        a = self._create_document('No-Author.epub')
         a.explode()
 
     def test_create_document(self):
         '''Assert that we created a non-None document.'''
-        d = self.create_document(self.documents[0])
+        d = self._create_document(self.documents[0])
         self.assert_(d)
 
     def test_find_document(self):
         """Documents should be findable by title"""
         title = u'Pride and Prejudice'
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         d = _get_document(title, document.id)
@@ -143,7 +135,7 @@ class TestModels(unittest.TestCase):
     def test_bad_epub_fails(self):
         """ePub documents with missing component should raise errors."""
         filename = 'invalid_no_container.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         self.assertRaises(InvalidEpubException, document.explode)
 
     def test_safe_name(self):
@@ -157,7 +149,7 @@ class TestModels(unittest.TestCase):
     def test_count_toc(self):
         '''Check that in a simple document, the number of chapter items equals the number of top-level nav items'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
 
@@ -170,8 +162,8 @@ class TestModels(unittest.TestCase):
     def test_no_toc_in_item(self):
         '''Test an OPF file that has no <item> reference to a TOC'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        opf = _get_file('no-toc-item.opf')
-        document = self.create_document(filename)        
+        opf = helper.get_file('no-toc-item.opf')
+        document = self._create_document(filename)        
         document.explode()
         parsed_opf = util.xml_from_string(opf)
         items = [i for i in parsed_opf.iterdescendants(tag="{%s}item" % (NS['opf']))]
@@ -188,7 +180,7 @@ class TestModels(unittest.TestCase):
 
         Update: 1/2/09: this now should pass'''
         filename = 'no-toc-attribute-in-spine.epub'
-        document = self.create_document(filename)        
+        document = self._create_document(filename)        
         document.explode()
         self.assert_(document)
 
@@ -197,7 +189,7 @@ class TestModels(unittest.TestCase):
         also has the wrong media type for NCX.'''
 
         filename = 'no-toc-attribute-in-spine-incorrect-media-type.epub'
-        document = self.create_document(filename)        
+        document = self._create_document(filename)        
         document.explode()
         self.assert_(document)
 
@@ -206,35 +198,35 @@ class TestModels(unittest.TestCase):
         '''Test an OPF file that has an irrecovably-broken TOC declaration.'''
 
         filename = 'invalid-no-findable-toc.epub'
-        document = self.create_document(filename)        
+        document = self._create_document(filename)        
         self.assertRaises(InvalidEpubException, document.explode)
 
 
     def test_no_toc(self):
         '''Test an OPF file that has has a TOC reference to a nonexistent file'''
         filename = 'invalid-no-toc.epub'
-        document = self.create_document(filename)        
+        document = self._create_document(filename)        
         document.save()
         self.assertRaises(InvalidEpubException, document.explode)
         
     def test_first_item_in_toc(self):
         '''Check that the first_item method returns the correct item based on the rules
         defined in the OCF spec.'''
-        toc = TOC(_get_file('top-level-toc.ncx'), 
-                  _get_file('linear-no-missing-linear.opf'))
+        toc = TOC(helper.get_file('top-level-toc.ncx'), 
+                  helper.get_file('linear-no-missing-linear.opf'))
         first = toc.first_item()
         self.assert_(first)
         self.assertEquals('htmltoc', first.id)
 
-        toc = TOC(_get_file('top-level-toc.ncx'), 
-                  _get_file('linear-no.opf'))
+        toc = TOC(helper.get_file('top-level-toc.ncx'), 
+                  helper.get_file('linear-no.opf'))
         first = toc.first_item()
         self.assert_(first)
         self.assertEquals('htmltoc', first.id)
 
     def test_aux_toc(self):
         '''Support one or more lists of additional content'''
-        toc = TOC(_get_file('auxilliary-lists.ncx'))
+        toc = TOC(helper.get_file('auxilliary-lists.ncx'))
 
         aux1 = toc.lists[0]
         self.assert_(aux1)
@@ -250,13 +242,13 @@ class TestModels(unittest.TestCase):
 
     def test_count_deep_toc(self):
         '''Check a complex document with multiple nesting levels'''
-        toc = TOC(_get_file('complex-ncx.ncx'))
+        toc = TOC(helper.get_file('complex-ncx.ncx'))
         self.failUnless(toc)
         self.assert_(len(toc.find_points(3)) > len(toc.find_points(2)) > len(toc.find_points(1)))
 
     def tests_ordered_toc(self):
         '''TOC should preserve the playorder of the NCX'''
-        toc = TOC(_get_file('complex-ncx.ncx'))
+        toc = TOC(helper.get_file('complex-ncx.ncx'))
         self.failUnless(toc)
         # First item is the Copyright statement, which has no children
         copyright_statement = toc.tree[0]
@@ -272,7 +264,7 @@ class TestModels(unittest.TestCase):
 
     def test_find_children(self):
         '''Get the children of a particular nested TOC node, by node'''
-        toc = TOC(_get_file('complex-ncx.ncx'))
+        toc = TOC(helper.get_file('complex-ncx.ncx'))
         self.failUnless(toc)
 
         # First item is the Copyright statement, which has no children
@@ -287,7 +279,7 @@ class TestModels(unittest.TestCase):
 
     def test_find_descendants(self):
         '''Get the deep children of a particular nested TOC'''
-        toc = TOC(_get_file('complex-ncx.ncx'))
+        toc = TOC(helper.get_file('complex-ncx.ncx'))
         chapter = toc.tree[11]
         ancestors = chapter.find_ancestors()
         self.assertNotEquals(0, len(ancestors))
@@ -301,23 +293,23 @@ class TestModels(unittest.TestCase):
 
     def test_toc_href(self):
         '''Ensure that we are returning the correct href for an item'''
-        toc = TOC(_get_file('complex-ncx.ncx'))
+        toc = TOC(helper.get_file('complex-ncx.ncx'))
         preface = toc.tree[1]
         self.assertEquals("pr02.html", preface.href())
 
     def test_toc_top_level(self):
         '''We should use the <spine> to locate the top-level navigation items'''
-        toc = TOC(_get_file('top-level-toc.ncx'), 
-                  _get_file('top-level-toc.opf'))
+        toc = TOC(helper.get_file('top-level-toc.ncx'), 
+                  helper.get_file('top-level-toc.opf'))
         first_page_ncx = toc.tree[0]  
         first_page_spine = toc.items[0]
         self.assertNotEquals(first_page_ncx.label,
                              first_page_spine.label)
 
-    def test_get_file_by_item(self):
+    def testhelper.get_file_by_item(self):
         '''Make sure we can find any item by its idref'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         self.assert_(document.opf)
@@ -333,7 +325,7 @@ class TestModels(unittest.TestCase):
 
     def test_toc_next_previous_item(self):
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         toc = document.get_toc()
@@ -349,7 +341,7 @@ class TestModels(unittest.TestCase):
         '''All metadata should be returned using the public methods'''
         opf_file = 'all-metadata.opf'
         document = MockEpubArchive(name=opf_file)
-        opf = _get_file(opf_file)
+        opf = helper.get_file(opf_file)
 
         self.assertEquals('en-US', document.get_metadata(DC_LANGUAGE_TAG, opf))
         self.assertEquals('Public Domain', document.get_metadata(DC_RIGHTS_TAG, opf))
@@ -375,7 +367,7 @@ class TestModels(unittest.TestCase):
 
         # Test metadata without a hyphen -- was broken
         opf_file = 'single-lang-metadata.opf'
-        opf = _get_file(opf_file)
+        opf = helper.get_file(opf_file)
         document = MockEpubArchive(name=opf_file)
         self.assertEquals('en', document.get_metadata(DC_LANGUAGE_TAG, opf))
         self.assertEquals('en', document.get_major_language())
@@ -398,7 +390,7 @@ class TestModels(unittest.TestCase):
 
     def test_invalid_xhtml(self):
         '''Documents with non-XML content should be renderable'''
-        document = self.create_document('invalid-xhtml.epub')
+        document = self._create_document('invalid-xhtml.epub')
         document.explode()
         document.save()
         chapters = HTMLFile.objects.filter(archive=document)
@@ -408,7 +400,7 @@ class TestModels(unittest.TestCase):
 
     def test_html_entities(self):
         '''Documents which are valid XML except for HTML entities should convert'''
-        document = self.create_document('html-entities.epub')
+        document = self._create_document('html-entities.epub')
         document.explode()
         document.save()
         chapters = HTMLFile.objects.filter(archive=document)
@@ -418,7 +410,7 @@ class TestModels(unittest.TestCase):
 
     def test_utf8_document(self):
         '''This document has both UTF-8 characters in it and UTF-8 filenames'''
-        document = self.create_document(u'天.epub')
+        document = self._create_document(u'天.epub')
         document.explode()
         document.save()
         chapters = HTMLFile.objects.filter(archive=document)
@@ -428,7 +420,7 @@ class TestModels(unittest.TestCase):
 
     def test_remove_html_namespaces(self):
         filename = 'Cory_Doctorow_-_Little_Brother.epub'        
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         chapters = HTMLFile.objects.filter(archive=document)
@@ -437,7 +429,7 @@ class TestModels(unittest.TestCase):
     def test_remove_body_tag(self):
         '''We should not be printing the original document's <body> tag'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         chapters = HTMLFile.objects.filter(archive=document)
@@ -451,7 +443,7 @@ class TestModels(unittest.TestCase):
     def test_chapters(self):
         '''When switching to lxml, chapters in this book did not get captured'''
         filename = 'Cory_Doctorow_-_Little_Brother.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         chapters = HTMLFile.objects.filter(archive=document)
@@ -460,11 +452,11 @@ class TestModels(unittest.TestCase):
     def test_binary_image(self):
         '''Test the ImageBlob class directly'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         imagename = 'alice01a.gif'
-        image = _get_file(imagename)
+        image = helper.get_file(imagename)
 
         [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
 
@@ -484,11 +476,11 @@ class TestModels(unittest.TestCase):
     def test_binary_storage_exists(self):
         '''Test that we correctly implement the required 'exists()' method for Django Storage'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         imagename = 'alice01a.gif'
-        image = _get_file(imagename)
+        image = helper.get_file(imagename)
         [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
         image_obj = MockImageFile.objects.create(idref=imagename,
                                                  archive=document)
@@ -501,7 +493,7 @@ class TestModels(unittest.TestCase):
         i2 = MockImageBlob.objects.get(idref=imagename)
         assert i2.exists()
 
-        os.remove(i2._get_file())
+        os.remove(i2.helper.get_file())
 
         # Now this should fail 
         assert not i2.exists()                  
@@ -509,11 +501,11 @@ class TestModels(unittest.TestCase):
     def test_binary_storage_size(self):
         '''Test that we correctly implement the required 'size()' method for Django Storage'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         imagename = 'alice01a.gif'
-        image = _get_file(imagename)
+        image = helper.get_file(imagename)
         [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
         image_obj = MockImageFile.objects.create(idref=imagename,
                                                  archive=document)
@@ -524,16 +516,16 @@ class TestModels(unittest.TestCase):
                                          filename=imagename)
 
         i2 = MockImageBlob.objects.get(idref=imagename)
-        assert i2.size() == os.path.getsize(_get_filepath(imagename))
+        assert i2.size() == os.path.getsize(helper.get_filepath(imagename))
 
     def test_binary_storage_url(self):
         '''Test that we correctly implement the required 'url()' method for Django Storage'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         imagename = 'alice01a.gif'
-        image = _get_file(imagename)
+        image = helper.get_file(imagename)
         [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
         image_obj = MockImageFile.objects.create(idref=imagename,
                                                  archive=document)
@@ -551,11 +543,11 @@ class TestModels(unittest.TestCase):
     def test_binary_storage_open(self):
         '''Test that we correctly implement the required 'open()' method for Django Storage'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         imagename = 'alice01a.gif'
-        image = _get_file(imagename)
+        image = helper.get_file(imagename)
         [i.delete() for i in MockImageBlob.objects.filter(idref=imagename)]
         image_obj = MockImageFile.objects.create(idref=imagename,
                                                  archive=document)
@@ -566,12 +558,12 @@ class TestModels(unittest.TestCase):
                                          filename=imagename)
 
         i2 = MockImageBlob.objects.get(idref=imagename)
-        assert i2.open().read() == _get_filehandle(imagename).read()
+        assert i2.open().read() == helper.get_filehandle(imagename).read()
 
     def test_binary_image_autosave(self):
         '''Test that an ImageFile creates a blob and can retrieve it'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         imagename = 'alice01a.gif'
@@ -581,7 +573,7 @@ class TestModels(unittest.TestCase):
         for i in MockImageBlob.objects.filter(idref=imagename):
             i.delete()
 
-        image = _get_file(imagename)
+        image = helper.get_file(imagename)
         image_obj = MockImageFile.objects.create(idref=imagename,
                                                  archive=document,
                                                  data=image)
@@ -597,7 +589,7 @@ class TestModels(unittest.TestCase):
         
     def test_image_with_path_info(self):
         filename = 'alice-fromAdobe.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         
@@ -609,10 +601,10 @@ class TestModels(unittest.TestCase):
     def test_binary_epub(self):
         '''Test the storage of an epub binary'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
-        epub = _get_file(filename)
+        epub = helper.get_file(filename)
 
         b2 = MockEpubBlob.objects.get(archive=document)
 
@@ -622,7 +614,7 @@ class TestModels(unittest.TestCase):
         self.assertEquals(epub, b2.get_data())
 
         # Assert that it's physically in the storage directory
-        storage = b2._get_file()
+        storage = b2.helper.get_file()
         self.assert_(os.path.exists(storage))        
 
         # Assert that once we've deleted it, it's gone
@@ -632,10 +624,10 @@ class TestModels(unittest.TestCase):
     def test_binary_deprecated(self):
         '''Force an old filesystem path and make sure it still works'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
-        epub = _get_file(filename)
+        epub = helper.get_file(filename)
 
         b2 = MockEpubBlob.objects.get(archive=document)
 
@@ -645,7 +637,7 @@ class TestModels(unittest.TestCase):
         self.assertEquals(epub, b2.get_data())
 
         # Assert that it's physically in the storage directory
-        storage = b2._get_file()
+        storage = b2.helper.get_file()
         self.assert_(os.path.exists(storage))        
 
         # Check that it's a new-style path
@@ -673,10 +665,10 @@ class TestModels(unittest.TestCase):
     def test_safe_deletion_when_epub_gone(self):
         '''If an epub binary is deleted, we should still allow deletion from the database'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
-        epub = _get_file(filename)
+        epub = helper.get_file(filename)
 
         b2 = MockEpubBlob.objects.filter(idref=filename)[0]        
         self.assert_(b2)
@@ -689,7 +681,7 @@ class TestModels(unittest.TestCase):
     def test_opf_file_in_subdir(self):
         '''A archive should be able to put its OPF file in a subdirectory and still locate the resources'''
         filename = 'opf-in-subdirectory.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
         document.save()
         self.assertEquals('OPF in subdir', document.title)
@@ -698,7 +690,7 @@ class TestModels(unittest.TestCase):
         '''Documents without titles should return a helpful error rather than crash'''
         filename = 'no-title.opf'
         document = MockEpubArchive(name=filename)
-        opf = _get_file(filename)
+        opf = helper.get_file(filename)
         parsed_opf = util.xml_from_string(opf)
         try:
             document.get_title(parsed_opf)
@@ -710,7 +702,7 @@ class TestModels(unittest.TestCase):
         '''Documents without titles should return a helpful error rather than crash'''
         filename = 'blank-title.opf'
         document = MockEpubArchive(name=filename)
-        opf = _get_file(filename)
+        opf = helper.get_file(filename)
         parsed_opf = util.xml_from_string(opf)
         try:
             document.get_title(parsed_opf)
@@ -722,14 +714,14 @@ class TestModels(unittest.TestCase):
         '''It should be ignored if an itemref points to a non-existent item'''
         filename = 'itemref-points-nowhere.opf'
         document = MockEpubArchive(name=filename)
-        opf = _get_file(filename)
+        opf = helper.get_file(filename)
         parsed_opf = util.xml_from_string(opf)
         self.assertEquals('Test', document.get_title(parsed_opf))
 
     def test_read_chapter(self):
       
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.user = self.user
         document.explode()
         document.save()
@@ -751,7 +743,7 @@ class TestModels(unittest.TestCase):
     def test_allow_no_playorder_in_toc(self):
         '''Assert that if we have no playOrder we can fall back to document order'''
         filename = 'no-playorder.ncx'
-        f = _get_file(filename)
+        f = helper.get_file(filename)
         toc = TOC(f)
         point = toc.find_points()[0]
         self.assertEquals(1, point.order())
@@ -761,37 +753,37 @@ class TestModels(unittest.TestCase):
     def test_rights_document(self):
         '''Assert that we correctly recognize a rights-managed epub'''
         filename = 'invalid-rights-managed.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.user = self.user
         self.assertRaises(DRMEpubException, document.explode)
 
 
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.user = self.user
         document.explode()
 
     def test_identifier_type(self):
         '''Test that we return the correct identifier type'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename, identifier='urn:isbn:9780596528102')
+        document = self._create_document(filename, identifier='urn:isbn:9780596528102')
         self.assertEquals(document.identifier_type(), IDENTIFIER_ISBN)
 
-        document = self.create_document(filename, identifier='9780061734335')
+        document = self._create_document(filename, identifier='9780061734335')
         self.assertEquals(document.identifier_type(), IDENTIFIER_ISBN_MAYBE)
 
-        document = self.create_document(filename, identifier='urn:uuid:e100da66-666a-11dd-b455-001cc05a7670')
+        document = self._create_document(filename, identifier='urn:uuid:e100da66-666a-11dd-b455-001cc05a7670')
         self.assertEquals(document.identifier_type(), IDENTIFIER_UUID)
 
-        document = self.create_document(filename, identifier='xyzzy')
+        document = self._create_document(filename, identifier='xyzzy')
         self.assertEquals(document.identifier_type(), IDENTIFIER_UNKNOWN)
 
-        document = self.create_document(filename, identifier='http://www.snee.com/epub/pg23598')
+        document = self._create_document(filename, identifier='http://www.snee.com/epub/pg23598')
         self.assertEquals(document.identifier_type(), IDENTIFIER_URL)
 
     def test_nonce(self):
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
-        document = self.create_document(filename)        
+        document = self._create_document(filename)        
 
         # If the document hasn't been updated, the nonce should be the same
         self.assertEquals(document._get_nonce(),document._get_nonce())
@@ -810,7 +802,7 @@ class TestModels(unittest.TestCase):
         '''Don't complain if an image is declared in the OPF 
         but not actually in the epub'''
         filename = 'missing-image.epub'
-        document = self.create_document(filename)
+        document = self._create_document(filename)
         document.explode()
 
     def test_allow_body_as_classname(self):
@@ -825,7 +817,7 @@ class TestModels(unittest.TestCase):
 
     def test_allow_duplicate_itemref(self):
         '''Don't create duplicate resource files if the OPF file happens to declare them multiple times'''
-        document = self.create_document('duplicate-itemref.epub')
+        document = self._create_document('duplicate-itemref.epub')
         document.explode()
         self.assertEquals(HTMLFile.objects.filter(archive=document,
                                                   filename='chapter-1.html').count(), 1)
@@ -839,7 +831,7 @@ class TestModels(unittest.TestCase):
         
     def test_dc_description(self):
         '''Retrieve dc description field'''
-        document = self.create_document('dc-description.epub')
+        document = self._create_document('dc-description.epub')
         document.explode()
         self.assertEquals(document.get_description(),
                           'This is a description')
@@ -847,13 +839,13 @@ class TestModels(unittest.TestCase):
 
     def test_invalid_no_spine(self):
         '''Return a proper exception if this OPF has no spine (checked in model)'''
-        document = self.create_document('invalid-no-spine.epub')
+        document = self._create_document('invalid-no-spine.epub')
         self.assertRaises(InvalidEpubException, document.explode)
 
 
     def test_unsafe_javascript(self):
         '''Test that Javascript links are not preserved'''
-        document = self.create_document('unsafe-javascript-link.epub')
+        document = self._create_document('unsafe-javascript-link.epub')
         document.explode()
         c = HTMLFile.objects.get(archive=document,
                                  filename='chapter-1.html')
@@ -861,18 +853,16 @@ class TestModels(unittest.TestCase):
         assert '<a href="#">' in c.render()
         assert not '<script>' in c.render()
 
-
-    def create_document(self, document, identifier=''):
-        epub = MockEpubArchive(name=document)
+    def _create_document(self.document, identifier='', user=self.user):
+        epub = MockEpubArchive.objects.create(name=document)
+        
         epub.identifier = identifier
         epub.save()
-        user_archive = UserArchive.objects.get_or_create(archive=epub,
-                                                         user=self.user)
-        epub.set_content(_get_file(document))
-
+        library_models.UserArchive.objects.get_or_create(archive=epub, user=user)
+        epub.set_content(get_file(document))
         return epub
 
-    
+
 class TestViews(DjangoTestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser",email="test@example.com",password="testuser")
@@ -964,7 +954,7 @@ class TestViews(DjangoTestCase):
         self.assertNotContains(response, 'Prejudice')
 
         # Now replace it with a different book
-        fh = _get_filehandle('Pride-and-Prejudice_Jane-Austen.epub')
+        fh = helper.get_filehandle('Pride-and-Prejudice_Jane-Austen.epub')
         response = self.client.post('/reload/Little-Brother/1/', {'epub':fh})
 
         self.assertTrue(type(response) != HttpResponseNotFound)
@@ -1022,7 +1012,7 @@ class TestViews(DjangoTestCase):
         self.assertTemplateUsed(response, 'view.html')        
         
         # View the document so we have a UserArchive record but NOT ownership
-        fh = _get_filehandle('Pride-and-Prejudice_Jane-Austen.epub')
+        fh = helper.get_filehandle('Pride-and-Prejudice_Jane-Austen.epub')
         response = self.client.post('/reload/Little-Brother/1/', {'epub':fh})
         self.assertTrue(type(response) == HttpResponseNotFound)
 
@@ -1729,7 +1719,7 @@ class TestViews(DjangoTestCase):
         
     def _upload(self, f):
         self._login()
-        fh = _get_filehandle(f)
+        fh = helper.get_filehandle(f)
         response = self.client.post('/upload/', {'epub':fh})
         return response
 
@@ -1761,7 +1751,7 @@ class TestTwill(DjangoTestCase):
     def test_upload(self):
         self._register()
         go(self.url)
-        formfile("upload", "epub", _get_filepath('Pride-and-Prejudice_Jane-Austen.epub'))
+        formfile("upload", "epub", helper.get_filepath('Pride-and-Prejudice_Jane-Austen.epub'))
         submit("submit-upload")
         find('Pride and Prejudice')
         go('/account/signout/')
@@ -1788,31 +1778,6 @@ class TestTwill(DjangoTestCase):
         
     def tearDown(self):
         pass
-
-
-        
-def _get_document(title, id):
-    '''@todo Mock this out better instead of overwriting the real view'''
-    return MockEpubArchive(id=id)
-
-def _get_file(f):
-    '''Get a file from either the public or private data directories'''
-    return _get_filehandle(f).read()
-
-def _get_filehandle(f):
-    '''Get a file from either the public or private data directories'''
-    path = _get_filepath(f)
-    return open(path)
-
-def _get_filepath(f):
-    data_dir = u'%s/%s' % (DATA_DIR, f)
-    if os.path.exists(data_dir):
-        return data_dir
-
-    data_dir = u'%s/%s' % (PRIVATE_DATA_DIR, f)
-    if os.path.exists(data_dir):
-        return data_dir    
-    raise OSError('Could not find file %s in either data dir' % f)
 
 
 if __name__ == '__main__':

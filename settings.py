@@ -232,6 +232,12 @@ FILE_UPLOAD_HANDLERS = ("django.core.files.uploadhandler.TemporaryFileUploadHand
 # API key field name
 API_FIELD_NAME = 'api_key'
 
+# Hostname (no trailing slash)
+HOSTNAME = 'http://bookworm.oreilly.com'
+
+# Secure hostname (no trailing slash)
+SECURE_HOSTNAME = 'https://bookworm.oreilly.com'
+
 try:
     from local import *
 except:

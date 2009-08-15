@@ -7,15 +7,24 @@ from django.contrib.sites.models import Site
 
 from bookworm.api import models
 from bookworm.library import models as library_models
+from bookworm.library import test_helper as helper
 
 class Tests(TestCase):
     
     def setUp(self):
+        # Set up users
         self.user = User.objects.create_user(username="testapi",email="testapi@example.com",password="testapi")
         self.user2 = User.objects.create_user(username="testapi2",email="testapi2@example.com",password="testapi2")
         self.userpref = library_models.UserPref.objects.create(user=self.user)
         self.userpref2 = library_models.UserPref.objects.create(user=self.user2)
+
+        # Set up a Django site
         Site.objects.get_or_create(id=1)
+
+        # Load the XHTML strict schema
+        schema_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'schema', 'xhtml', 'xhtml-strict.rng')
+        schema = etree.parse(schema_file)
+        self.relaxng = etree.RelaxNG(schema)
 
     def _login(self):
         self.assertTrue(self.client.login(username='testapi', password='testapi'))
@@ -208,35 +217,83 @@ class Tests(TestCase):
 
     def test_api_fail_anon(self):
         '''An anonymous user should not be able to log in to the API without an API key'''
-        self.assertRaises(models.APIException, self.client.get, '/api/list/')
+        self.assertRaises(models.APIException, self.client.get, '/api/documents/')
 
     def test_api_fail_logged_in(self):
         '''A logged-in user should not be able to log in to the API without an API key'''
         self._login()
-        self.assertRaises(models.APIException, self.client.get, '/api/list/')
+        self.assertRaises(models.APIException, self.client.get, '/api/documents/')
 
     def test_api_fail_bad_key(self):
         '''A logged-in user should not be able to log in to the API with the wrong API key'''
         self._login()
-        self.assertRaises(models.APIException, self.client.get, '/api/list/', { 'api_key': 'None'})
+        self.assertRaises(models.APIException, self.client.get, '/api/documents/', { 'api_key': 'None'})
 
     def test_api_list_no_results(self):
-        '''A user should be able to log in to the API with the correct API key and get a valid page even with no books.'''
+        '''A user should be able to log in to the API with the correct API key and get a valid XHTML page even with no books.'''
         self._login()
         key = self.userpref.get_api_key().key
-        response = self.client.get('/api/list/', { 'api_key': key})
-        assert '<html' in response.content
+        response = self.client.get('/api/documents/', { 'api_key': key})
         self._validate_page(response)
+
+    def test_api_list_results(self):
+        '''A user should be able to log in to the API with the correct API key and get a valid XHTML listing of their books..'''        
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        self._validate_page(response)
+        assert name in response.content
+
+    def test_api_list_results_unordered(self):
+        '''API Documents should be presented in an unordered list.'''
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        name2 = 'alice-fromAdobe.epub'
+        self._upload(name)
+        self._upload(name2)
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        self._validate_page(response)
+        assert '<ul>' in response.content
+        assert '<li>' in response.content
+        assert name in response.content
+        assert name2 in response.content
+
+    def test_api_list_results_title(self):
+        '''API Documents should include their title.'''
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        self._validate_page(response)
+        assert 'Pride and Prejudice' in response.content
+
+    def test_api_list_results_author(self):
+        '''API Documents should include their author.'''
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        self._validate_page(response)
+        assert 'Jane Austen' in response.content
+
+    def test_api_list_results_date_added(self):
+        '''API Documents should include the date the epub was added.'''
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        self._validate_page(response)
+        document = library_models.EpubArchive.objects.get(name=name)
+        assert str(document.created_time) in response.content
+
+        
 
     def _validate_page(self, response):
         '''Validate that this response contains a valid XHTML result'''
         page = etree.fromstring(response.content)
         assert page is not None
-
-        schema_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'schema', 'xhtml', 'xhtml-strict.rng')
-        schema = etree.parse(schema_file)
-        relaxng = etree.RelaxNG(schema)
-        relaxng.assertValid(page)
+        self.relaxng.assertValid(page)
 
         
     def _register_standard(self, username, email, password):
@@ -252,6 +309,11 @@ class Tests(TestCase):
         self.assertTemplateUsed(response, 'index.html')
         self.assertContains(response, username, status_code=200)
 
+    def _upload(self, f):
+        self._login()
+        fh = helper.get_filehandle(f)
+        response = self.client.post('/upload/', {'epub':fh})
+        return response
         
     def _reset(self):
         '''Delete any apikey assignments between runs'''        

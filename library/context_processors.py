@@ -19,6 +19,8 @@ def local_settings(request):
         'HOSTING_CREDIT':settings.HOSTING_CREDIT,
         'HOSTING_CREDIT_URL':settings.HOSTING_CREDIT_URL,
         'ADMIN_EMAIL':settings.DISPLAY_ADMIN_EMAIL,
+        'HOSTNAME':settings.HOSTNAME,
+        'SECURE_HOSTNAME':settings.SECURE_HOSTNAME,
     }
  
 def nav(request):
