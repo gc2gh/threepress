@@ -1,3 +1,6 @@
+import os
+from lxml import etree
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -217,12 +220,24 @@ class Tests(TestCase):
         self._login()
         self.assertRaises(models.APIException, self.client.get, '/api/list/', { 'api_key': 'None'})
 
-    def test_api_list(self):
-        '''A user should be able to log in to the API with the correct API key'''
+    def test_api_list_no_results(self):
+        '''A user should be able to log in to the API with the correct API key and get a valid page even with no books.'''
         self._login()
         key = self.userpref.get_api_key().key
         response = self.client.get('/api/list/', { 'api_key': key})
         assert '<html' in response.content
+        self._validate_page(response)
+
+    def _validate_page(self, response):
+        '''Validate that this response contains a valid XHTML result'''
+        page = etree.fromstring(response.content)
+        assert page is not None
+
+        schema_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'schema', 'xhtml', 'xhtml-strict.rng')
+        schema = etree.parse(schema_file)
+        relaxng = etree.RelaxNG(schema)
+        relaxng.assertValid(page)
+
         
     def _register_standard(self, username, email, password):
         '''Register a new account using a standard Django account'''
