@@ -1395,19 +1395,19 @@ msgstr "Conformità al sistema di lettura"
 #: library/templates/epub.html:148
 msgid ""
 "\n"
-"      In accordance with the ePub specification, Bookworm will &lsquo;"
-"open&rsquo;\n"
+"      In accordance with the ePub specification, Bookworm will '"
+"open'\n"
 "      the ePub to the first item in the NCX file with the attribute\n"
-"      <code>linear</code> set to &lsquo;yes&rsquo;  Counterintuitively,\n"
+"      <code>linear</code> set to 'yes'  Counterintuitively,\n"
 "      this may mean that in some titles\n"
 "      the default page for the ePub will not be the first item in the\n"
 "      NCX file.\n"
 "      "
 msgstr ""
 "\n"
-"      In accordanza con le specifiche ePub, Bookworm &lsquo;aprirà&rsquo;\n"
+"      In accordanza con le specifiche ePub, Bookworm 'aprirà'\n"
 "      l'ePub sul primo punto del file NCX con l'attributo\n"
-"      <code>linear</code> impostato su &lsquo;yes&rsquo;\n"
+"      <code>linear</code> impostato su 'yes'\n"
 "      Questo significa che in alcuni titoli\n"
 "      la pagina di default per l'ePub potrà non essere il primo\n"
 "      oggetto del file NCX.\n"
@@ -1695,8 +1695,8 @@ msgid "Here are some common things to check"
 msgstr "Ecco i casi più frequenti"
 
 #: library/templates/help.html:62
-msgid "Is the book in &lsquo;ePub&rsquo; format?"
-msgstr "L'ebook è in formato &lsquo;ePub&rsquo;?"
+msgid "Is the book in 'ePub' format?"
+msgstr "L'ebook è in formato 'ePub'?"
 
 #: library/templates/help.html:64
 msgid ""
@@ -1753,7 +1753,7 @@ msgid ""
 "contacted\n"
 "    an <a href=\"http://www.threepress.org/document/epub-validate/\">ePub "
 "validation system</a>,\n"
-"    which uses a program called &lsquo;epubcheck&rsquo; by Adobe.  \n"
+"    which uses a program called 'epubcheck' by Adobe.  \n"
 "    Bookworm will tell you if epubcheck also thought there was a problem "
 "with the ebook.\n"
 "    If they both agree, it's likely that the publisher didn't make the ePub "
@@ -1766,7 +1766,7 @@ msgstr ""
 "Bookworm contatta\n"
 "    un <a href=\"http://www.threepress.org/document/epub-validate/\">tool di "
 "validazione ePub</a>,\n"
-"    che usa un programma chiamato &lsquo;epubcheck&rsquo; da Adobe.  \n"
+"    che usa un programma chiamato 'epubcheck' da Adobe.  \n"
 "    Bookworm ti dirà se epubcheck pensa che ci sia un problema nell'ebook.\n"
 "    In questo caso, è possibile che l'editore non abbia prodotto "
 "correttamente l'ePub.\n"
@@ -2359,8 +2359,8 @@ msgstr ""
 "  e può esportare direttamente in Stanza.  "
 
 #: library/templates/public.html:87
-msgid "What&rsquo;s an &ldquo;ePub book&rdquo;?"
-msgstr "cos&rsquo;è un &ldquo;ebook ePub&rdquo;?"
+msgid "What's an &ldquo;ePub book&rdquo;?"
+msgstr "cos'è un &ldquo;ebook ePub&rdquo;?"
 
 #: library/templates/public.html:90
 #, python-format
@@ -3170,15 +3170,15 @@ msgstr ""
 
 #: library/templates/upload.html:49
 msgid ""
-"You need to click on the &lsquo;Browse&rsquo; button and select an ebook to "
+"You need to click on the 'Browse' button and select an ebook to "
 "add."
 msgstr ""
-"Devi cliccare sul tasto &lsquo;Sfoglia&rsquo; e seleziona un ebook da "
+"Devi cliccare sul tasto 'Sfoglia' e seleziona un ebook da "
 "aggiungere."
 
 #: library/templates/upload.html:56
-msgid "Add an ePub from your computer by clicking on &lsquo;Browse&rsquo;:"
-msgstr "Aggiungi un ePub dal tuo computer cliccando su &lsquo;Sfoglia&rsquo;:"
+msgid "Add an ePub from your computer by clicking on 'Browse':"
+msgstr "Aggiungi un ePub dal tuo computer cliccando su 'Sfoglia':"
 
 #: library/templates/view.html:7
 #, python-format
@@ -3655,9 +3655,9 @@ msgstr ""
 
 #: library/templates/auth/authopenid/signin.html:63
 msgid ""
-"If you've never created an account, click &lsquo;Sign up&rsquo; on the left."
+"If you've never created an account, click 'Sign up' on the left."
 msgstr ""
-"Se non hai mai creato un account clicca  &lsquo;Iscriviti&rsquo; a sinistra."
+"Se non hai mai creato un account clicca  'Iscriviti' a sinistra."
 
 #: library/templates/auth/authopenid/signin.html:71
 msgid "Sign in using a local Bookworm account"
@@ -3992,15 +3992,15 @@ msgstr "Riguardo alla ricerca"
 
 #: search/templates/results.html:20
 #, python-format
-msgid " One result found for <em>&lsquo;%(term)s&rsquo;</em> in your library. "
+msgid " One result found for <em>'%(term)s'</em> in your library. "
 msgid_plural ""
-" %(resultscount)s results found for <em>&lsquo;%(term)s&rsquo;</em> in your "
+" %(resultscount)s results found for <em>'%(term)s'</em> in your "
 "library."
 msgstr[0] ""
-" Un risultato trovato per <em>&lsquo;%(term)s&rsquo;</em> nella tua "
+" Un risultato trovato per <em>'%(term)s'</em> nella tua "
 "biblioteca. "
 msgstr[1] ""
-" %(resultscount)s risultati trovati per <em>&lsquo;%(term)s&rsquo;</em> "
+" %(resultscount)s risultati trovati per <em>'%(term)s'</em> "
 "nella tua biblioteca."
 
 #: search/templates/results.html:22
@@ -4018,8 +4018,8 @@ msgstr "Nessun risultato trovato"
 
 #: search/templates/results.html:47
 #, python-format
-msgid "No results were found for <em>&lsquo;%(term)s&rsquo;</em>."
-msgstr "Nessun risultato trovato per <em>&lsquo;%(term)s&rsquo;</em>."
+msgid "No results were found for <em>'%(term)s'</em>."
+msgstr "Nessun risultato trovato per <em>'%(term)s'</em>."
 
 #: search/templates/results.html:48
 #, python-format
