@@ -450,7 +450,7 @@ def upload(request, title=None, key=None):
                     document = EpubArchive(name=document_name)                    
                     document.save()
 
-            return _add_data_to_document(request, document, open(temp_file), form)
+            return add_data_to_document(request, document, open(temp_file), form)
 
         # The form isn't valid (generally because we didn't actually upload anything)
         return direct_to_template(request, 'upload.html', {'form':form})
@@ -461,7 +461,7 @@ def upload(request, title=None, key=None):
 
     return direct_to_template(request, 'upload.html', {'form':form})
 
-def _add_data_to_document(request, document, data, form, redirect_success_to_page=True):
+def add_data_to_document(request, document, data, form, redirect_success_to_page=True):
     '''Add epub data (as a file-like object) to a document, then explode it.
        If this returns True, return a successful redirect; otherwise return an error template.
        If the redirect_to_page parameter is True (default), the code will redirect
@@ -552,7 +552,7 @@ def add_by_url_field(request, epub_url, redirect_success_to_page):
         
     document = EpubArchive.objects.create(name=os.path.basename(urlparse.urlparse(epub_url).path))
     document.save()
-    return _add_data_to_document(request, document, data, form, redirect_success_to_page)
+    return add_data_to_document(request, document, data, form, redirect_success_to_page)
     
 
 def _chapter_next_previous(document, chapter, dir='next'):

@@ -425,7 +425,7 @@ class Tests(TestCase):
     def test_api_upload_param(self):
         '''Users who are authenticated properly and provide an epub_url parameter should be able to upload that document.'''
         response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key().key,
-                                                      'epub_url': EXTERNAL_EPUB_URL })
+                                                         'epub_url': EXTERNAL_EPUB_URL })
         assert response.status_code == UPLOAD_STATUS_CODE
 
         # Check that it's in their API list now
@@ -437,7 +437,25 @@ class Tests(TestCase):
         response = self.client.get('/library/')
         assert 'Sense and Sensibility' in response.content
 
-    
+    @reset_books        
+    def test_api_upload_bytes(self):
+        '''Users should be able to upload a document by sending a stream of epub bytes'''
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        assert library_models.EpubArchive.objects.filter(name=name).count() == 0
+        response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key().key,
+                                                         'epub_data': helper.get_filehandle(name) })        
+        assert response.status_code == UPLOAD_STATUS_CODE
+        assert library_models.EpubArchive.objects.filter(name=name).count() == 1
+
+        # Check that it's in their API list now
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        assert 'Pride and Prejudice' in response.content
+
+        # Check that it's in their Bookworm site library too
+        self._login()
+        response = self.client.get('/library/')
+        assert 'Pride and Prejudice' in response.content
+        
     def _validate_page(self, response):
         '''Validate that this response contains a valid XHTML result'''
         assert response.status_code == 200

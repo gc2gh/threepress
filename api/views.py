@@ -6,8 +6,9 @@ from django.views.generic.simple import direct_to_template
 from django.core.urlresolvers import reverse
 
 from bookworm.library import models 
-from bookworm.library.views import download_epub, add_by_url_field
+from bookworm.library.views import download_epub, add_by_url_field, add_data_to_document
 from bookworm.api import HttpResponseCreated, HttpResponseNotAcceptable
+from bookworm.api.forms import APIUploadForm
 
 @never_cache
 @login_required
@@ -19,19 +20,31 @@ def main(request, SSL=True):
         return direct_to_template(request, 'api/list.html', 
                                   {'documents': documents})
 
-    # Accept an epub file either by URL or by direct POST upload with epub bytes'
+    # Accept an epub file either by URL or by direct POST file upload with epub bytes as `epub_data`
     elif request.method == 'POST':
+        resp = None
         if 'epub_url' in request.POST:
             resp = add_by_url_field(request, request.POST['epub_url'], redirect_success_to_page=False)        
-            if isinstance(resp, models.EpubArchive):
-                # This was a successful add and we got back a document
-                return HttpResponseCreated(reverse('api_download', args=[resp.id]))
 
-            # Otherwise this was an error condition
-            return HttpResponseNotAcceptable(resp) # Include the complete Bookworm response
-        elif 'epub_data' in request.POST:
-            pass
-        raise Http404
+        elif request.FILES:
+            form = APIUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                temp_file = request.FILES['epub_data'].temporary_file_path()
+                document_name = form.cleaned_data['epub_data'].name
+                document = models.EpubArchive.objects.create(name=document_name)
+                document.save()
+                resp = add_data_to_document(request, document, open(temp_file), form, redirect_success_to_page=False)
+                
+            else:
+                return HttpResponseNotAcceptable('You did not provide a correctly-formatted epub_data parameter: %s' % form.errors) 
+        else:
+            return HttpResponseNotAcceptable("You must either include epub_url or epub_data in your request")
+
+        if isinstance(resp, models.EpubArchive):
+            # This was a successful add and we got back a document
+            return HttpResponseCreated(reverse('api_download', args=[resp.id]))
+        # Otherwise this was an error condition
+        return HttpResponseNotAcceptable(resp) # Include the complete Bookworm response
 
     else:
         return HttpResponseNotAllowed('GET, POST')
