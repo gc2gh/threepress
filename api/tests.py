@@ -399,7 +399,7 @@ class Tests(TestCase):
         response = self.client.get('/download/epub/test/1/', status_code=404)
         
         response = self.client.get('/api/documents/1/', { 'api_key': self.userpref.get_api_key()})
-        assert 'application/epub+zip' in response._headers['content-type'] 
+        assert 'application/epub+zip' in response['Content-Type'] 
 
         # Check that it's the same bytes that we started with
         assert response.content == helper.get_file(name)
@@ -431,6 +431,15 @@ class Tests(TestCase):
         response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key(),
                                                          'epub_url': EXTERNAL_EPUB_URL })
         assert response.status_code == UPLOAD_STATUS_CODE
+
+        assert '/api/documents/1/' in response['Content-Location']
+
+       # Assert that we can get the document from the location in the response
+        response = self.client.get(response['Content-Location'].replace('http://testserver', ''), { 'api_key':self.userpref.get_api_key() })
+        assert response.status_code == 200
+
+        # Assert that it's the right number of bytes
+        assert len(response.content) == 335933
 
         # Check that it's in their API list now
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
