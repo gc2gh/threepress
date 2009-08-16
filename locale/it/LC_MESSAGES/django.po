@@ -2225,7 +2225,7 @@ msgstr "Iscriviti"
 #: library/templates/public.html:27
 msgid ""
 "Bookworm is fabulous. Hands down, a wonderful app. I love how it integrates "
-"with the iPhone for easy offline reading.&rdquo; &mdash; <a href=\"http://"
+"with the iPhone for easy offline reading.&rdquo; — <a href=\"http://"
 "getsatisfaction.com/threepress/topics/post_ideas_and_questions_about_bookworm"
 "\">Customer on Get Satisfaction"
 msgstr ""
@@ -2233,7 +2233,7 @@ msgstr ""
 #: library/templates/public.html:29
 msgid ""
 "The perfect tool for taking your own book collection anywhere that has an "
-"internet connection&rdquo; &mdash; <a href=\"http://www.jedisaber.com/ebooks/"
+"internet connection&rdquo; — <a href=\"http://www.jedisaber.com/ebooks/"
 "Readers.asp\">ePub Reader Software reviews"
 msgstr ""
 
@@ -4009,8 +4009,8 @@ msgstr "I risultati sono riportati a partire dal più rilevante."
 
 #: search/templates/results.html:25
 #, python-format
-msgid " Showing results %(startindex)s &mdash; %(endindex)s"
-msgstr "Risultati %(startindex)s &mdash; %(endindex)s"
+msgid " Showing results %(startindex)s — %(endindex)s"
+msgstr "Risultati %(startindex)s — %(endindex)s"
 
 #: search/templates/results.html:46
 msgid "No search results were found"

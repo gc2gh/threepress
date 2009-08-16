@@ -1394,19 +1394,19 @@ msgstr "Konformität des Lesevorganges"
 #: library/templates/epub.html:148
 msgid ""
 "\n"
-"      In accordance with the ePub specification, Bookworm will &lsquo;"
-"open&rsquo;\n"
+"      In accordance with the ePub specification, Bookworm will ‘"
+"open’\n"
 "      the ePub to the first item in the NCX file with the attribute\n"
-"      <code>linear</code> set to &lsquo;yes&rsquo;  Counterintuitively,\n"
+"      <code>linear</code> set to ‘yes’  Counterintuitively,\n"
 "      this may mean that in some titles\n"
 "      the default page for the ePub will not be the first item in the\n"
 "      NCX file.\n"
 "      "
 msgstr ""
 "\n"
-"  Entsprechend der ePub Spezifikation &lsquo;öffnet&rsquo; Bookworm\n"
+"  Entsprechend der ePub Spezifikation ‘öffnet’ Bookworm\n"
 "  die ePub Datei am ersten Eintrag in der NCX Datei, dessen Attribut\n"
-"  <code>linear</code> den Wert &lsquo;yes&rsquo; hat. Entgegen der\n"
+"  <code>linear</code> den Wert ‘yes’ hat. Entgegen der\n"
 "  Intuition kann dies bedeuten, dass in einigen Titeln die Defaultseite\n"
 "  nicht die erste Seite in der NCX Datei ist.\n"
 "  "
@@ -1701,8 +1701,8 @@ msgid "Here are some common things to check"
 msgstr "Einige Dinge, die Sie überprüfen sollten"
 
 #: library/templates/help.html:62
-msgid "Is the book in &lsquo;ePub&rsquo; format?"
-msgstr "Ist das Buch im &lsquo;ePub&rsquo; Format?"
+msgid "Is the book in ‘ePub’ format?"
+msgstr "Ist das Buch im ‘ePub’ Format?"
 
 #: library/templates/help.html:64
 msgid ""
@@ -1763,7 +1763,7 @@ msgid ""
 "contacted\n"
 "    an <a href=\"http://www.threepress.org/document/epub-validate/\">ePub "
 "validation system</a>,\n"
-"    which uses a program called &lsquo;epubcheck&rsquo; by Adobe.  \n"
+"    which uses a program called ‘epubcheck’ by Adobe.  \n"
 "    Bookworm will tell you if epubcheck also thought there was a problem "
 "with the ebook.\n"
 "    If they both agree, it's likely that the publisher didn't make the ePub "
@@ -1776,7 +1776,7 @@ msgstr ""
 "  festgestellt wurde, kontaktierte Bookworm ein \n"
 "  <a href=\"http://www.threepress.org/document/epub-validate/\">ePub "
 "Validierungs System</a>, \n"
-" das ein Programm namens &lsquo;epubcheck&rsquo; von Adobe benutzt.\n"
+" das ein Programm namens ‘epubcheck’ von Adobe benutzt.\n"
 " Bookworm sagt Ihnen, ob epubcheck ebenfalls ein Problem mit dem \n"
 " Ebook festgestellt hat. Falls beide übereinstimmen, ist es \n"
 " wahrscheinlich, dass der Herausgeber das ePub nicht korrekt erstellt hat.\n"
@@ -2252,23 +2252,23 @@ msgstr "Konto erstellen"
 #: library/templates/public.html:27
 msgid ""
 "Bookworm is fabulous. Hands down, a wonderful app. I love how it integrates "
-"with the iPhone for easy offline reading.&rdquo; &mdash; <a href=\"http://"
+"with the iPhone for easy offline reading.&rdquo; — <a href=\"http://"
 "getsatisfaction.com/threepress/topics/post_ideas_and_questions_about_bookworm"
 "\">Customer on Get Satisfaction"
 msgstr ""
 "Bookworm is fabulous. Hands down, a wonderful app. I love how it integrates "
-"with the iPhone for easy offline reading.&rdquo; &mdash; <a href=\"http://"
+"with the iPhone for easy offline reading.&rdquo; — <a href=\"http://"
 "getsatisfaction.com/threepress/topics/post_ideas_and_questions_about_bookworm"
 "\">Customer on Get Satisfaction"
 
 #: library/templates/public.html:29
 msgid ""
 "The perfect tool for taking your own book collection anywhere that has an "
-"internet connection&rdquo; &mdash; <a href=\"http://www.jedisaber.com/ebooks/"
+"internet connection&rdquo; — <a href=\"http://www.jedisaber.com/ebooks/"
 "Readers.asp\">ePub Reader Software reviews"
 msgstr ""
 "The perfect tool for taking your own book collection anywhere that has an "
-"internet connection&rdquo; &mdash; <a href=\"http://www.jedisaber.com/ebooks/"
+"internet connection&rdquo; — <a href=\"http://www.jedisaber.com/ebooks/"
 "Readers.asp\">ePub Reader Software reviews"
 
 #: library/templates/public.html:35
@@ -2396,7 +2396,7 @@ msgstr ""
 "exportieren.    "
 
 #: library/templates/public.html:87
-msgid "What&rsquo;s an &ldquo;ePub book&rdquo;?"
+msgid "What’s an &ldquo;ePub book&rdquo;?"
 msgstr "Was ist ein &ldquo;ePub Buch&rdquo;?"
 
 #: library/templates/public.html:90
@@ -3218,17 +3218,17 @@ msgstr ""
 
 #: library/templates/upload.html:49
 msgid ""
-"You need to click on the &lsquo;Browse&rsquo; button and select an ebook to "
+"You need to click on the ‘Browse’ button and select an ebook to "
 "add."
 msgstr ""
-"Sie müssen auf die &lsquo;Durchsuchen&rsquo; Schaltfläche klicken und ein "
+"Sie müssen auf die ‘Durchsuchen’ Schaltfläche klicken und ein "
 "Buch auswählen."
 
 #: library/templates/upload.html:56
-msgid "Add an ePub from your computer by clicking on &lsquo;Browse&rsquo;:"
+msgid "Add an ePub from your computer by clicking on ‘Browse’:"
 msgstr ""
-"Fügen Sie ein ePub Buch von Ihrem Computer durch Klicken auf &lsquo;"
-"Durchsuchen&rsquo; hinzu:"
+"Fügen Sie ein ePub Buch von Ihrem Computer durch Klicken auf ‘"
+"Durchsuchen’ hinzu:"
 
 #: library/templates/view.html:7
 #, python-format
@@ -3714,10 +3714,10 @@ msgstr ""
 
 #: library/templates/auth/authopenid/signin.html:63
 msgid ""
-"If you've never created an account, click &lsquo;Sign up&rsquo; on the left."
+"If you've never created an account, click ‘Sign up’ on the left."
 msgstr ""
-"Falls Sie noch kein Konto erstellt haben, klicken Sie links auf  &lsquo;"
-"Konto erstellen&rsquo;."
+"Falls Sie noch kein Konto erstellt haben, klicken Sie links auf  ‘"
+"Konto erstellen’."
 
 #: library/templates/auth/authopenid/signin.html:71
 msgid "Sign in using a local Bookworm account"
@@ -4057,15 +4057,15 @@ msgstr "Über die Volltext Suche"
 
 #: search/templates/results.html:20
 #, python-format
-msgid " One result found for <em>&lsquo;%(term)s&rsquo;</em> in your library. "
+msgid " One result found for <em>‘%(term)s’</em> in your library. "
 msgid_plural ""
-" %(resultscount)s results found for <em>&lsquo;%(term)s&rsquo;</em> in your "
+" %(resultscount)s results found for <em>‘%(term)s’</em> in your "
 "library."
 msgstr[0] ""
-"Ein Ergebnis in Ihrer Bibliothek zu <em>&lsquo;%(term)s&rsquo;</em> \n"
+"Ein Ergebnis in Ihrer Bibliothek zu <em>‘%(term)s’</em> \n"
 "gefunden. "
 msgstr[1] ""
-" %(resultscount)s Ergebnisse zu <em>&lsquo;%(term)s&rsquo;</em> \n"
+" %(resultscount)s Ergebnisse zu <em>‘%(term)s’</em> \n"
 "in Ihrer Bibliothek gefunden. "
 
 #: search/templates/results.html:22
@@ -4074,8 +4074,8 @@ msgstr "Die relevantesten Ergebnisse werden zuerst angezeigt."
 
 #: search/templates/results.html:25
 #, python-format
-msgid " Showing results %(startindex)s &mdash; %(endindex)s"
-msgstr "Ergebnisse %(startindex)s &mdash; %(endindex)s"
+msgid " Showing results %(startindex)s — %(endindex)s"
+msgstr "Ergebnisse %(startindex)s — %(endindex)s"
 
 #: search/templates/results.html:46
 msgid "No search results were found"
@@ -4083,8 +4083,8 @@ msgstr "Kein Sucherergebnisse gefunden"
 
 #: search/templates/results.html:47
 #, python-format
-msgid "No results were found for <em>&lsquo;%(term)s&rsquo;</em>."
-msgstr "Zu <em>&lsquo;%(term)s&rsquo;</em> keine Ergebnisse gefunden."
+msgid "No results were found for <em>‘%(term)s’</em>."
+msgstr "Zu <em>‘%(term)s’</em> keine Ergebnisse gefunden."
 
 #: search/templates/results.html:48
 #, python-format

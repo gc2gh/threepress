@@ -1065,7 +1065,7 @@ class UserPref(BookwormModel):
     
     def get_api_key(self):
         from bookworm.api.models import APIKey
-        return APIKey.objects.get_or_create(user=self.user)[0]
+        return smart_str(APIKey.objects.get_or_create(user=self.user)[0].key, 'utf8')
 
 class SystemInfo():
     '''This can now be computed at runtime (and cached)'''

@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-07-26 12:56-0400\n"
-"PO-Revision-Date: 2009-06-03 14:33-0400\n"
+"PO-Revision-Date: 2009-08-16 14:47-0400\n"
 "Last-Translator: Marie Bilde Rasmussen <mariebilderas@gmail.com>\n"
 "Language-Team: Danish\n"
 "MIME-Version: 1.0\n"
@@ -1338,10 +1338,10 @@ msgstr "Overensstemmelse med læseprogrammet"
 #: library/templates/epub.html:148
 msgid ""
 "\n"
-"      In accordance with the ePub specification, Bookworm will &lsquo;"
-"open&rsquo;\n"
+"      In accordance with the ePub specification, Bookworm will ‘"
+"open’\n"
 "      the ePub to the first item in the NCX file with the attribute\n"
-"      <code>linear</code> set to &lsquo;yes&rsquo;  Counterintuitively,\n"
+"      <code>linear</code> set to ‘yes’  Counterintuitively,\n"
 "      this may mean that in some titles\n"
 "      the default page for the ePub will not be the first item in the\n"
 "      NCX file.\n"
@@ -1349,9 +1349,9 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"I overensstemmelse med ePub-specifikationen, vil Bookworm &lsquo;åbne&rsquo; "
+"I overensstemmelse med ePub-specifikationen, vil Bookworm ‘åbne’ "
 "ePub-filen til det første element i NCX-filen med attributen <code>linear</"
-"code> sat til &lsquo;yes&rsquo;. I modsætning til, hvad man skulle tro, "
+"code> sat til ‘yes’. I modsætning til, hvad man skulle tro, "
 "betyder dette, at default-siden i nogle værker ikke vil være det første "
 "element i NCX-filen."
 
@@ -1618,8 +1618,8 @@ msgid "Here are some common things to check"
 msgstr "her er nogle ting, du bør tjekke"
 
 #: library/templates/help.html:62
-msgid "Is the book in &lsquo;ePub&rsquo; format?"
-msgstr "Er bogen i &lsquo;ePub&rsquo;-format?"
+msgid "Is the book in ‘ePub’ format?"
+msgstr "Er bogen i ‘ePub’-format?"
 
 #: library/templates/help.html:64
 msgid ""
@@ -1676,7 +1676,7 @@ msgid ""
 "contacted\n"
 "    an <a href=\"http://www.threepress.org/document/epub-validate/\">ePub "
 "validation system</a>,\n"
-"    which uses a program called &lsquo;epubcheck&rsquo; by Adobe.  \n"
+"    which uses a program called ‘epubcheck’ by Adobe.  \n"
 "    Bookworm will tell you if epubcheck also thought there was a problem "
 "with the ebook.\n"
 "    If they both agree, it's likely that the publisher didn't make the ePub "
@@ -1689,7 +1689,7 @@ msgstr ""
 "fejl. Da din bog blev oploadet til Bookworm og problemet opstod, kontaktede "
 "Bookworm af sig selv et <a href=\"http://www.threepress.org/document/epub-"
 "validate/\">ePub-valideringssystem</a>. Dette system bruger et program, der "
-"hedder &lsquo;epubcheck&rsquo; fra Adobe. Bookworm fortæller dig, om "
+"hedder ‘epubcheck’ fra Adobe. Bookworm fortæller dig, om "
 "epubcheck også mener der er noget galt med ebogen. Hvis begge programmer "
 "kommer til den konklusion, er det sandsynligt, at udgiveren ikke har lavet "
 "ePub-filen korrekt."
@@ -2137,7 +2137,7 @@ msgstr "tilmeld dig"
 #: library/templates/public.html:27
 msgid ""
 "Bookworm is fabulous. Hands down, a wonderful app. I love how it integrates "
-"with the iPhone for easy offline reading.&rdquo; &mdash; <a href=\"http://"
+"with the iPhone for easy offline reading.&rdquo; — <a href=\"http://"
 "getsatisfaction.com/threepress/topics/post_ideas_and_questions_about_bookworm"
 "\">Customer on Get Satisfaction"
 msgstr ""
@@ -2145,7 +2145,7 @@ msgstr ""
 #: library/templates/public.html:29
 msgid ""
 "The perfect tool for taking your own book collection anywhere that has an "
-"internet connection&rdquo; &mdash; <a href=\"http://www.jedisaber.com/ebooks/"
+"internet connection&rdquo; — <a href=\"http://www.jedisaber.com/ebooks/"
 "Readers.asp\">ePub Reader Software reviews"
 msgstr ""
 
@@ -2266,7 +2266,7 @@ msgstr ""
 "eksportere bøgerne direkte til Stanza-readeren."
 
 #: library/templates/public.html:87
-msgid "What&rsquo;s an &ldquo;ePub book&rdquo;?"
+msgid "What’s an &ldquo;ePub book&rdquo;?"
 msgstr "Hvad er en &ldquo;ePub-bog&rdquo;?"
 
 #: library/templates/public.html:90
@@ -3055,18 +3055,15 @@ msgstr ""
 "<a href=\"%(abouturl)s\">Om</a>-siden."
 
 #: library/templates/upload.html:49
+#, fuzzy
 msgid ""
-"You need to click on the &lsquo;Browse&rsquo; button and select an ebook to "
+"You need to click on the ‘Browse’ button and select an ebook to "
 "add."
-msgstr ""
-"Du skal klikke på &amp;lsquo;Browse&amp;rsquo;-knappen og vælge den ebog, "
-"der skal tilføjes."
+msgstr "Du skal klikke på Browse-knappen og vælge den ebog, der skal tilføjes."
 
 #: library/templates/upload.html:56
-msgid "Add an ePub from your computer by clicking on &lsquo;Browse&rsquo;:"
-msgstr ""
-"Tilføj en ePub fra din computer ved at klikke på &amp;lsquo;Browse&amp;"
-"rsquo;:"
+msgid "Add an ePub from your computer by clicking on ‘Browse’:"
+msgstr "Tilføj en ePub fra din computer ved at klikke på 'Browse':"
 
 #: library/templates/view.html:7
 #, python-format
@@ -3537,10 +3534,8 @@ msgstr ""
 
 #: library/templates/auth/authopenid/signin.html:63
 msgid ""
-"If you've never created an account, click &lsquo;Sign up&rsquo; on the left."
-msgstr ""
-"Hvis du aldrig har oprettet en konto, så klik på &amp;lsquo;Tilmlelding&amp;"
-"rsquo; i venstre side"
+"If you've never created an account, click ‘Sign up’ on the left."
+msgstr "Hvis du aldrig har oprettet en konto, så klik på 'Tilmlelding' i venstre side"
 
 #: library/templates/auth/authopenid/signin.html:71
 msgid "Sign in using a local Bookworm account"
@@ -3872,9 +3867,9 @@ msgstr "Om fuldtekstsøgning"
 
 #: search/templates/results.html:20
 #, python-format
-msgid " One result found for <em>&lsquo;%(term)s&rsquo;</em> in your library. "
+msgid " One result found for <em>‘%(term)s’</em> in your library. "
 msgid_plural ""
-" %(resultscount)s results found for <em>&lsquo;%(term)s&rsquo;</em> in your "
+" %(resultscount)s results found for <em>‘%(term)s’</em> in your "
 "library."
 msgstr[0] ""
 msgstr[1] ""
@@ -3885,7 +3880,7 @@ msgstr ""
 
 #: search/templates/results.html:25
 #, python-format
-msgid " Showing results %(startindex)s &mdash; %(endindex)s"
+msgid " Showing results %(startindex)s — %(endindex)s"
 msgstr ""
 
 #: search/templates/results.html:46
@@ -3894,7 +3889,7 @@ msgstr ""
 
 #: search/templates/results.html:47
 #, python-format
-msgid "No results were found for <em>&lsquo;%(term)s&rsquo;</em>."
+msgid "No results were found for <em>‘%(term)s’</em>."
 msgstr ""
 
 #: search/templates/results.html:48

@@ -1299,10 +1299,10 @@ msgstr "閱讀系統一致性"
 #: library/templates/epub.html:148
 msgid ""
 "\n"
-"      In accordance with the ePub specification, Bookworm will &lsquo;"
-"open&rsquo;\n"
+"      In accordance with the ePub specification, Bookworm will ‘"
+"open’\n"
 "      the ePub to the first item in the NCX file with the attribute\n"
-"      <code>linear</code> set to &lsquo;yes&rsquo;  Counterintuitively,\n"
+"      <code>linear</code> set to ‘yes’  Counterintuitively,\n"
 "      this may mean that in some titles\n"
 "      the default page for the ePub will not be the first item in the\n"
 "      NCX file.\n"
@@ -1310,8 +1310,8 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-" 為符合ePub的規格，Bookworm會 &lsquo;open&rsquo;在NCX檔案中依其屬性，開啟ePub"
-"為第一個項目 <code>linear</code> 設定為 &lsquo;yes&rsquo;  反直覺地,可能在一"
+" 為符合ePub的規格，Bookworm會 ‘open’在NCX檔案中依其屬性，開啟ePub"
+"為第一個項目 <code>linear</code> 設定為 ‘yes’  反直覺地,可能在一"
 "些NCX檔案中，ePub預設頁面可能不會是第一個項目。\n"
 
 #: library/templates/epub.html:158
@@ -1563,7 +1563,7 @@ msgid "Here are some common things to check"
 msgstr "需確認的一般事項"
 
 #: library/templates/help.html:62
-msgid "Is the book in &lsquo;ePub&rsquo; format?"
+msgid "Is the book in ‘ePub’ format?"
 msgstr "此書是&lsquo；ePub&rsquo；格式？"
 
 #: library/templates/help.html:64
@@ -1617,7 +1617,7 @@ msgid ""
 "contacted\n"
 "    an <a href=\"http://www.threepress.org/document/epub-validate/\">ePub "
 "validation system</a>,\n"
-"    which uses a program called &lsquo;epubcheck&rsquo; by Adobe.  \n"
+"    which uses a program called ‘epubcheck’ by Adobe.  \n"
 "    Bookworm will tell you if epubcheck also thought there was a problem "
 "with the ebook.\n"
 "    If they both agree, it's likely that the publisher didn't make the ePub "
@@ -1628,8 +1628,8 @@ msgstr ""
 "\n"
 " 另一方面，Bookworm是新產品且仍會出現程式錯誤。當你的書上載至Bookwrom且偵測到"
 "問題時，Bookworm聯繫<a href=\"http://www.threepress.org/document/epub-"
-"validate/\">ePub validation system</a>，其使用一程式稱做&lsquo;"
-"epubcheck&rsquo;透過Adobe。如果ePubcheck檢測也認為此書有問題，那Bookwrom將會"
+"validate/\">ePub validation system</a>，其使用一程式稱做‘"
+"epubcheck’透過Adobe。如果ePubcheck檢測也認為此書有問題，那Bookwrom將會"
 "告知你。如果兩者皆同意此書有問題，那有可能是出版商未將ePub設定正確。\n"
 
 #: library/templates/help.html:98
@@ -2064,7 +2064,7 @@ msgstr "註冊"
 #: library/templates/public.html:27
 msgid ""
 "Bookworm is fabulous. Hands down, a wonderful app. I love how it integrates "
-"with the iPhone for easy offline reading.&rdquo; &mdash; <a href=\"http://"
+"with the iPhone for easy offline reading.&rdquo; — <a href=\"http://"
 "getsatisfaction.com/threepress/topics/post_ideas_and_questions_about_bookworm"
 "\">Customer on Get Satisfaction"
 msgstr ""
@@ -2072,7 +2072,7 @@ msgstr ""
 #: library/templates/public.html:29
 msgid ""
 "The perfect tool for taking your own book collection anywhere that has an "
-"internet connection&rdquo; &mdash; <a href=\"http://www.jedisaber.com/ebooks/"
+"internet connection&rdquo; — <a href=\"http://www.jedisaber.com/ebooks/"
 "Readers.asp\">ePub Reader Software reviews"
 msgstr ""
 
@@ -2191,8 +2191,8 @@ msgstr ""
 "籍放到你的電子閱讀器。Bookworm特別充分利用iPhone，而且可直接輸出至Stanza。\n"
 
 #: library/templates/public.html:87
-msgid "What&rsquo;s an &ldquo;ePub book&rdquo;?"
-msgstr "什麼&rsquo;s 一 &ldquo;ePub 書籍&rdquo;?"
+msgid "What’s an &ldquo;ePub book&rdquo;?"
+msgstr "什麼’s 一 &ldquo;ePub 書籍&rdquo;?"
 
 #: library/templates/public.html:90
 #, fuzzy, python-format
@@ -2923,12 +2923,12 @@ msgstr ""
 
 #: library/templates/upload.html:49
 msgid ""
-"You need to click on the &lsquo;Browse&rsquo; button and select an ebook to "
+"You need to click on the ‘Browse’ button and select an ebook to "
 "add."
 msgstr ""
 
 #: library/templates/upload.html:56
-msgid "Add an ePub from your computer by clicking on &lsquo;Browse&rsquo;:"
+msgid "Add an ePub from your computer by clicking on ‘Browse’:"
 msgstr ""
 
 #: library/templates/view.html:7
@@ -3422,7 +3422,7 @@ msgstr ""
 
 #: library/templates/auth/authopenid/signin.html:63
 msgid ""
-"If you've never created an account, click &lsquo;Sign up&rsquo; on the left."
+"If you've never created an account, click ‘Sign up’ on the left."
 msgstr ""
 
 #: library/templates/auth/authopenid/signin.html:71
@@ -3762,9 +3762,9 @@ msgstr "關於全文搜尋"
 
 #: search/templates/results.html:20
 #, python-format
-msgid " One result found for <em>&lsquo;%(term)s&rsquo;</em> in your library. "
+msgid " One result found for <em>‘%(term)s’</em> in your library. "
 msgid_plural ""
-" %(resultscount)s results found for <em>&lsquo;%(term)s&rsquo;</em> in your "
+" %(resultscount)s results found for <em>‘%(term)s’</em> in your "
 "library."
 msgstr[0] ""
 msgstr[1] ""
@@ -3775,7 +3775,7 @@ msgstr ""
 
 #: search/templates/results.html:25
 #, python-format
-msgid " Showing results %(startindex)s &mdash; %(endindex)s"
+msgid " Showing results %(startindex)s — %(endindex)s"
 msgstr ""
 
 #: search/templates/results.html:46
@@ -3784,7 +3784,7 @@ msgstr ""
 
 #: search/templates/results.html:47
 #, python-format
-msgid "No results were found for <em>&lsquo;%(term)s&rsquo;</em>."
+msgid "No results were found for <em>‘%(term)s’</em>."
 msgstr ""
 
 #: search/templates/results.html:48

@@ -1205,10 +1205,10 @@ msgstr ""
 #: library/templates/epub.html:148
 msgid ""
 "\n"
-"      In accordance with the ePub specification, Bookworm will &lsquo;"
-"open&rsquo;\n"
+"      In accordance with the ePub specification, Bookworm will ‘"
+"open’\n"
 "      the ePub to the first item in the NCX file with the attribute\n"
-"      <code>linear</code> set to &lsquo;yes&rsquo;  Counterintuitively,\n"
+"      <code>linear</code> set to ‘yes’  Counterintuitively,\n"
 "      this may mean that in some titles\n"
 "      the default page for the ePub will not be the first item in the\n"
 "      NCX file.\n"
@@ -1406,7 +1406,7 @@ msgid "Here are some common things to check"
 msgstr ""
 
 #: library/templates/help.html:62
-msgid "Is the book in &lsquo;ePub&rsquo; format?"
+msgid "Is the book in ‘ePub’ format?"
 msgstr ""
 
 #: library/templates/help.html:64
@@ -1451,7 +1451,7 @@ msgid ""
 "contacted\n"
 "    an <a href=\"http://www.threepress.org/document/epub-validate/\">ePub "
 "validation system</a>,\n"
-"    which uses a program called &lsquo;epubcheck&rsquo; by Adobe.  \n"
+"    which uses a program called ‘epubcheck’ by Adobe.  \n"
 "    Bookworm will tell you if epubcheck also thought there was a problem "
 "with the ebook.\n"
 "    If they both agree, it's likely that the publisher didn't make the ePub "
@@ -1816,7 +1816,7 @@ msgstr ""
 #: library/templates/public.html:27
 msgid ""
 "Bookworm is fabulous. Hands down, a wonderful app. I love how it integrates "
-"with the iPhone for easy offline reading.&rdquo; &mdash; <a href=\"http://"
+"with the iPhone for easy offline reading.&rdquo; — <a href=\"http://"
 "getsatisfaction.com/threepress/topics/post_ideas_and_questions_about_bookworm"
 "\">Customer on Get Satisfaction"
 msgstr ""
@@ -1824,7 +1824,7 @@ msgstr ""
 #: library/templates/public.html:29
 msgid ""
 "The perfect tool for taking your own book collection anywhere that has an "
-"internet connection&rdquo; &mdash; <a href=\"http://www.jedisaber.com/ebooks/"
+"internet connection&rdquo; — <a href=\"http://www.jedisaber.com/ebooks/"
 "Readers.asp\">ePub Reader Software reviews"
 msgstr ""
 
@@ -1932,7 +1932,7 @@ msgid ""
 msgstr ""
 
 #: library/templates/public.html:87
-msgid "What&rsquo;s an &ldquo;ePub book&rdquo;?"
+msgid "What’s an &ldquo;ePub book&rdquo;?"
 msgstr ""
 
 #: library/templates/public.html:90
@@ -2579,12 +2579,12 @@ msgstr ""
 
 #: library/templates/upload.html:49
 msgid ""
-"You need to click on the &lsquo;Browse&rsquo; button and select an ebook to "
+"You need to click on the ‘Browse’ button and select an ebook to "
 "add."
 msgstr ""
 
 #: library/templates/upload.html:56
-msgid "Add an ePub from your computer by clicking on &lsquo;Browse&rsquo;:"
+msgid "Add an ePub from your computer by clicking on ‘Browse’:"
 msgstr ""
 
 #: library/templates/view.html:7
@@ -3029,7 +3029,7 @@ msgstr ""
 
 #: library/templates/auth/authopenid/signin.html:63
 msgid ""
-"If you've never created an account, click &lsquo;Sign up&rsquo; on the left."
+"If you've never created an account, click ‘Sign up’ on the left."
 msgstr ""
 
 #: library/templates/auth/authopenid/signin.html:71
@@ -3337,9 +3337,9 @@ msgstr "A propos de la recherche"
 
 #: search/templates/results.html:20
 #, python-format
-msgid " One result found for <em>&lsquo;%(term)s&rsquo;</em> in your library. "
+msgid " One result found for <em>‘%(term)s’</em> in your library. "
 msgid_plural ""
-" %(resultscount)s results found for <em>&lsquo;%(term)s&rsquo;</em> in your "
+" %(resultscount)s results found for <em>‘%(term)s’</em> in your "
 "library."
 msgstr[0] ""
 msgstr[1] ""
@@ -3350,7 +3350,7 @@ msgstr ""
 
 #: search/templates/results.html:25
 #, python-format
-msgid " Showing results %(startindex)s &mdash; %(endindex)s"
+msgid " Showing results %(startindex)s — %(endindex)s"
 msgstr ""
 
 #: search/templates/results.html:46
@@ -3359,7 +3359,7 @@ msgstr ""
 
 #: search/templates/results.html:47
 #, python-format
-msgid "No results were found for <em>&lsquo;%(term)s&rsquo;</em>."
+msgid "No results were found for <em>‘%(term)s’</em>."
 msgstr ""
 
 #: search/templates/results.html:48

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-07-22 10:08-0400\n"
-"PO-Revision-Date: 2009-07-22 10:10-0400\n"
+"PO-Revision-Date: 2009-08-16 14:48-0400\n"
 "Last-Translator: mahalo ito <mahalo.ito@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -1299,20 +1299,15 @@ msgstr "読書システムへの適応"
 #: library/templates/epub.html:148
 msgid ""
 "\n"
-"      In accordance with the ePub specification, Bookworm will &lsquo;"
-"open&rsquo;\n"
+"      In accordance with the ePub specification, Bookworm will ‘"
+"open’\n"
 "      the ePub to the first item in the NCX file with the attribute\n"
-"      <code>linear</code> set to &lsquo;yes&rsquo;  Counterintuitively,\n"
+"      <code>linear</code> set to ‘yes’  Counterintuitively,\n"
 "      this may mean that in some titles\n"
 "      the default page for the ePub will not be the first item in the\n"
 "      NCX file.\n"
 "      "
-msgstr ""
-"\n"
-"ePub仕様に適応するために、BookwormはePubを、NCXファイルの最初のアイテムとし"
-"て、<code>linear</code>を&lsquo;yes&rsquoに設定して、&lsquo;オープン&rsquo;に"
-"します。これは次のような意味になります。つまり、ある書籍のePubのデフォルト"
-"ページはNCXファイルの最初のアイテムとはならないということです。      "
+msgstr "\nePub仕様に適応するために、BookwormはePubを、NCXファイルの最初のアイテムとして、<code>linear</code>を‘yes'oに設定して、‘オープン’にします。これは次のような意味になります。つまり、ある書籍のePubのデフォルトページはNCXファイルの最初のアイテムとはならないということです。      "
 
 #: library/templates/epub.html:158
 msgid ""
@@ -1577,8 +1572,8 @@ msgid "Here are some common things to check"
 msgstr "よくある問題については次の質問をチェックしてください。"
 
 #: library/templates/help.html:62
-msgid "Is the book in &lsquo;ePub&rsquo; format?"
-msgstr "書籍は &lsquo;ePub&rsquo; フォーマットになっていますか？"
+msgid "Is the book in ‘ePub’ format?"
+msgstr "書籍は ‘ePub’ フォーマットになっていますか？"
 
 #: library/templates/help.html:64
 msgid ""
@@ -1633,7 +1628,7 @@ msgid ""
 "contacted\n"
 "    an <a href=\"http://www.threepress.org/document/epub-validate/\">ePub "
 "validation system</a>,\n"
-"    which uses a program called &lsquo;epubcheck&rsquo; by Adobe.  \n"
+"    which uses a program called ‘epubcheck’ by Adobe.  \n"
 "    Bookworm will tell you if epubcheck also thought there was a problem "
 "with the ebook.\n"
 "    If they both agree, it's likely that the publisher didn't make the ePub "
@@ -1644,7 +1639,7 @@ msgstr ""
 "一方で、Bookwormはまだ新しく、 バグを抱えています。 書籍をアップロードしよう"
 "としたときに問題が発覚すれば、Bookwormは<a href=\"http://www.threepress.org/"
 "document/epub-validate/\">ePub validation system</a>を呼び出します。ePub "
-"validation systemはAdobe製の &lsquo;epubcheck&rsquo;を呼び出しています。"
+"validation systemはAdobe製の ‘epubcheck’を呼び出しています。"
 "epubcheckによって、やはりebookに問題があると考えられる場合には、Bookwormはそ"
 "れをユーザーに通知します。Bookwormとepubcheckの両方で問題があるようなら、出版"
 "社が正しいePub形式で書籍を作っていない可能性があります。    "
@@ -2090,23 +2085,23 @@ msgstr "サインアップ（登録）する"
 #: library/templates/public.html:27
 msgid ""
 "Bookworm is fabulous. Hands down, a wonderful app. I love how it integrates "
-"with the iPhone for easy offline reading.&rdquo; &mdash; <a href=\"http://"
+"with the iPhone for easy offline reading.&rdquo; — <a href=\"http://"
 "getsatisfaction.com/threepress/topics/post_ideas_and_questions_about_bookworm"
 "\">Customer on Get Satisfaction"
 msgstr ""
 "Bookwormはすばらしい。とっても良くできたアプリ。特に、iPhoneでオフラインで読"
-"書できるように作られている点が気に入っています。&rdquo; &mdash; <a href="
+"書できるように作られている点が気に入っています。&rdquo; — <a href="
 "\"http://getsatisfaction.com/threepress/topics/"
 "post_ideas_and_questions_about_bookworm\">Customer on Get Satisfaction</a>"
 
 #: library/templates/public.html:29
 msgid ""
 "The perfect tool for taking your own book collection anywhere that has an "
-"internet connection&rdquo; &mdash; <a href=\"http://www.jedisaber.com/ebooks/"
+"internet connection&rdquo; — <a href=\"http://www.jedisaber.com/ebooks/"
 "Readers.asp\">ePub Reader Software reviews"
 msgstr ""
 "インターネット接続があればどこでも自分の書籍が読めるパーフェクトなツールだ。"
-"&rdquo; &mdash; <a href=\"http://www.jedisaber.com/ebooks/Readers.asp\">ePub "
+"&rdquo; — <a href=\"http://www.jedisaber.com/ebooks/Readers.asp\">ePub "
 "Reader Software reviews</a>"
 
 #: library/templates/public.html:35
@@ -2228,7 +2223,7 @@ msgstr ""
 "化されており、Stanzaへは直接エクスポートできます。"
 
 #: library/templates/public.html:87
-msgid "What&rsquo;s an &ldquo;ePub book&rdquo;?"
+msgid "What’s an &ldquo;ePub book&rdquo;?"
 msgstr "&ldquo;ePub書籍&rdquo;とは何ですか？"
 
 #: library/templates/public.html:90
@@ -3016,15 +3011,15 @@ msgstr ""
 
 #: library/templates/upload.html:49
 msgid ""
-"You need to click on the &lsquo;Browse&rsquo; button and select an ebook to "
+"You need to click on the ‘Browse’ button and select an ebook to "
 "add."
 msgstr ""
-"書籍を追加するには、&lsquo;Browse&rsquo; ボタンをクリックしてください。"
+"書籍を追加するには、‘Browse’ ボタンをクリックしてください。"
 
 #: library/templates/upload.html:56
-msgid "Add an ePub from your computer by clicking on &lsquo;Browse&rsquo;:"
+msgid "Add an ePub from your computer by clicking on ‘Browse’:"
 msgstr ""
-"&lsquo;Browse&rsquo;:をクリックしてお使いのコンピュータからePubを追加してくだ"
+"‘Browse’:をクリックしてお使いのコンピュータからePubを追加してくだ"
 "さい。"
 
 #: library/templates/view.html:7
@@ -3503,9 +3498,9 @@ msgstr ""
 
 #: library/templates/auth/authopenid/signin.html:63
 msgid ""
-"If you've never created an account, click &lsquo;Sign up&rsquo; on the left."
+"If you've never created an account, click ‘Sign up’ on the left."
 msgstr ""
-"まだアカウントを作成していないなら、左にある&lsquo;サインアップ&rsquo; をク"
+"まだアカウントを作成していないなら、左にある‘サインアップ’ をク"
 "リックしてください。"
 
 #: library/templates/auth/authopenid/signin.html:71
@@ -3841,15 +3836,15 @@ msgstr "検索について"
 
 #: search/templates/results.html:20
 #, python-format
-msgid " One result found for <em>&lsquo;%(term)s&rsquo;</em> in your library. "
+msgid " One result found for <em>‘%(term)s’</em> in your library. "
 msgid_plural ""
-" %(resultscount)s results found for <em>&lsquo;%(term)s&rsquo;</em> in your "
+" %(resultscount)s results found for <em>‘%(term)s’</em> in your "
 "library."
 msgstr[0] ""
-"あなたのライブラリ中に、<em>&lsquo;%(term)s&rsquo;</em>に対する検索結果があり"
+"あなたのライブラリ中に、<em>‘%(term)s’</em>に対する検索結果があり"
 "ました。"
 msgstr[1] ""
-"あなたのライブラリ中に、<em>&lsquo;%(term)s&rsquo;</em>に対する検索結果が%"
+"あなたのライブラリ中に、<em>‘%(term)s’</em>に対する検索結果が%"
 "(resultscount)s件ありました。"
 
 #: search/templates/results.html:22
@@ -3858,8 +3853,8 @@ msgstr "検索結果は、もっとも関連性のあるものから順に表示
 
 #: search/templates/results.html:25
 #, python-format
-msgid " Showing results %(startindex)s &mdash; %(endindex)s"
-msgstr "検索結果は %(startindex)s &mdash; %(endindex)s"
+msgid " Showing results %(startindex)s — %(endindex)s"
+msgstr "検索結果は %(startindex)s — %(endindex)s"
 
 #: search/templates/results.html:46
 msgid "No search results were found"
@@ -3867,8 +3862,8 @@ msgstr "検索結果はありませんでした"
 
 #: search/templates/results.html:47
 #, python-format
-msgid "No results were found for <em>&lsquo;%(term)s&rsquo;</em>."
-msgstr "<em>&lsquo;%(term)s&rsquo;</em>に対する検索結果はありませんでした。"
+msgid "No results were found for <em>‘%(term)s’</em>."
+msgstr "<em>‘%(term)s’</em>に対する検索結果はありませんでした。"
 
 #: search/templates/results.html:48
 #, python-format
