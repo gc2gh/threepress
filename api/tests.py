@@ -10,7 +10,15 @@ from bookworm.api import models
 from bookworm.library import models as library_models
 from bookworm.library import test_helper as helper
 
-UNAUTHED_STATUS_CODE = 403
+# Expected failure code for published endpoints
+UNAUTHED_STATUS_CODE_PUBLISHED = 403
+
+# Expected failure code for unpublished endpoints
+UNAUTHED_STATUS_CODE_UNPUBLISHED = 404
+
+# Expected status code for successful uploads
+UPLOAD_STATUS_CODE = 201
+
 EXTERNAL_EPUB_URL = 'http://www.threepress.org/static/epub/Sense-and-Sensibility_Jane-Austen.epub'
 
 def reset_keys(fn):
@@ -234,17 +242,37 @@ class Tests(TestCase):
 
     def test_api_fail_anon(self):
         '''An anonymous user should not be able to log in to the API without an API key'''
-        self.client.get('/api/documents/', status_code=UNAUTHED_STATUS_CODE)   
+        self.client.get('/api/documents/', status_code=UNAUTHED_STATUS_CODE_PUBLISHED)   
 
     def test_api_fail_logged_in(self):
         '''A logged-in user should not be able to log in to the API without an API key'''
         self._login()
-        self.client.get('/api/documents/', status_code=UNAUTHED_STATUS_CODE)
+        self.client.get('/api/documents/', status_code=UNAUTHED_STATUS_CODE_PUBLISHED)
 
     def test_api_fail_bad_key(self):
         '''A logged-in user should not be able to log in to the API with the wrong API key'''
         self._login()
-        self.client.get('/api/documents/', { 'api_key': 'None'}, status_code=UNAUTHED_STATUS_CODE)
+        self.client.get('/api/documents/', { 'api_key': 'None'}, status_code=UNAUTHED_STATUS_CODE_PUBLISHED)
+
+    def test_api_fail_anon_unpublished(self):
+        '''An anonymous user should not be able to log in to the unpublished API without an API key'''
+        self.client.get('/api/documents/1/', status_code=UNAUTHED_STATUS_CODE_UNPUBLISHED)   
+
+    def test_api_fail_logged_in_unpublished(self):
+        '''A logged-in user should not be able to log in to the unpublished API without an API key'''
+        self._login()
+        self.client.get('/api/documents/1/', status_code=UNAUTHED_STATUS_CODE_UNPUBLISHED)
+
+    def test_api_fail_bad_key(self):
+        '''A logged-in user should not be able to log in to the API with the wrong API key'''
+        self._login()
+        self.client.get('/api/documents/1/', { 'api_key': 'None'}, status_code=UNAUTHED_STATUS_CODE_UNPUBLISHED)
+
+    def test_api_fail_bad_key(self):
+        '''A logged-in user should not be able to log in to the unpublished API with the wrong API key'''
+        self._login()
+        self.client.get('/api/documents/1/', { 'api_key': 'None'}, status_code=UNAUTHED_STATUS_CODE_UNPUBLISHED)
+
 
     @reset_books
     def test_api_list_no_results(self):
@@ -333,6 +361,7 @@ class Tests(TestCase):
 
         self._validate_page(response)
         page = etree.fromstring(response.content)
+
         assert 'Pride' in page.xpath('//xhtml:li[1]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
         assert 'Alice' in page.xpath('//xhtml:li[2]/xhtml:span[@class="document-title"]/text()', namespaces={'xhtml': 'http://www.w3.org/1999/xhtml'})[0]
 
@@ -374,30 +403,30 @@ class Tests(TestCase):
 
     @reset_books
     def test_api_download_fail(self):
-        '''Users who aren't authenticated properly should return an unauthored response instead of a document request.'''
+        '''Users who aren't authenticated properly should return an unauthed response instead of a document request.'''
         self._login()
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         self._upload(name)
         self.client.logout()
         response = self.client.get('/api/documents/1/', { 'api_key': 'Fail'})
-        assert response.status_code == UNAUTHED_STATUS_CODE
+        assert response.status_code == UNAUTHED_STATUS_CODE_UNPUBLISHED
 
     def test_api_upload_fail_auth(self):
         '''Users who try to upload without being ren't authenticated properly should return an unauthored response.'''
-        response = self.client.post('/api/upload/', { 'api_key': 'Fail'})
-        assert response.status_code == UNAUTHED_STATUS_CODE
+        response = self.client.post('/api/documents/', { 'api_key': 'Fail'})
+        assert response.status_code == UNAUTHED_STATUS_CODE_PUBLISHED
 
     def test_api_upload_no_param(self):
         '''Users who are authenticated properly but don't provide an acceptable parameter for uploading should get a failed response'''
-        response = self.client.post('/api/upload/', { 'api_key': self.userpref.get_api_key().key})
-        assert response.status_code == 404
+        response = self.client.post('/api/documents/')
+        assert response.status_code == UNAUTHED_STATUS_CODE_PUBLISHED
 
     @reset_books        
     def test_api_upload_param(self):
         '''Users who are authenticated properly and provide an epub_url parameter should be able to upload that document.'''
-        response = self.client.post('/api/upload/', { 'api_key': self.userpref.get_api_key().key,
+        response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key().key,
                                                       'epub_url': EXTERNAL_EPUB_URL })
-        assert response.status_code == 201
+        assert response.status_code == UPLOAD_STATUS_CODE
 
         # Check that it's in their API list now
         response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
@@ -408,10 +437,10 @@ class Tests(TestCase):
         response = self.client.get('/library/')
         assert 'Sense and Sensibility' in response.content
 
-
     
     def _validate_page(self, response):
         '''Validate that this response contains a valid XHTML result'''
+        assert response.status_code == 200
         page = etree.fromstring(response.content)
         assert page is not None
         self.relaxng.assertValid(page)

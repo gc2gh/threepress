@@ -3,14 +3,14 @@ import uuid
 
 from django.db import models
 from django.contrib.auth.models import User
-import  django.db.models.signals as signals
+import django.db.models.signals as signals
+from django.http import HttpResponse
+from django.core.urlresolvers import reverse
 
 from bookworm.library import models as bookworm_models
+from bookworm.api import APIException
 
 log = logging.getLogger(__name__)
-
-class APIException(Exception):
-    pass
 
 class APIKeyManager(models.Manager):
     '''Override some default creation methods to automatically generate a key'''
