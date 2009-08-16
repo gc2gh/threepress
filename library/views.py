@@ -241,6 +241,8 @@ def download_epub(request, title, key, nonce=None):
     document = _get_document(request, title, key, nonce=nonce)
     if document is None:
         raise Http404        
+    if document.get_content() is None: # This occurs if the file has been deleted unexpected from the filesystem
+        raise Http404        
     content = document.get_content().read()
     if content is None:
         raise Http404

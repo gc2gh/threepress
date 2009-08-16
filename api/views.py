@@ -42,7 +42,7 @@ def main(request, SSL=True):
 
         if isinstance(resp, models.EpubArchive):
             # This was a successful add and we got back a document
-            return HttpResponseCreated(reverse('api_download', args=[resp.id]))
+            return HttpResponseCreated("%s%s" % (settings.SECURE_HOSTNAME, reverse('api_download', args=[resp.id])))
 
         # Otherwise this was an error condition
         return BookwormHttpResponseNotAcceptable(resp) # Include the complete Bookworm response

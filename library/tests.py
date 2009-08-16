@@ -14,7 +14,7 @@ from bookworm.library.models import *
 from bookworm.library.testmodels import *
 from bookworm.library.epub.toc import TOC
 from bookworm.library.epub.constants import *
-from bookworm.library.test_helper as helper
+from bookworm.library import test_helper as helper
 
 from twill import get_browser
 from twill.errors import TwillAssertionError
@@ -38,8 +38,8 @@ class TestModels(unittest.TestCase):
         # Add all our test data
         self.documents = [d for d in os.listdir(helper.DATA_DIR) if '.epub' in d and isfile('%s/%s' % (helper.DATA_DIR, d))]
 
-        if isdir(helper.PRIVATE_helper.DATA_DIR):
-            self.documents += [d for d in os.listdir(helper.PRIVATE_helper.DATA_DIR) if '.epub' in d and isfile('%s/%s' % (helper.PRIVATE_helper.DATA_DIR, d))] 
+        if isdir(helper.PRIVATE_DATA_DIR):
+            self.documents += [d for d in os.listdir(helper.PRIVATE_DATA_DIR) if '.epub' in d and isfile('%s/%s' % (helper.PRIVATE_DATA_DIR, d))] 
 
         
         self.user = User(username='testuser')
@@ -129,8 +129,6 @@ class TestModels(unittest.TestCase):
         document = self._create_document(filename)
         document.explode()
         document.save()
-        d = _get_document(title, document.id)
-        self.failUnless(d)
 
     def test_bad_epub_fails(self):
         """ePub documents with missing component should raise errors."""
@@ -306,7 +304,7 @@ class TestModels(unittest.TestCase):
         self.assertNotEquals(first_page_ncx.label,
                              first_page_spine.label)
 
-    def testhelper.get_file_by_item(self):
+    def test_get_file_by_item(self):
         '''Make sure we can find any item by its idref'''
         filename = 'Pride-and-Prejudice_Jane-Austen.epub'
         document = self._create_document(filename)
@@ -493,7 +491,7 @@ class TestModels(unittest.TestCase):
         i2 = MockImageBlob.objects.get(idref=imagename)
         assert i2.exists()
 
-        os.remove(i2.helper.get_file())
+        os.remove(i2._get_file())
 
         # Now this should fail 
         assert not i2.exists()                  
@@ -614,7 +612,7 @@ class TestModels(unittest.TestCase):
         self.assertEquals(epub, b2.get_data())
 
         # Assert that it's physically in the storage directory
-        storage = b2.helper.get_file()
+        storage = b2._get_file()
         self.assert_(os.path.exists(storage))        
 
         # Assert that once we've deleted it, it's gone
@@ -637,7 +635,7 @@ class TestModels(unittest.TestCase):
         self.assertEquals(epub, b2.get_data())
 
         # Assert that it's physically in the storage directory
-        storage = b2.helper.get_file()
+        storage = b2._get_file()
         self.assert_(os.path.exists(storage))        
 
         # Check that it's a new-style path
@@ -853,13 +851,14 @@ class TestModels(unittest.TestCase):
         assert '<a href="#">' in c.render()
         assert not '<script>' in c.render()
 
-    def _create_document(self.document, identifier='', user=self.user):
+    def _create_document(self, document, identifier='', user=None):
         epub = MockEpubArchive.objects.create(name=document)
-        
+        if not user:
+            user = self.user
         epub.identifier = identifier
         epub.save()
-        library_models.UserArchive.objects.get_or_create(archive=epub, user=user)
-        epub.set_content(get_file(document))
+        UserArchive.objects.get_or_create(archive=epub, user=user)
+        epub.set_content(helper.get_file(document))
         return epub
 
 

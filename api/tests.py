@@ -396,7 +396,8 @@ class Tests(TestCase):
         self.client.logout()
 
         # Assert that they can't download using the traditional web UI (because they're not authed)
-        response = self.client.get('/download/epub/test/1/', status_code=404)
+        response = self.client.get('/download/epub/test/1/')
+        assert response.status_code == 404
         
         response = self.client.get('/api/documents/1/', { 'api_key': self.userpref.get_api_key()})
         assert 'application/epub+zip' in response['Content-Type'] 
@@ -404,6 +405,22 @@ class Tests(TestCase):
         # Check that it's the same bytes that we started with
         assert response.content == helper.get_file(name)
 
+    @reset_books
+    def test_api_download_wrong_user(self):
+        '''Documents can be downloaded using the API only if they are owned by the user of the key'''
+        self._login()
+        name = 'Pride-and-Prejudice_Jane-Austen.epub'
+        self._upload(name)
+
+        self.client.logout()
+
+        # Assert that user2 can't download this
+        response = self.client.get('/api/documents/1/', { 'api_key': self.userpref2.get_api_key()})
+        assert response.status_code == UNAUTHED_STATUS_CODE_UNPUBLISHED 
+
+        # ...but user1 can
+        response = self.client.get('/api/documents/1/', { 'api_key': self.userpref.get_api_key()})
+        assert response.status_code == 200
 
     @reset_books
     def test_api_download_fail(self):
