@@ -7,9 +7,9 @@ __author__ = "Stephen Zabel - sjzabel@gmail.com"
 __contributors__ = "Jay Parlar - parlar@gmail.com"
 
 from django.conf import settings
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, get_host, HttpResponseForbidden, HttpResponseNotFound
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, get_host
 from django.contrib.auth import login, authenticate
-from bookworm.api import APIException
+from bookworm.api import APIException, BookwormHttpResponseForbidden, BookwormHttpResponseNotFound
 from bookworm.api.models import APIKey
 
 class APIKeyCheck(object):
@@ -27,7 +27,7 @@ class APIKeyCheck(object):
 
     def process_exception(self, request, exception):
         if isinstance(exception, APIException):
-            return HttpResponseForbidden(exception.message)
+            return BookwormHttpResponseForbidden(exception.message)
 
     def check_key(self, request, response_type='forbidden'):
         '''Checks the api_key value in the request. If response_type == 'forbidden',
@@ -39,16 +39,16 @@ class APIKeyCheck(object):
             apikey = request.POST[settings.API_FIELD_NAME]
         else:
             if response_type == 'forbidden':
-                return HttpResponseForbidden("api_key was not found in request parameters")
+                return BookwormHttpResponseForbidden("api_key was not found in request parameters")
             else:
-                return HttpResponseNotFound('')
+                return BookwormHttpResponseNotFound()
         try:
             user = APIKey.objects.user_for_key(apikey)
         except APIException, e:
             if response_type == 'forbidden':
-                return HttpResponseForbidden(e.message)                
+                return BookwormHttpResponseForbidden(e.message)                
             else:
-                return HttpResponseNotFound('')
+                return BookwormHttpResponseNotFound()
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
         return None

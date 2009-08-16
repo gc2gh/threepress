@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.http import HttpResponseNotFound
 
+
 from bookworm.api import models
 from bookworm.library import models as library_models
 from bookworm.library import test_helper as helper
@@ -18,6 +19,9 @@ UNAUTHED_STATUS_CODE_UNPUBLISHED = 404
 
 # Expected status code for successful uploads
 UPLOAD_STATUS_CODE = 201
+
+# Expected failure code for unacceptable documents
+UPLOAD_STATUS_CODE_UNACCEPTABLE = 406
 
 EXTERNAL_EPUB_URL = 'http://www.threepress.org/static/epub/Sense-and-Sensibility_Jane-Austen.epub'
 
@@ -124,7 +128,7 @@ class Tests(TestCase):
         # Manually create a key
         apikey1 = models.APIKey.objects.create(user=self.user)
         apikey2 = profile.get_api_key()
-        assert apikey1 == apikey2
+        assert apikey1.key == apikey2
 
     def test_view_api_key_on_profile_page(self):
         '''The user's API key should appear on their profile page'''
@@ -134,7 +138,7 @@ class Tests(TestCase):
         self.assertContains(response, 'testapi', status_code=200)        
 
         # Get this API key
-        key = self.user.get_profile().get_api_key().key
+        key = self.user.get_profile().get_api_key()
         assert key is not None
         assert len(key) == 32
 
@@ -144,35 +148,35 @@ class Tests(TestCase):
         '''The user's API key should change when their username is updated'''
         user = User.objects.create_user(username="usernamechange",email="usernamechange@example.com",password="usernamechange")
         library_models.UserPref.objects.create(user=user)
-        key1 = user.get_profile().get_api_key().key
+        key1 = user.get_profile().get_api_key()
         
         user.username = 'username2'
         user.save()
 
-        assert key1 != user.get_profile().get_api_key().key
+        assert key1 != user.get_profile().get_api_key()
 
     def test_api_key_change_on_password_change(self):
         '''The user's API key should change when their password is updated'''
         user = User.objects.create_user(username="passwordchange",email="passwordchange@example.com",password="passwordchange")
         library_models.UserPref.objects.create(user=user)
-        key1 = user.get_profile().get_api_key().key
+        key1 = user.get_profile().get_api_key()
         
         user.password = 'password2'
         user.save()
 
-        assert key1 != user.get_profile().get_api_key().key
+        assert key1 != user.get_profile().get_api_key()
 
 
     def test_api_key_change_not_on_email_change(self):
         '''The user's API key should NOT change when their email is updated'''
         user = User.objects.create_user(username="emailchange",email="emailchange@example.com",password="emailchange")
         library_models.UserPref.objects.create(user=user)
-        key1 = user.get_profile().get_api_key().key
+        key1 = user.get_profile().get_api_key()
         
         user.email = 'email2@example.com'
         user.save()
 
-        assert key1 == user.get_profile().get_api_key().key
+        assert key1 == user.get_profile().get_api_key()
 
     def test_api_key_change_on_password_web(self):
         '''The user's API key should visibly change on the web site after updating their password from the web'''
@@ -186,7 +190,7 @@ class Tests(TestCase):
         self.assertContains(response, username, status_code=200)        
 
         # Get this API key
-        key = user.get_profile().get_api_key().key
+        key = user.get_profile().get_api_key()
         assert key is not None
         assert len(key) == 32
         assert key in response.content
@@ -200,7 +204,7 @@ class Tests(TestCase):
         
         response = self.client.get('/account/profile/')
 
-        key2 = user.get_profile().get_api_key().key
+        key2 = user.get_profile().get_api_key()
         assert len(key2) == 32
         assert key not in response.content
         assert key2 in response.content
@@ -218,7 +222,7 @@ class Tests(TestCase):
         self.assertContains(response, username, status_code=200)        
 
         # Get this API key
-        key = user.get_profile().get_api_key().key
+        key = user.get_profile().get_api_key()
         assert key is not None
         assert len(key) == 32
         assert key in response.content
@@ -277,7 +281,7 @@ class Tests(TestCase):
     @reset_books
     def test_api_list_no_results(self):
         '''A user should be able to log in to the API with the correct API key and get a valid XHTML page even with no books.'''
-        key = self.userpref.get_api_key().key
+        key = self.userpref.get_api_key()
         response = self.client.get('/api/documents/', { 'api_key': key})
         self._validate_page(response)
 
@@ -289,7 +293,7 @@ class Tests(TestCase):
         self._upload(name)
 
         self.client.logout()
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
         self._validate_page(response)
         assert name in response.content
 
@@ -303,7 +307,7 @@ class Tests(TestCase):
         self._upload(name2)
 
         self.client.logout()
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
         self._validate_page(response)
         assert '<ol>' in response.content
         assert '<li>' in response.content
@@ -318,7 +322,7 @@ class Tests(TestCase):
         self._upload(name)
 
         self.client.logout()
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
         self._validate_page(response)
         assert 'Pride and Prejudice' in response.content
 
@@ -330,7 +334,7 @@ class Tests(TestCase):
         self._upload(name)
 
         self.client.logout()
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
         self._validate_page(response)
         assert 'Jane Austen' in response.content
 
@@ -342,7 +346,7 @@ class Tests(TestCase):
         self._upload(name)
 
         self.client.logout()
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
         self._validate_page(response)
         document = library_models.EpubArchive.objects.get(name=name)
         assert str(document.created_time) in response.content
@@ -357,7 +361,7 @@ class Tests(TestCase):
         self._upload(name2)
         
         self.client.logout()
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
 
         self._validate_page(response)
         page = etree.fromstring(response.content)
@@ -374,7 +378,7 @@ class Tests(TestCase):
         self._upload(name)
 
         self.client.logout()
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
         self._validate_page(response)
 
         page = etree.fromstring(response.content)
@@ -394,7 +398,7 @@ class Tests(TestCase):
         # Assert that they can't download using the traditional web UI (because they're not authed)
         response = self.client.get('/download/epub/test/1/', status_code=404)
         
-        response = self.client.get('/api/documents/1/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/1/', { 'api_key': self.userpref.get_api_key()})
         assert 'application/epub+zip' in response._headers['content-type'] 
 
         # Check that it's the same bytes that we started with
@@ -424,12 +428,12 @@ class Tests(TestCase):
     @reset_books        
     def test_api_upload_param(self):
         '''Users who are authenticated properly and provide an epub_url parameter should be able to upload that document.'''
-        response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key().key,
+        response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key(),
                                                          'epub_url': EXTERNAL_EPUB_URL })
         assert response.status_code == UPLOAD_STATUS_CODE
 
         # Check that it's in their API list now
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
         assert 'Sense and Sensibility' in response.content
         
         # Check that it's in their Bookworm site library too
@@ -442,23 +446,43 @@ class Tests(TestCase):
         '''Users should be able to upload a document by sending a stream of epub bytes'''
         name = 'Pride-and-Prejudice_Jane-Austen.epub'
         assert library_models.EpubArchive.objects.filter(name=name).count() == 0
-        response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key().key,
+        response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key(),
                                                          'epub_data': helper.get_filehandle(name) })        
         assert response.status_code == UPLOAD_STATUS_CODE
         assert library_models.EpubArchive.objects.filter(name=name).count() == 1
 
         # Check that it's in their API list now
-        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key().key})
+        response = self.client.get('/api/documents/', { 'api_key': self.userpref.get_api_key()})
         assert 'Pride and Prejudice' in response.content
 
         # Check that it's in their Bookworm site library too
         self._login()
         response = self.client.get('/library/')
         assert 'Pride and Prejudice' in response.content
-        
-    def _validate_page(self, response):
+
+    @reset_books        
+    def test_api_upload_bytes_invalid(self):
+        '''Users should get a useful reply when a uploaded book is invalid and cannot be added.'''
+        name = 'invalid-no-title.epub'
+        assert library_models.EpubArchive.objects.filter(name=name).count() == 0
+        response = self.client.post('/api/documents/', { 'api_key': self.userpref.get_api_key(),
+                                                         'epub_data': helper.get_filehandle(name) })        
+
+        self._wellformed(response, UPLOAD_STATUS_CODE_UNACCEPTABLE)
+
+        # We should still have zero documents
+        assert library_models.EpubArchive.objects.filter(name=name).count() == 0
+
+    def _wellformed(self, response, status_code=200):
+        '''Ensure that this response is well-formed as XML'''
+        assert response.status_code == status_code
+
+        # The response should be well-formed XHTML but have the correct response code
+        etree.fromstring(response.content)
+
+    def _validate_page(self, response, status_code=200):
         '''Validate that this response contains a valid XHTML result'''
-        assert response.status_code == 200
+        assert response.status_code == status_code
         page = etree.fromstring(response.content)
         assert page is not None
         self.relaxng.assertValid(page)

@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 
 from bookworm.library import models 
 from bookworm.library.views import download_epub, add_by_url_field, add_data_to_document
-from bookworm.api import HttpResponseCreated, HttpResponseNotAcceptable
+from bookworm.api import HttpResponseCreated, BookwormHttpResponseNotAcceptable 
 from bookworm.api.forms import APIUploadForm
 
 @never_cache
@@ -36,15 +36,16 @@ def main(request, SSL=True):
                 resp = add_data_to_document(request, document, open(temp_file), form, redirect_success_to_page=False)
                 
             else:
-                return HttpResponseNotAcceptable('You did not provide a correctly-formatted epub_data parameter: %s' % form.errors) 
+                return BookwormHttpResponseNotAcceptable('You did not provide a correctly-formatted epub_data parameter: %s' % form.errors) 
         else:
-            return HttpResponseNotAcceptable("You must either include epub_url or epub_data in your request")
+            return BookwormHttpResponseNotAcceptable("You must either include epub_url or epub_data in your request")
 
         if isinstance(resp, models.EpubArchive):
             # This was a successful add and we got back a document
             return HttpResponseCreated(reverse('api_download', args=[resp.id]))
+
         # Otherwise this was an error condition
-        return HttpResponseNotAcceptable(resp) # Include the complete Bookworm response
+        return BookwormHttpResponseNotAcceptable(resp) # Include the complete Bookworm response
 
     else:
         return HttpResponseNotAllowed('GET, POST')
