@@ -61,26 +61,19 @@ class SSLRedirect(object):
     def process_view(self, request, view_func, view_args, view_kwargs):
         '''Redirect the view to SSL if the SSL parameter is true AND if we are neither in 
         debug mode (using the Django development server) nor running tests (via test_settings.py)'''
-        if 'SSL' in view_kwargs and not (settings.TESTING or settings.DEBUG):
-            secure = view_kwargs['SSL']
-            del view_kwargs['SSL']
-            if not secure == self._is_secure(request):
-                #return self._redirect(request, secure)
-                pass
+        if '/api/' in request.path and not '/public/' in request.path and not (settings.TESTING or settings.DEBUG):
+            if not self._is_secure(request):
+                return self._redirect(request)
             
-        else:
-            secure = False
-
     def _is_secure(self, request):
         if request.is_secure():
 	    return True
         if 'HTTP_X_FORWARDED_SSL' in request.META:
             return request.META['HTTP_X_FORWARDED_SSL'] == 'on'
-
         return False
 
-    def _redirect(self, request, secure):
-        protocol = secure and "https" or "http"
+    def _redirect(self, request):
+        protocol = "https"
         newurl = "%s://%s%s" % (protocol,get_host(request),request.get_full_path())
         if settings.DEBUG and request.method == 'POST':
             raise RuntimeError, \
