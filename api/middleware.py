@@ -5,6 +5,7 @@ __license__ = "Python"
 __copyright__ = "Copyright (C) 2007, Stephen Zabel"
 __author__ = "Stephen Zabel - sjzabel@gmail.com"
 __contributors__ = "Jay Parlar - parlar@gmail.com"
+import logging
 
 from django.conf import settings
 from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, get_host
@@ -12,10 +13,12 @@ from django.contrib.auth import login, authenticate
 from bookworm.api import APIException, BookwormHttpResponseForbidden, BookwormHttpResponseNotFound
 from bookworm.api.models import APIKey
 
+log = logging.getLogger(__name__)
+
 class APIKeyCheck(object):
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        if 'SSL' in view_kwargs and not '/public/' in request.path: # This could be improved
+        if '/api/' in request.path and not '/public/' in request.path: 
             if 'epub_id' in view_kwargs:
                 # This is a request for a particular document and so should not
                 # be considered a published endpoint; return a 404 in case of failure
@@ -32,7 +35,6 @@ class APIKeyCheck(object):
     def check_key(self, request, response_type='forbidden'):
         '''Checks the api_key value in the request. If response_type == 'forbidden',
            return an HTTP 403 response; otherwise an HTTP 404.'''
-
         if settings.API_FIELD_NAME in request.GET:
             apikey = request.GET[settings.API_FIELD_NAME]
         elif settings.API_FIELD_NAME in request.POST:
@@ -60,19 +62,18 @@ class SSLRedirect(object):
         '''Redirect the view to SSL if the SSL parameter is true AND if we are neither in 
         debug mode (using the Django development server) nor running tests (via test_settings.py)'''
         if 'SSL' in view_kwargs and not (settings.TESTING or settings.DEBUG):
-            secure = view_kwargs[SSL]
-            del view_kwargs[SSL]
+            secure = view_kwargs['SSL']
+            del view_kwargs['SSL']
+            if not secure == self._is_secure(request):
+                #return self._redirect(request, secure)
+                pass
+            
         else:
             secure = False
-
-        if not secure == self._is_secure(request):
-            return self._redirect(request, secure)
 
     def _is_secure(self, request):
         if request.is_secure():
 	    return True
-
-        #Handle the Webfaction case until this gets resolved in the request.is_secure()
         if 'HTTP_X_FORWARDED_SSL' in request.META:
             return request.META['HTTP_X_FORWARDED_SSL'] == 'on'
 

@@ -55,13 +55,16 @@ class APIKeyManager(models.Manager):
 class APIKey(bookworm_models.BookwormModel):
     '''Stores the user's current API key'''
     user = models.ForeignKey(User, unique=True)
-    key = models.CharField(max_length=2000, unique=True)
+    key = models.CharField(max_length=32, unique=True)
     objects = APIKeyManager()
 
     def is_valid(self, key):
         '''Assert whether a key is valid (matches the value in the database)'''
         return self.key == key
 
+    def __unicode__(self):
+        return u"API key %s for %s (%s)" % (self.key, self.user.username, self.user.email)
+    
 def update_api_key(sender, instance, **kwargs):
     '''Signal handler to update the user's API key if the username or password has changed'''
     # Get a copy of the user object as it exists in the database
