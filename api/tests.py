@@ -5,6 +5,15 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.http import HttpResponseNotFound
+from django.conf import settings
+
+
+# It's recommended that these settings be added to a local.py 
+# for local testing:
+# HOSTNAME = 'http://localhost:9002' (or whatever port you run the Django dev server one)
+#
+# Secure hostname
+# SECURE_HOSTNAME = HOSTNAME
 
 
 from bookworm.api import models
@@ -452,7 +461,7 @@ class Tests(TestCase):
         assert '/api/documents/1/' in response['Content-Location']
 
        # Assert that we can get the document from the location in the response
-        response = self.client.get(response['Content-Location'].replace('http://testserver', ''), { 'api_key':self.userpref.get_api_key() })
+        response = self.client.get(response['Content-Location'].replace(settings.HOSTNAME, ''), { 'api_key':self.userpref.get_api_key() })
         assert response.status_code == 200
 
         # Assert that it's the right number of bytes
