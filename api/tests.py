@@ -10,7 +10,7 @@ from django.conf import settings
 
 # It's recommended that these settings be added to a local.py 
 # for local testing:
-# HOSTNAME = 'http://localhost:9002' (or whatever port you run the Django dev server one)
+# HOSTNAME = 'http://localhost:9002' (or whatever port you run the Django dev server on)
 #
 # Secure hostname
 # SECURE_HOSTNAME = HOSTNAME
