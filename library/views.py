@@ -514,14 +514,15 @@ def add_data_to_document(request, document, data, form, redirect_success_to_page
         if len(error) > 200:
             error = error[0:200] + u'...'
         message = []
-        message.append(_(u"The file you uploaded looks like an ePub archive, but it has some problems that prevented it from being loaded.  This may be a bug in Bookworm, or it may be a problem with the way the ePub file was created. The complete error message is:"))
-        message.append(_(u"<span class='upload-errors'>%s</span>" % xml_escape(error)))
+        message.append(_(u"<p class='bw-upload-message'>The file you uploaded looks like an ePub archive, but it has some problems that prevented it from being loaded.  This may be a bug in Bookworm, or it may be a problem with the way the ePub file was created. The complete error message is:</p>"))
+        message.append(_(u"<p class='bw-upload-errors'>%s</p>" % xml_escape(error)))
         if valid_resp is True:
             message.append(_(u"<p>(epubcheck thinks this file is valid, so this may be a Bookworm error)</p>"))
         else:
-            message.append(_(u"<p><a href='http://code.google.com/p/epubcheck/'>epubcheck</a> agrees that this is not a valid ePub file, so you should check with the publisher or content creator. It returned:"))
-            errors = u'<br/>'.join([i.text for i in valid_resp])
-            message.append(u"<pre class='upload-errors'>%s</pre></p>" % errors)
+            e = '\n'.join([i.text for i in valid_resp])
+            errors = ['<li>%s</li>' % i.replace('\n', '<br/>')  for i in e.split('ERROR:') if i]
+            message.append(_(u"<p class='bw-upload-message'><a href='http://code.google.com/p/epubcheck/'>epubcheck</a> agrees that this is not a valid ePub file, so you should check with the publisher or content creator. It returned <strong id='bw-num-errors'>%d</strong> error(s):</p>" % len(errors)))
+            message.append(u" <ol id='bw-upload-error-list'>%s</ol>" % ''.join(errors))
         
         return direct_to_template(request, 'upload.html', {'form':form, 
                                                            'message':u''.join(message)})                
