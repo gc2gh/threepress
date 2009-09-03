@@ -299,7 +299,7 @@ div.bw-info-box {
   font-size:larger;
   border: 1px solid rgb(200,200,200) ;
   padding:1em;
-  background-image: url(/static/yellow-gradiant.png);
+  background-image: url(yellow-gradiant.png);
   background-repeat: repeat-x;
   -moz-border-radius: 20px; 
   -webkit-border-radius: 20px; 
@@ -408,7 +408,7 @@ h3.bw-upload-message {
   padding-top:10px;
   clear:both;
   border-top: 1px solid rgb(210,210,210);
-  background-image: url(/static/yellow-gradiant.png);
+  background-image: url(yellow-gradiant.png);
   background-repeat: repeat-x;
   height:525px;
   width:700px;
@@ -476,7 +476,7 @@ h3.bw-upload-message {
 #bw-library {
     width:100%;
     background-color: rgb(254, 255, 254);
-    background-image: url(/static/yellow-gradiant-long.png);
+    background-image: url(yellow-gradiant-long.png);
     background-repeat: repeat-x;
     border-collapse:collapse;
 }

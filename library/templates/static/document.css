@@ -1,6 +1,6 @@
 a.svg {
     display:block;
-    background-image: url(/static/svg.png);
+    background-image: url(svg.png);
     background-repeat: no-repeat;
     height:50px;
     text-align:right;

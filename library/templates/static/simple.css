@@ -35,7 +35,7 @@ a:link, a:visited {
   width: 15%;
   background-position: top right;
   background-repeat: repeat-y;
-  background-image: url(/static/images/left-gray-gradiant.png);
+  background-image: url(images/left-gray-gradiant.png);
 }
 #bw-leftnav {
  width:inherit;
@@ -44,7 +44,7 @@ a:link, a:visited {
   width: 15%;
   background-position: top left;
   background-repeat: repeat-y;
-  background-image: url(/static/images/right-gray-gradiant.png);
+  background-image: url(images/right-gray-gradiant.png);
 }
 #bw-shell-right * {
 
