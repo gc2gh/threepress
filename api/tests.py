@@ -1,7 +1,14 @@
+import logging
 import os
+
+import cssutils
+
+cssutils.log.setLevel(logging.ERROR)
+
 from lxml import etree
 
 from django.test import TestCase
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.http import HttpResponseNotFound
@@ -442,7 +449,7 @@ class Tests(TestCase):
         assert response.status_code == UNAUTHED_STATUS_CODE_UNPUBLISHED
 
     def test_api_upload_fail_auth(self):
-        '''Users who try to upload without being ren't authenticated properly should return an unauthored response.'''
+        '''Users who try to upload without being aren't authenticated properly should return an unauthored response.'''
         response = self.client.post('/api/documents/', { 'api_key': 'Fail'})
         assert response.status_code == UNAUTHED_STATUS_CODE_PUBLISHED
 
@@ -507,6 +514,17 @@ class Tests(TestCase):
 
         # We should still have zero documents
         assert library_models.EpubArchive.objects.filter(name=name).count() == 0
+
+    def test_api_mention_on_help(self):
+        '''The help page should mention the API'''
+        response = self.client.get('/help/')
+        assert 'API' in response.content
+
+    def test_api_key_help_link(self):
+        '''The user's API key should link to the API help when displayed'''
+        self._login()
+        response = self.client.get(reverse('profile')) #'/account/profile/')
+        assert reverse('api_help') in response.content
 
     def _wellformed(self, response, status_code=200):
         '''Ensure that this response is well-formed as XML'''

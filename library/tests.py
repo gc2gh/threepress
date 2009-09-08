@@ -21,6 +21,7 @@ from twill.errors import TwillAssertionError
 from twill import add_wsgi_intercept
 from twill.commands import *
 
+cssutils.log.setLevel(logging.ERROR)
 
 settings.SITE_ID = 1
 
@@ -1708,7 +1709,7 @@ class TestViews(DjangoTestCase):
         assert 'Sensibility' in response.content
 
     def test_feedbooks(self):
-        '''Test that we get a list of feedbooks books from the main page'''
+        '''Test that we get a list of Feedbooks books from the main page'''
         self._login()
         response = self.client.get('/library/')
         assert 'feedbooks.com/book' in response.content

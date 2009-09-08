@@ -109,7 +109,10 @@ form input {
     </tr>
     <tr>
       <th>{% trans "Your API key" %}<br /><a href="{% url api_help %}" id="bw-api-help">{% trans "What's this?" %}</a></th>
-      <td id="bw-api-key">{{ request.user.get_profile.get_api_key }}</td>
+      <td id="bw-api-key">
+        <p><code>{{ request.user.get_profile.get_api_key }}</code></p>
+        <p class="bw-message">Keep your API key private, like a password. Your API key will change if you update your password.</p>
+      </td>
     </tr>
 
 

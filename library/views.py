@@ -510,7 +510,7 @@ def add_data_to_document(request, document, data, form, redirect_success_to_page
         # Let's see what's wrong with this by asking epubcheck too, since it will let us know if it's our bug
         valid_resp = epubcheck.validate(data)
 
-        error = e.__unicode__()
+        error = _exception_message(e)
         if len(error) > 200:
             error = error[0:200] + u'...'
         message = []
@@ -658,14 +658,25 @@ def _report_error(request, document, data, user_message, form, exception, email=
         _email_errors_to_admin(exception, data, document)
 
     return direct_to_template(request, 'upload.html', { 'form':form, 'message':user_message})    
+
                               
 def _email_errors_to_admin(exception, data, document):
     '''Send am email to the users registered to receive these messages (the value of
     settings.ERROR_EMAIL_RECIPIENTS (by default this is the first admin in settings.ADMINS).  
     '''
     # Email it to the admins
-    email = EmailMessage(u'[bookworm-error] %s (book=%s)' % (exception.__unicode__(), document.name), 
+    message = _exception_message(exception)
+
+    email = EmailMessage(u'[bookworm-error] %s (book=%s)' % (message, document.name),
                          settings.REPLYTO_EMAIL,
                          settings.ERROR_EMAIL_RECIPIENTS)
     email.attach(document.name, data, epub_constants.MIMETYPE)
-    
+
+
+def _exception_message(exception):
+    '''Return unicode string from exception.'''
+    try:
+        return exception.__unicode__()     # Python 2.6
+    except AttributeError:
+        return unicode(exception.message)  # Python 2.5
+
