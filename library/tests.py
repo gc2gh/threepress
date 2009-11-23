@@ -1643,6 +1643,14 @@ class TestViews(DjangoTestCase):
         assert 'stylesheet.css' in response.content
         assert 'font-weight: bold' in response.content
 
+    def test_zero_length_images(self):
+        '''Images that are zero-length should be gracefully handled with 404 rather than 500 errors'''
+        name ='zero-length-images.epub'
+        self._upload(name)
+
+        response = self.client.get('/view/a/1/test.jpg')
+        assert response.status_code != 500
+        assert response.status_code == 302 # Should be 404 but will auto-redirect
 
     def test_public_pages(self):
         '''Test that public pages render with 200s in all supported languages'''
@@ -1713,6 +1721,7 @@ class TestViews(DjangoTestCase):
         self._login()
         response = self.client.get('/library/')
         assert 'feedbooks.com/book' in response.content
+
 
     def _login(self):
         self.assertTrue(self.client.login(username='testuser', password='testuser'))

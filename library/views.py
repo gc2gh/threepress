@@ -220,8 +220,10 @@ def view_chapter_image(request, title, key, image):
     if image_obj.content_type == 'image/svg+xml':
         response.content = image_obj.file
     else:
-        response.content = image_obj.get_data()
-
+        try:
+            response.content = image_obj.get_data()
+        except AttributeError: # Blob disappeared or didn't exist
+            raise Http404
     return response
 
 @cache_page(60 * 15)
